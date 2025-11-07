@@ -1,0 +1,270 @@
+<resources>
+    <string name="app_name">OEEEカフェ</string>
+
+    <!-- Home Screen -->
+    <string name="home_title">ホーム</string>
+    <string name="loading">読み込み中...</string>
+    <string name="unknown_error">不明なエラー</string>
+    <string name="retry">再試行</string>
+
+    <!-- Sections -->
+    <string name="active_communities">アクティブなコミュニティ</string>
+    <string name="recent_comments">最近のコメント</string>
+    <string name="recent_posts">最近の投稿</string>
+
+    <!-- Post Detail -->
+    <string name="post_detail_title">投稿詳細</string>
+    <string name="post_published">%1$sに投稿</string>
+    <string name="post_replies">%1$d件の返信</string>
+    <string name="post_comments">%1$d件のコメント</string>
+    <string name="post_hashtags">ハッシュタグ</string>
+    <string name="post_hashtags_hint">ハッシュタグを追加 (カンマまたはスペース区切り)</string>
+
+    <!-- Profile -->
+    <string name="profile_title">プロフィール</string>
+    <string name="profile_posts">投稿</string>
+    <string name="profile_followings">フォロー中 (%1$d)</string>
+    <string name="profile_following_list_title">フォロー中</string>
+    <string name="profile_links">リンク</string>
+    <string name="profile_see_all_following">すべての同盟を見る</string>
+
+    <!-- Community Detail -->
+    <string name="community_title">コミュニティ</string>
+    <string name="community_stats">統計</string>
+    <string name="community_stat_posts">投稿</string>
+    <string name="community_stat_contributors">貢献者</string>
+    <string name="community_stat_comments">コメント</string>
+
+    <!-- Relative Time -->
+    <string name="time_just_now">たった今</string>
+    <string name="time_seconds_ago">%1$d秒前</string>
+    <string name="time_minutes_ago">%1$d分前</string>
+    <string name="time_hours_ago">%1$d時間前</string>
+    <string name="time_days_ago">%1$d日前</string>
+    <string name="time_weeks_ago">%1$d週間前</string>
+    <string name="time_months_ago">%1$dヶ月前</string>
+    <string name="time_years_ago">%1$d年前</string>
+
+    <!-- Authentication -->
+    <string name="login_username">ユーザー名</string>
+    <string name="login_password">パスワード</string>
+    <string name="login_button">ログイン</string>
+    <string name="logout_button">ログアウト</string>
+    <string name="login_error_invalid_credentials">認証情報が無効です</string>
+    <string name="login_error_network">ネットワークエラー。もう一度お試しください。</string>
+    <string name="signup_title">新規登録</string>
+    <string name="signup_login_name">ID</string>
+    <string name="signup_display_name">ニックネーム</string>
+    <string name="signup_password">パスワード</string>
+    <string name="signup_password_confirm">パスワード確認</string>
+    <string name="signup_button">新規登録</string>
+    <string name="signup_link">アカウントをお持ちでないですか？ 新規登録</string>
+
+    <!-- Settings -->
+    <string name="settings_title">設定</string>
+    <string name="settings_account">アカウント</string>
+    <string name="settings_storage">ストレージ</string>
+    <string name="settings_cache_size">画像キャッシュ: %1$s</string>
+    <string name="settings_clear_image_cache">画像キャッシュをクリア</string>
+    <string name="settings_cache_cleared">キャッシュが正常にクリアされました</string>
+    <string name="settings_delete_account">アカウント削除</string>
+    <string name="settings_password">パスワード</string>
+    <string name="settings_delete_account_confirm">アカウント削除</string>
+    <string name="settings_delete_account_warning">本当にアカウントを削除しますか？この操作は取り消すことができず、すべてのデータが永久に削除されます。</string>
+    <string name="settings_email_verification">メール認証</string>
+    <string name="settings_email_label">メール</string>
+    <string name="settings_email_verified">認証済み</string>
+    <string name="settings_email_not_verified">未認証</string>
+    <string name="settings_email_not_set">メールが設定されていません</string>
+    <string name="settings_email_verify_button">メール認証</string>
+    <string name="settings_email_change_button">メール変更</string>
+    <string name="settings_email_verification_title">メール認証</string>
+    <string name="settings_email_verification_description">認証コードを受け取るメールアドレスを入力してください。</string>
+    <string name="settings_email_send_code">コード送信</string>
+    <string name="settings_email_verify_code_title">メールコード認証</string>
+    <string name="settings_email_verify_code_description">%1$sに6桁の認証コードが送信されました</string>
+    <string name="settings_email_code_label">認証コード</string>
+    <string name="settings_email_code_expires">コード有効期限: %1$s</string>
+    <string name="settings_email_code_expired">コードの有効期限が切れました</string>
+    <string name="settings_email_verify">認証</string>
+    <string name="settings_email_resend_code">コード再送信</string>
+    <string name="settings_email_error_code_mismatch">認証コードが正しくありません</string>
+    <string name="settings_email_error_code_expired">認証コードの有効期限が切れました</string>
+    <string name="settings_email_error_challenge_not_found">認証セッションが見つかりません</string>
+    <string name="settings_email_error_required">メールを入力してください</string>
+    <string name="settings_email_error_invalid">メール形式が正しくありません</string>
+    <string name="settings_email_error_code_length">コードは6桁である必要があります</string>
+    <string name="settings_email_success_verified">メールが認証されました！</string>
+    <string name="settings_email_success_code_resent">コードが再送信されました！</string>
+    <string name="settings_email_error_verification_failed">認証に失敗しました</string>
+    <string name="settings_email_error_request_failed">認証リクエストに失敗しました</string>
+    <string name="settings_email_error_resend_failed">コード再送信に失敗しました</string>
+    <string name="settings_email_error_network">ネットワークエラー</string>
+    <string name="settings_developer_mode_enabled">開発者モードが有効になりました</string>
+    <string name="settings_advanced">詳細設定</string>
+    <string name="navigate_back">戻る</string>
+
+    <!-- Notifications -->
+    <string name="notifications_title">通知</string>
+    <string name="notifications_empty">通知がありません</string>
+    <string name="notifications_empty_message">すべて確認しました！</string>
+    <string name="notifications_mark_all_read">すべて既読にする</string>
+    <string name="notifications_loading">通知を読み込んでいます...</string>
+
+    <!-- Notification types -->
+    <string name="notification_comment">%1$sがあなたの投稿にコメントしました</string>
+    <string name="notification_reaction">%1$sがあなたの投稿にリアクションしました</string>
+    <string name="notification_reaction_emoji">%1$sがあなたの投稿に%2$sでリアクションしました</string>
+    <string name="notification_follow">%1$sがあなたをフォローし始めました</string>
+    <string name="notification_post_reply">%1$sがあなたの投稿に返信しました</string>
+    <string name="notification_guestbook_entry">%1$sがあなたのゲストブックに書き込みました</string>
+    <string name="notification_guestbook_reply">%1$sがあなたのゲストブックエントリに返信しました</string>
+    <string name="notification_mention">%1$sがコメントであなたをメンションしました</string>
+
+    <!-- Search -->
+    <string name="search_title">検索</string>
+    <string name="search_prompt">ユーザーと投稿を検索</string>
+    <string name="search_no_results">結果が見つかりません</string>
+    <string name="search_try_different">別の検索語句を試してください</string>
+    <string name="search_users">ユーザー</string>
+    <string name="search_posts">投稿</string>
+
+    <!-- Draft Post -->
+    <string name="draft_publish_title">絵を投稿</string>
+    <string name="draft_publish_button">投稿</string>
+    <string name="draft_title_hint">タイトル</string>
+    <string name="draft_description_hint">説明（任意）</string>
+    <string name="draft_preview">プレビュー</string>
+    <string name="draft_publishing">投稿中...</string>
+    <string name="draft_sensitive_content">センシティブなコンテンツ</string>
+    <string name="draft_allow_relay">リレーを許可</string>
+    <string name="drafts_title">下書き</string>
+
+    <!-- Post Actions -->
+    <string name="post_delete">削除</string>
+    <string name="post_delete_title">投稿を削除</string>
+    <string name="post_delete_message">この投稿を削除してもよろしいですか？この操作は元に戻せません。</string>
+    <string name="post_reply">返信</string>
+    <string name="post_replying_to">返信先:</string>
+    <string name="post_share">共有</string>
+    <string name="comment_write_placeholder">コメントを書く...</string>
+    <string name="comment_post">コメントを投稿</string>
+    <string name="comment_cancel_reply">返信をキャンセル</string>
+    <string name="reactors_none">リアクションなし</string>
+
+    <!-- Communities -->
+    <string name="communities_title">コミュニティ</string>
+    <string name="my_communities">マイコミュニティ</string>
+    <string name="public_communities">公開コミュニティ</string>
+    <string name="search_results">検索結果</string>
+    <string name="no_communities">コミュニティが見つかりません</string>
+    <string name="no_search_results">結果が見つかりません</string>
+    <string name="community_search_placeholder">コミュニティを検索...</string>
+    <string name="communities_error">コミュニティを読み込めませんでした</string>
+    <string name="search">検索</string>
+    <string name="clear">クリア</string>
+
+    <!-- Common -->
+    <string name="cancel">キャンセル</string>
+    <string name="back">戻る</string>
+    <string name="new_post">新規投稿</string>
+
+    <!-- Errors -->
+    <string name="error_password_required">パスワードを入力してください</string>
+    <string name="error_passwords_not_match">パスワードが一致しません</string>
+    <string name="error_failed_to_load_posts">投稿の読み込みに失敗しました</string>
+    <string name="error_unknown">不明なエラーが発生しました</string>
+    <string name="error_failed_to_load_more">さらに投稿を読み込めませんでした</string>
+    <string name="error_failed_to_load_drafts">下書きの読み込みに失敗しました</string>
+    <string name="error_loading_drafts">下書きの読み込み中にエラーが発生しました</string>
+    <string name="error_signup_failed">登録に失敗しました</string>
+    <string name="error_search_failed">検索に失敗しました</string>
+    <string name="error_publish_failed">投稿に失敗しました (ステータス %1$d)</string>
+    <string name="error_network">ネットワークエラー: %1$s</string>
+
+    <!-- Draft Strings -->
+    <string name="drafts_no_drafts">下書きはありません</string>
+    <string name="drafts_empty_message">下書きの投稿がここに表示されます</string>
+    <string name="drafts_untitled">タイトルなし</string>
+
+    <!-- Drawing -->
+    <string name="draw_select_canvas_size">キャンバスサイズを選択</string>
+    <string name="draw_drawing_tool">描画ツール</string>
+    <string name="draw_width">幅</string>
+    <string name="draw_height">高さ</string>
+    <string name="draw_preview">プレビュー</string>
+    <string name="draw_start_drawing">描画を開始</string>
+    <string name="draw_icon_desc">描画</string>
+    <string name="clear_search">検索をクリア</string>
+    <string name="drawing_preview">描画プレビュー</string>
+
+    <!-- Community Management -->
+    <string name="community_create_title">コミュニティを作成</string>
+    <string name="community_edit_title">コミュニティを編集</string>
+    <string name="community_create">作成</string>
+    <string name="community_save">保存</string>
+    <string name="community_basic_info">基本情報</string>
+    <string name="community_name">名前</string>
+    <string name="community_id">ID</string>
+    <string name="community_id_hint">英字、数字、ハイフン、アンダースコアのみ</string>
+    <string name="community_id_cannot_change">IDは変更できません</string>
+    <string name="community_id_error_invalid">英字、数字、ハイフン、アンダースコアのみ使用できます</string>
+    <string name="community_id_error_min">IDは最低2文字以上である必要があります</string>
+    <string name="community_id_error_max">IDは最大50文字までです</string>
+    <string name="community_description">説明</string>
+    <string name="community_privacy">公開範囲</string>
+    <string name="community_visibility_public">公開</string>
+    <string name="community_visibility_public_desc">誰でもこのコミュニティを見て参加できます。検索に表示されます。</string>
+    <string name="community_visibility_unlisted">未掲載</string>
+    <string name="community_visibility_unlisted_desc">リンクを知っている人だけがこのコミュニティを見ることができます。検索に表示されません。</string>
+    <string name="community_visibility_private">プライベート</string>
+    <string name="community_visibility_private_desc">メンバーのみがこのコミュニティを見ることができます。招待制で連合されません。</string>
+    <string name="community_visibility_note">注: プライベートコミュニティを公開/未掲載に変更したり、その逆はできません。</string>
+    <string name="community_error_create">コミュニティの作成に失敗しました</string>
+    <string name="community_error_update">コミュニティの更新に失敗しました</string>
+    <string name="community_danger_zone">危険ゾーン</string>
+    <string name="community_delete_title">コミュニティを削除</string>
+    <string name="community_delete_warning">コミュニティを削除すると、元に戻すことができません。このコミュニティのすべての投稿も削除されます。</string>
+    <string name="community_delete_confirm_prompt">%1$sと入力して確認</string>
+    <string name="community_delete_button">コミュニティを削除</string>
+
+    <!-- Community Members -->
+    <string name="community_members_title">メンバー</string>
+    <string name="community_member_remove_title">メンバーを削除</string>
+    <string name="community_member_remove_message">本当にこのコミュニティから%1$sを削除しますか？</string>
+    <string name="community_member_remove">削除</string>
+    <string name="community_members_pending_invitations">保留中の招待</string>
+    <string name="community_role_owner">オーナー</string>
+    <string name="community_role_moderator">モデレーター</string>
+    <string name="community_role_member">メンバー</string>
+    <string name="community_invitation_invited">招待済み</string>
+    <string name="community_invitation_retract">取り消す</string>
+    <string name="community_error_load_members">メンバーの読み込みに失敗しました</string>
+    <string name="community_error_remove_member">メンバーの削除に失敗しました</string>
+    <string name="community_error_retract_invitation">招待の取り消しに失敗しました</string>
+
+    <!-- Invite User -->
+    <string name="community_invite_user_title">ユーザーを招待</string>
+    <string name="community_invite_user_invite">招待</string>
+    <string name="community_invite_user_desc">このコミュニティに招待するユーザーのユーザー名を入力してください。</string>
+    <string name="community_invite_user_username">ユーザー名</string>
+    <string name="community_invite_user_username_hint">username</string>
+    <string name="community_error_invite_user">ユーザーの招待に失敗しました</string>
+
+    <!-- Community Invitations -->
+    <string name="community_invitations_title">コミュニティへの招待</string>
+    <string name="community_invitations_empty_title">保留中の招待はありません</string>
+    <string name="community_invitations_empty_message">現在、コミュニティへの招待はありません。</string>
+    <string name="community_invitation_invited_by">招待元</string>
+    <string name="community_invitation_decline">拒否</string>
+    <string name="community_invitation_accept">承諾</string>
+    <string name="community_error_load_invitations">招待の読み込みに失敗しました</string>
+    <string name="community_error_accept_invitation">招待の承諾に失敗しました</string>
+    <string name="community_error_reject_invitation">招待の拒否に失敗しました</string>
+
+    <!-- Common Dialog -->
+    <string name="dialog_error">エラー</string>
+    <string name="dialog_ok">OK</string>
+    <string name="dialog_error_unknown">不明なエラーが発生しました</string>
+    <string name="dialog_error_generic">エラーが発生しました</string>
+</resources>

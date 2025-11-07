@@ -1,0 +1,273 @@
+<resources>
+    <string name="app_name">Oeee Cafe</string>
+
+    <!-- Home Screen -->
+    <string name="home_title">Home</string>
+    <string name="loading">Loading...</string>
+    <string name="unknown_error">Unknown error</string>
+    <string name="retry">Retry</string>
+
+    <!-- Sections -->
+    <string name="active_communities">Active Communities</string>
+    <string name="recent_comments">Recent Comments</string>
+    <string name="recent_posts">Recent Posts</string>
+
+    <!-- Post Detail -->
+    <string name="post_detail_title">Post Details</string>
+    <string name="post_published">Published %1$s</string>
+    <string name="post_replies">%1$d Replies</string>
+    <string name="post_comments">%1$d Comments</string>
+    <string name="post_hashtags">Hashtags</string>
+    <string name="post_hashtags_hint">Add hashtags (comma or space separated)</string>
+
+    <!-- Profile -->
+    <string name="profile_title">Profile</string>
+    <string name="profile_posts">Posts</string>
+    <string name="profile_followings">Following (%1$d)</string>
+    <string name="profile_following_list_title">Following</string>
+    <string name="profile_links">Links</string>
+    <string name="profile_see_all_following">See all following</string>
+    <string name="profile_follow">Follow</string>
+    <string name="profile_unfollow">Unfollow</string>
+
+    <!-- Community Detail -->
+    <string name="community_title">Community</string>
+    <string name="community_stats">Stats</string>
+    <string name="community_stat_posts">Posts</string>
+    <string name="community_stat_contributors">Contributors</string>
+    <string name="community_stat_comments">Comments</string>
+
+    <!-- Relative Time -->
+    <string name="time_just_now">just now</string>
+    <string name="time_seconds_ago">%1$ds ago</string>
+    <string name="time_minutes_ago">%1$dm ago</string>
+    <string name="time_hours_ago">%1$dh ago</string>
+    <string name="time_days_ago">%1$dd ago</string>
+    <string name="time_weeks_ago">%1$dw ago</string>
+    <string name="time_months_ago">%1$dmo ago</string>
+    <string name="time_years_ago">%1$dy ago</string>
+
+    <!-- Authentication -->
+    <string name="login_username">Username</string>
+    <string name="login_password">Password</string>
+    <string name="login_button">Log In</string>
+    <string name="logout_button">Sign Out</string>
+    <string name="login_error_invalid_credentials">Invalid credentials</string>
+    <string name="login_error_network">Network error. Please try again.</string>
+    <string name="signup_title">Sign Up</string>
+    <string name="signup_login_name">Username</string>
+    <string name="signup_display_name">Display Name</string>
+    <string name="signup_password">Password</string>
+    <string name="signup_password_confirm">Confirm Password</string>
+    <string name="signup_button">Sign Up</string>
+    <string name="signup_link">Don\'t have an account? Sign Up</string>
+
+    <!-- Settings -->
+    <string name="settings_title">Settings</string>
+    <string name="settings_account">Account</string>
+    <string name="settings_storage">Storage</string>
+    <string name="settings_cache_size">Image cache: %1$s</string>
+    <string name="settings_clear_image_cache">Clear Image Cache</string>
+    <string name="settings_cache_cleared">Cache cleared successfully</string>
+    <string name="settings_delete_account">Delete Account</string>
+    <string name="settings_password">Password</string>
+    <string name="settings_delete_account_confirm">Delete Account</string>
+    <string name="settings_delete_account_warning">Are you sure you want to delete your account? This action cannot be undone and will permanently delete all your data.</string>
+    <string name="settings_email_verification">Email Verification</string>
+    <string name="settings_email_label">Email</string>
+    <string name="settings_email_verified">Verified</string>
+    <string name="settings_email_not_verified">Not verified</string>
+    <string name="settings_email_not_set">No email set</string>
+    <string name="settings_email_verify_button">Verify Email</string>
+    <string name="settings_email_change_button">Change Email</string>
+    <string name="settings_email_verification_title">Verify Email</string>
+    <string name="settings_email_verification_description">Enter your email address to receive a verification code.</string>
+    <string name="settings_email_send_code">Send Code</string>
+    <string name="settings_email_verify_code_title">Verify Email Code</string>
+    <string name="settings_email_verify_code_description">A 6-digit verification code has been sent to %1$s</string>
+    <string name="settings_email_code_label">Verification Code</string>
+    <string name="settings_email_code_expires">Code expires in %1$s</string>
+    <string name="settings_email_code_expired">Code has expired</string>
+    <string name="settings_email_verify">Verify</string>
+    <string name="settings_email_resend_code">Resend Code</string>
+    <string name="settings_email_error_code_mismatch">The verification code is incorrect</string>
+    <string name="settings_email_error_code_expired">The verification code has expired</string>
+    <string name="settings_email_error_challenge_not_found">Verification session not found</string>
+    <string name="settings_email_error_required">Email is required</string>
+    <string name="settings_email_error_invalid">Invalid email format</string>
+    <string name="settings_email_error_code_length">Code must be 6 digits</string>
+    <string name="settings_email_success_verified">Email verified successfully!</string>
+    <string name="settings_email_success_code_resent">Code resent!</string>
+    <string name="settings_email_error_verification_failed">Verification failed</string>
+    <string name="settings_email_error_request_failed">Failed to request verification</string>
+    <string name="settings_email_error_resend_failed">Failed to resend code</string>
+    <string name="settings_email_error_network">Network error</string>
+    <string name="settings_developer_mode_enabled">Developer mode enabled</string>
+    <string name="settings_advanced">Advanced</string>
+    <string name="navigate_back">Navigate back</string>
+
+    <!-- Notifications -->
+    <string name="notifications_title">Notifications</string>
+    <string name="notifications_empty">No notifications</string>
+    <string name="notifications_empty_message">You\'re all caught up!</string>
+    <string name="notifications_mark_all_read">Mark all read</string>
+    <string name="notifications_loading">Loading notifications...</string>
+
+    <!-- Notification types -->
+    <string name="notification_comment">%1$s commented on your post</string>
+    <string name="notification_reaction">%1$s reacted to your post</string>
+    <string name="notification_reaction_emoji">%1$s reacted with %2$s to your post</string>
+    <string name="notification_follow">%1$s started following you</string>
+    <string name="notification_post_reply">%1$s replied to your post</string>
+    <string name="notification_guestbook_entry">%1$s wrote in your guestbook</string>
+    <string name="notification_guestbook_reply">%1$s replied to your guestbook entry</string>
+    <string name="notification_mention">%1$s mentioned you in a comment</string>
+
+    <!-- Search -->
+    <string name="search_title">Search</string>
+    <string name="search_prompt">Search for users and posts</string>
+    <string name="search_no_results">No results found</string>
+    <string name="search_try_different">Try a different search term</string>
+    <string name="search_users">Users</string>
+    <string name="search_posts">Posts</string>
+
+    <!-- Draft Post -->
+    <string name="draft_publish_title">Publish Drawing</string>
+    <string name="draft_publish_button">Publish</string>
+    <string name="draft_title_hint">Title</string>
+    <string name="draft_description_hint">Description (optional)</string>
+    <string name="draft_preview">Preview</string>
+    <string name="draft_publishing">Publishing...</string>
+    <string name="draft_sensitive_content">Sensitive Content</string>
+    <string name="draft_allow_relay">Allow Relay</string>
+    <string name="drafts_title">Drafts</string>
+
+    <!-- Post Actions -->
+    <string name="post_delete">Delete</string>
+    <string name="post_delete_title">Delete Post</string>
+    <string name="post_delete_message">Are you sure you want to delete this post? This action cannot be undone.</string>
+    <string name="post_reply">Reply</string>
+    <string name="post_replying_to">Replying to:</string>
+    <string name="post_share">Share</string>
+    <string name="replay_title">Replay</string>
+    <string name="comment_write_placeholder">Write a comment...</string>
+    <string name="comment_post">Post comment</string>
+    <string name="comment_cancel_reply">Cancel reply</string>
+    <string name="reactors_none">No reactors</string>
+
+    <!-- Communities -->
+    <string name="communities_title">Communities</string>
+    <string name="my_communities">My Communities</string>
+    <string name="public_communities">Public Communities</string>
+    <string name="search_results">Search Results</string>
+    <string name="no_communities">No communities found</string>
+    <string name="no_search_results">No results found</string>
+    <string name="community_search_placeholder">Search communities...</string>
+    <string name="communities_error">Failed to load communities</string>
+    <string name="search">Search</string>
+    <string name="clear">Clear</string>
+
+    <!-- Common -->
+    <string name="cancel">Cancel</string>
+    <string name="back">Back</string>
+    <string name="new_post">New Post</string>
+
+    <!-- Errors -->
+    <string name="error_password_required">Password is required</string>
+    <string name="error_passwords_not_match">Passwords do not match</string>
+    <string name="error_failed_to_load_posts">Failed to load posts</string>
+    <string name="error_unknown">Unknown error occurred</string>
+    <string name="error_failed_to_load_more">Failed to load more posts</string>
+    <string name="error_failed_to_load_drafts">Failed to load drafts</string>
+    <string name="error_loading_drafts">Error loading drafts</string>
+    <string name="error_signup_failed">Signup failed</string>
+    <string name="error_search_failed">Search failed</string>
+    <string name="error_publish_failed">Failed to publish (Status %1$d)</string>
+    <string name="error_network">Network error: %1$s</string>
+
+    <!-- Draft Strings -->
+    <string name="drafts_no_drafts">No drafts</string>
+    <string name="drafts_empty_message">Your draft posts will appear here</string>
+    <string name="drafts_untitled">Untitled</string>
+
+    <!-- Drawing -->
+    <string name="draw_select_canvas_size">Select Canvas Size</string>
+    <string name="draw_drawing_tool">Drawing Tool</string>
+    <string name="draw_width">Width</string>
+    <string name="draw_height">Height</string>
+    <string name="draw_preview">Preview</string>
+    <string name="draw_start_drawing">Start Drawing</string>
+    <string name="draw_icon_desc">Draw</string>
+    <string name="clear_search">Clear search</string>
+    <string name="drawing_preview">Drawing preview</string>
+
+    <!-- Community Management -->
+    <string name="community_create_title">Create Community</string>
+    <string name="community_edit_title">Edit Community</string>
+    <string name="community_create">Create</string>
+    <string name="community_save">Save</string>
+    <string name="community_basic_info">Basic Info</string>
+    <string name="community_name">Name</string>
+    <string name="community_id">ID</string>
+    <string name="community_id_hint">Letters, numbers, hyphens, and underscores only</string>
+    <string name="community_id_cannot_change">ID cannot be changed</string>
+    <string name="community_id_error_invalid">Only letters, numbers, hyphens, and underscores allowed</string>
+    <string name="community_id_error_min">ID must be at least 2 characters</string>
+    <string name="community_id_error_max">ID must be at most 50 characters</string>
+    <string name="community_description">Description</string>
+    <string name="community_privacy">Privacy</string>
+    <string name="community_visibility_public">Public</string>
+    <string name="community_visibility_public_desc">Anyone can see and join this community. It appears in discovery.</string>
+    <string name="community_visibility_unlisted">Unlisted</string>
+    <string name="community_visibility_unlisted_desc">Anyone with the link can see this community. It doesn\'t appear in discovery.</string>
+    <string name="community_visibility_private">Private</string>
+    <string name="community_visibility_private_desc">Only members can see this community. Invite-only and not federated.</string>
+    <string name="community_visibility_note">Note: You cannot change a private community to public/unlisted, or vice versa.</string>
+    <string name="community_error_create">Failed to create community</string>
+    <string name="community_error_update">Failed to update community</string>
+    <string name="community_danger_zone">Danger Zone</string>
+    <string name="community_delete_title">Delete Community</string>
+    <string name="community_delete_warning">Deleting a community is permanent and cannot be undone. All posts in this community will also be deleted.</string>
+    <string name="community_delete_confirm_prompt">Type %1$s to confirm</string>
+    <string name="community_delete_button">Delete Community</string>
+
+    <!-- Community Members -->
+    <string name="community_members_title">Members</string>
+    <string name="community_member_remove_title">Remove Member</string>
+    <string name="community_member_remove_message">Are you sure you want to remove %1$s from this community?</string>
+    <string name="community_member_remove">Remove</string>
+    <string name="community_members_pending_invitations">Pending Invitations</string>
+    <string name="community_role_owner">Owner</string>
+    <string name="community_role_moderator">Moderator</string>
+    <string name="community_role_member">Member</string>
+    <string name="community_invitation_invited">Invited</string>
+    <string name="community_invitation_retract">Retract</string>
+    <string name="community_error_load_members">Failed to load members</string>
+    <string name="community_error_remove_member">Failed to remove member</string>
+    <string name="community_error_retract_invitation">Failed to retract invitation</string>
+
+    <!-- Invite User -->
+    <string name="community_invite_user_title">Invite User</string>
+    <string name="community_invite_user_invite">Invite</string>
+    <string name="community_invite_user_desc">Enter the username of the user you want to invite to this community.</string>
+    <string name="community_invite_user_username">Username</string>
+    <string name="community_invite_user_username_hint">username</string>
+    <string name="community_error_invite_user">Failed to invite user</string>
+
+    <!-- Community Invitations -->
+    <string name="community_invitations_title">Community Invitations</string>
+    <string name="community_invitations_empty_title">No Pending Invitations</string>
+    <string name="community_invitations_empty_message">You don\'t have any community invitations at the moment.</string>
+    <string name="community_invitation_invited_by">Invited by</string>
+    <string name="community_invitation_decline">Decline</string>
+    <string name="community_invitation_accept">Accept</string>
+    <string name="community_error_load_invitations">Failed to load invitations</string>
+    <string name="community_error_accept_invitation">Failed to accept invitation</string>
+    <string name="community_error_reject_invitation">Failed to reject invitation</string>
+
+    <!-- Common Dialog -->
+    <string name="dialog_error">Error</string>
+    <string name="dialog_ok">OK</string>
+    <string name="dialog_error_unknown">An unknown error occurred</string>
+    <string name="dialog_error_generic">An error occurred</string>
+</resources>

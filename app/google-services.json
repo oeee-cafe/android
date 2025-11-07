@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "371775747741",
+    "project_id": "oeee-cafe",
+    "storage_bucket": "oeee-cafe.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:371775747741:android:5668d497ea07c8d6d80674",
+        "android_client_info": {
+          "package_name": "cafe.oeee"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCUjU8SiXnrzHYBxO2W41cfawdGjjL9NXc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
