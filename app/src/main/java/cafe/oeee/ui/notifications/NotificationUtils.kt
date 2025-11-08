@@ -18,5 +18,6 @@ fun NotificationItem.getDisplayText(context: Context): String {
         NotificationType.GUESTBOOK_ENTRY -> context.getString(R.string.notification_guestbook_entry, actorName)
         NotificationType.GUESTBOOK_REPLY -> context.getString(R.string.notification_guestbook_reply, actorName)
         NotificationType.MENTION -> context.getString(R.string.notification_mention, actorName)
+        null -> "" // Should never happen as null types are filtered out, but handle defensively
     }
 }

@@ -39,8 +39,11 @@ class NotificationsViewModel(context: Context) : ViewModel() {
 
             result.fold(
                 onSuccess = { response ->
+                    // Filter out notifications with unknown types (null notificationType)
+                    val validNotifications = response.notifications.filter { it.notificationType != null }
+
                     _uiState.value = _uiState.value.copy(
-                        notifications = response.notifications,
+                        notifications = validNotifications,
                         hasMore = response.hasMore,
                         isLoading = false
                     )
@@ -69,8 +72,11 @@ class NotificationsViewModel(context: Context) : ViewModel() {
 
             result.fold(
                 onSuccess = { response ->
+                    // Filter out notifications with unknown types (null notificationType)
+                    val validNotifications = response.notifications.filter { it.notificationType != null }
+
                     _uiState.value = _uiState.value.copy(
-                        notifications = _uiState.value.notifications + response.notifications,
+                        notifications = _uiState.value.notifications + validNotifications,
                         hasMore = response.hasMore,
                         isLoadingMore = false
                     )
