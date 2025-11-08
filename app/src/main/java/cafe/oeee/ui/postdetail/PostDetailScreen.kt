@@ -149,7 +149,8 @@ fun PostDetailScreen(
                         val context = LocalContext.current
                         IconButton(onClick = {
                             val post = uiState.post!!
-                            val shareUrl = "https://oeee.cafe/@${post.author.loginName}/${post.id}"
+                            val slug = post.community?.slug ?: post.author.loginName
+                            val shareUrl = "https://oeee.cafe/@${slug}/${post.id}"
                             val shareIntent = android.content.Intent().apply {
                                 action = android.content.Intent.ACTION_SEND
                                 putExtra(android.content.Intent.EXTRA_TEXT, shareUrl)
@@ -396,18 +397,20 @@ fun PostDetailContent(
                     Text(post.author.loginName)
                 }
 
-                // Community
-                OutlinedButton(
-                    onClick = { onCommunityClick(post.community.slug) },
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Icon(
-                        painter = androidx.compose.ui.res.painterResource(android.R.drawable.ic_menu_view),
-                        contentDescription = null,
-                        modifier = Modifier.size(20.dp)
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text(post.community.name)
+                // Community (only show if post has community)
+                post.community?.let { community ->
+                    OutlinedButton(
+                        onClick = { onCommunityClick(community.slug) },
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Icon(
+                            painter = androidx.compose.ui.res.painterResource(android.R.drawable.ic_menu_view),
+                            contentDescription = null,
+                            modifier = Modifier.size(20.dp)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(community.name)
+                    }
                 }
 
                 HorizontalDivider()

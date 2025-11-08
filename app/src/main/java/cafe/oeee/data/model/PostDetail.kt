@@ -50,7 +50,7 @@ data class PostDetail(
     @Json(name = "image") val image: ImageInfo,
     @Json(name = "is_sensitive") val isSensitive: Boolean,
     @Json(name = "published_at_utc") val publishedAtUtc: Date?,
-    @Json(name = "community") val community: PostCommunityInfo,
+    @Json(name = "community") val community: PostCommunityInfo?,
     @Json(name = "hashtags") val hashtags: List<String> = emptyList()
 )
 
