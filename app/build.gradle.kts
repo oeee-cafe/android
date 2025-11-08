@@ -15,7 +15,7 @@ android {
 
     defaultConfig {
         applicationId = "cafe.oeee"
-        minSdk = 30
+        minSdk = 26
         targetSdk = 36
         versionCode = 3
         versionName = "1.0"
