@@ -8,6 +8,7 @@ import cafe.oeee.data.model.notification.NotificationType
 fun NotificationItem.getDisplayText(context: Context): String {
     return when (notificationType) {
         NotificationType.COMMENT -> context.getString(R.string.notification_comment, actorName)
+        NotificationType.COMMENT_REPLY -> context.getString(R.string.notification_comment_reply, actorName)
         NotificationType.REACTION -> {
             reactionEmoji?.let {
                 context.getString(R.string.notification_reaction_emoji, actorName, it)

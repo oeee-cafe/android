@@ -115,6 +115,7 @@
 
     <!-- Notification types -->
     <string name="notification_comment">%1$s commented on your post</string>
+    <string name="notification_comment_reply">%1$s replied to your comment</string>
     <string name="notification_reaction">%1$s reacted to your post</string>
     <string name="notification_reaction_emoji">%1$s reacted with %2$s to your post</string>
     <string name="notification_follow">%1$s started following you</string>

@@ -112,6 +112,7 @@
 
     <!-- Notification types -->
     <string name="notification_comment">%1$s评论了您的帖子</string>
+    <string name="notification_comment_reply">%1$s回复了您的评论</string>
     <string name="notification_reaction">%1$s对您的帖子做出了反应</string>
     <string name="notification_reaction_emoji">%1$s用%2$s对您的帖子做出了反应</string>
     <string name="notification_follow">%1$s开始关注您了</string>

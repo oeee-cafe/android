@@ -113,6 +113,7 @@
 
     <!-- Notification types -->
     <string name="notification_comment">%1$sがあなたの投稿にコメントしました</string>
+    <string name="notification_comment_reply">%1$sがあなたのコメントに返信しました</string>
     <string name="notification_reaction">%1$sがあなたの投稿にリアクションしました</string>
     <string name="notification_reaction_emoji">%1$sがあなたの投稿に%2$sでリアクションしました</string>
     <string name="notification_follow">%1$sがあなたをフォローし始めました</string>

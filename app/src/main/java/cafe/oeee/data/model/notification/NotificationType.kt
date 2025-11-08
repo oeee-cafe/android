@@ -6,6 +6,9 @@ enum class NotificationType {
     @Json(name = "Comment")
     COMMENT,
 
+    @Json(name = "CommentReply")
+    COMMENT_REPLY,
+
     @Json(name = "Reaction")
     REACTION,
 
