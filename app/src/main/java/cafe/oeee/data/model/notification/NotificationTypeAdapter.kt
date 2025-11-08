@@ -16,6 +16,7 @@ class NotificationTypeAdapter {
         return try {
             when (value) {
                 "Comment" -> NotificationType.COMMENT
+                "CommentReply" -> NotificationType.COMMENT_REPLY
                 "Reaction" -> NotificationType.REACTION
                 "Follow" -> NotificationType.FOLLOW
                 "GuestbookEntry" -> NotificationType.GUESTBOOK_ENTRY
@@ -33,6 +34,7 @@ class NotificationTypeAdapter {
     fun toJson(type: NotificationType?): String? {
         return when (type) {
             NotificationType.COMMENT -> "Comment"
+            NotificationType.COMMENT_REPLY -> "CommentReply"
             NotificationType.REACTION -> "Reaction"
             NotificationType.FOLLOW -> "Follow"
             NotificationType.GUESTBOOK_ENTRY -> "GuestbookEntry"
