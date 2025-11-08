@@ -1,6 +1,7 @@
 package cafe.oeee.data.remote
 
 import android.content.Context
+import cafe.oeee.data.model.notification.NotificationTypeAdapter
 import com.squareup.moshi.FromJson
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.ToJson
@@ -140,6 +141,7 @@ object ApiClient {
 
     private val moshi = Moshi.Builder()
         .add(DateAdapter())
+        .add(NotificationTypeAdapter())
         .build()
 
     private val retrofit by lazy {
