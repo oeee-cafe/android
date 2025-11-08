@@ -193,7 +193,7 @@ fun AppNavigation(
     }
 
     // Determine if we should show bottom navigation
-    val showBottomNav = currentRoute in listOf("home", "search", "communities", "drafts", "notifications", "myprofile")
+    val showBottomNav = currentRoute in listOf("home", "communities", "drafts", "notifications", "myprofile")
 
     Scaffold(
         bottomBar = {
@@ -215,32 +215,13 @@ fun AppNavigation(
                             )
                         },
                         label = { Text(stringResource(R.string.home_title)) },
-                        alwaysShowLabel = false
+                        alwaysShowLabel = true
                     )
 
                     NavigationBarItem(
                         selected = selectedTabIndex == 1,
                         onClick = {
                             selectedTabIndex = 1
-                            navController.navigate("search") {
-                                popUpTo("home") { inclusive = false }
-                                launchSingleTop = true
-                            }
-                        },
-                        icon = {
-                            Icon(
-                                imageVector = if (selectedTabIndex == 1) Icons.Filled.Search else Icons.Outlined.Search,
-                                contentDescription = stringResource(R.string.search_title)
-                            )
-                        },
-                        label = { Text(stringResource(R.string.search_title)) },
-                        alwaysShowLabel = false
-                    )
-
-                    NavigationBarItem(
-                        selected = selectedTabIndex == 2,
-                        onClick = {
-                            selectedTabIndex = 2
                             navController.navigate("communities") {
                                 popUpTo("home") { inclusive = false }
                                 launchSingleTop = true
@@ -248,20 +229,20 @@ fun AppNavigation(
                         },
                         icon = {
                             Icon(
-                                imageVector = if (selectedTabIndex == 2) Icons.Filled.Group else Icons.Outlined.Group,
+                                imageVector = if (selectedTabIndex == 1) Icons.Filled.Group else Icons.Outlined.Group,
                                 contentDescription = stringResource(R.string.communities_title)
                             )
                         },
                         label = { Text(stringResource(R.string.communities_title)) },
-                        alwaysShowLabel = false
+                        alwaysShowLabel = true
                     )
 
                     if (isAuthenticated) {
                         val drafts by draftCount.collectAsState()
                         NavigationBarItem(
-                            selected = selectedTabIndex == 3,
+                            selected = selectedTabIndex == 2,
                             onClick = {
-                                selectedTabIndex = 3
+                                selectedTabIndex = 2
                                 navController.navigate("drafts") {
                                     popUpTo("home") { inclusive = false }
                                     launchSingleTop = true
@@ -278,20 +259,20 @@ fun AppNavigation(
                                     }
                                 ) {
                                     Icon(
-                                        imageVector = if (selectedTabIndex == 3) Icons.Filled.Description else Icons.Outlined.Description,
+                                        imageVector = if (selectedTabIndex == 2) Icons.Filled.Description else Icons.Outlined.Description,
                                         contentDescription = stringResource(R.string.drafts_title)
                                     )
                                 }
                             },
                             label = { Text(stringResource(R.string.drafts_title)) },
-                            alwaysShowLabel = false
+                            alwaysShowLabel = true
                         )
 
                         val count by unreadCount.collectAsState()
                         NavigationBarItem(
-                            selected = selectedTabIndex == 4,
+                            selected = selectedTabIndex == 3,
                             onClick = {
-                                selectedTabIndex = 4
+                                selectedTabIndex = 3
                                 navController.navigate("notifications") {
                                     popUpTo("home") { inclusive = false }
                                     launchSingleTop = true
@@ -308,19 +289,19 @@ fun AppNavigation(
                                     }
                                 ) {
                                     Icon(
-                                        imageVector = if (selectedTabIndex == 4) Icons.Filled.Notifications else Icons.Outlined.Notifications,
+                                        imageVector = if (selectedTabIndex == 3) Icons.Filled.Notifications else Icons.Outlined.Notifications,
                                         contentDescription = stringResource(R.string.notifications_title)
                                     )
                                 }
                             },
                             label = { Text(stringResource(R.string.notifications_title)) },
-                            alwaysShowLabel = false
+                            alwaysShowLabel = true
                         )
 
                         NavigationBarItem(
-                            selected = selectedTabIndex == 5,
+                            selected = selectedTabIndex == 4,
                             onClick = {
-                                selectedTabIndex = 5
+                                selectedTabIndex = 4
                                 navController.navigate("myprofile") {
                                     popUpTo("home") { inclusive = false }
                                     launchSingleTop = true
@@ -328,12 +309,12 @@ fun AppNavigation(
                             },
                             icon = {
                                 Icon(
-                                    imageVector = if (selectedTabIndex == 5) Icons.Filled.Person else Icons.Outlined.Person,
+                                    imageVector = if (selectedTabIndex == 4) Icons.Filled.Person else Icons.Outlined.Person,
                                     contentDescription = stringResource(R.string.profile_title)
                                 )
                             },
                             label = { Text(stringResource(R.string.profile_title)) },
-                            alwaysShowLabel = false
+                            alwaysShowLabel = true
                         )
                     }
                 }
@@ -365,12 +346,14 @@ fun AppNavigation(
                 },
                 onDrawClick = {
                     navController.navigate("dimensionpicker")
+                },
+                onSearchClick = {
+                    navController.navigate("search")
                 }
             )
         }
 
         composable("search") {
-            selectedTabIndex = 1
             SearchScreen(
                 onPostClick = { postId ->
                     navController.navigate("post/$postId")
@@ -385,7 +368,7 @@ fun AppNavigation(
         }
 
         composable("communities") {
-            selectedTabIndex = 2
+            selectedTabIndex = 1
             cafe.oeee.ui.communities.CommunitiesScreen(
                 onCommunityClick = { slug ->
                     navController.navigate("community/$slug")
@@ -410,7 +393,7 @@ fun AppNavigation(
         }
 
         composable("drafts") {
-            selectedTabIndex = 3
+            selectedTabIndex = 2
             DraftsScreen(
                 onNavigateToSettings = {
                     navController.navigate("settings")
@@ -423,7 +406,7 @@ fun AppNavigation(
         }
 
         composable("notifications") {
-            selectedTabIndex = 4
+            selectedTabIndex = 3
             NotificationsScreen(
                 onPostClick = { postId ->
                     navController.navigate("post/$postId")
@@ -438,7 +421,7 @@ fun AppNavigation(
         }
 
         composable("myprofile") {
-            selectedTabIndex = 5
+            selectedTabIndex = 4
             currentUser?.let { user ->
                 ProfileScreen(
                     loginName = user.loginName,

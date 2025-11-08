@@ -18,6 +18,7 @@ import androidx.compose.material.icons.automirrored.filled.Login
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Group
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -58,7 +59,8 @@ fun HomeScreen(
     onProfileClick: (String) -> Unit = {},
     onLoginClick: () -> Unit = {},
     onSettingsClick: () -> Unit = {},
-    onDrawClick: () -> Unit = {}
+    onDrawClick: () -> Unit = {},
+    onSearchClick: () -> Unit = {}
 ) {
     val context = LocalContext.current
     val authService = AuthService.getInstance(context)
@@ -108,6 +110,12 @@ fun HomeScreen(
                                 contentDescription = stringResource(R.string.login_button)
                             )
                         }
+                    }
+                    IconButton(onClick = onSearchClick) {
+                        Icon(
+                            imageVector = Icons.Outlined.Search,
+                            contentDescription = stringResource(R.string.search_title)
+                        )
                     }
                     IconButton(onClick = onSettingsClick) {
                         Icon(
