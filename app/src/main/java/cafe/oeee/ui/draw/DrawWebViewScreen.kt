@@ -6,6 +6,7 @@ import android.webkit.CookieManager
 import android.webkit.JavascriptInterface
 import android.webkit.WebView
 import android.webkit.WebViewClient
+import cafe.oeee.BuildConfig
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -107,10 +108,11 @@ fun DrawWebView(
                 val webView = this
                 settings.javaScriptEnabled = true
                 settings.domStorageEnabled = true
-                settings.mixedContentMode = android.webkit.WebSettings.MIXED_CONTENT_ALWAYS_ALLOW
+                // Security: Only allow HTTPS content, prevent mixed content attacks
+                settings.mixedContentMode = android.webkit.WebSettings.MIXED_CONTENT_NEVER_ALLOW
 
-                // Enable debugging
-                WebView.setWebContentsDebuggingEnabled(true)
+                // Enable debugging only in debug builds
+                WebView.setWebContentsDebuggingEnabled(BuildConfig.DEBUG)
 
                 // Sync cookies from ApiClient's cookie store to WebView
                 val cookieManager = CookieManager.getInstance()
@@ -124,19 +126,27 @@ fun DrawWebView(
                     val cookieStore = cafe.oeee.data.remote.PersistentCookieStore(appContext)
                     val cookies = cookieStore.get(uri)
 
-                    android.util.Log.d("DrawWebView", "Found ${cookies.size} cookies for $baseUrl")
+                    if (BuildConfig.DEBUG) {
+                        android.util.Log.d("DrawWebView", "Found ${cookies.size} cookies for $baseUrl")
+                    }
 
                     cookies.forEach { cookie ->
                         val cookieString = "${cookie.name}=${cookie.value}; domain=${cookie.domain ?: ".$baseUrlHost"}; path=${cookie.path}"
                         cookieManager.setCookie(baseUrl, cookieString)
-                        android.util.Log.d("DrawWebView", "Set cookie: ${cookie.name}=${cookie.value}")
+                        if (BuildConfig.DEBUG) {
+                            android.util.Log.d("DrawWebView", "Set cookie: ${cookie.name}=${cookie.value}")
+                        }
                     }
 
                     // Flush cookies to ensure they're saved
                     cookieManager.flush()
-                    android.util.Log.d("DrawWebView", "Cookies flushed successfully")
+                    if (BuildConfig.DEBUG) {
+                        android.util.Log.d("DrawWebView", "Cookies flushed successfully")
+                    }
                 } catch (e: Exception) {
-                    android.util.Log.e("DrawWebView", "Error syncing cookies: ${e.message}", e)
+                    if (BuildConfig.DEBUG) {
+                        android.util.Log.e("DrawWebView", "Error syncing cookies: ${e.message}", e)
+                    }
                 }
 
                 // Add JavaScript interface for native bridge
@@ -145,10 +155,12 @@ fun DrawWebView(
                     "OeeeCafe"
                 )
 
-                // Add console logging
+                // Add console logging (debug only)
                 webChromeClient = object : android.webkit.WebChromeClient() {
                     override fun onConsoleMessage(message: android.webkit.ConsoleMessage): Boolean {
-                        android.util.Log.d("DrawWebView", "${message.message()} -- From line ${message.lineNumber()} of ${message.sourceId()}")
+                        if (BuildConfig.DEBUG) {
+                            android.util.Log.d("DrawWebView", "${message.message()} -- From line ${message.lineNumber()} of ${message.sourceId()}")
+                        }
                         return true
                     }
                 }
@@ -159,7 +171,9 @@ fun DrawWebView(
                         request: android.webkit.WebResourceRequest?,
                         error: android.webkit.WebResourceError?
                     ) {
-                        android.util.Log.e("DrawWebView", "WebView error: ${error?.description} for ${request?.url}")
+                        if (BuildConfig.DEBUG) {
+                            android.util.Log.e("DrawWebView", "WebView error: ${error?.description} for ${request?.url}")
+                        }
                     }
 
                     override fun onPageStarted(
@@ -167,12 +181,16 @@ fun DrawWebView(
                         url: String?,
                         favicon: android.graphics.Bitmap?
                     ) {
-                        android.util.Log.d("DrawWebView", "Page started: $url")
+                        if (BuildConfig.DEBUG) {
+                            android.util.Log.d("DrawWebView", "Page started: $url")
+                        }
                         onLoadingChanged(true)
                     }
 
                     override fun onPageFinished(view: WebView?, url: String?) {
-                        android.util.Log.d("DrawWebView", "Page finished: $url")
+                        if (BuildConfig.DEBUG) {
+                            android.util.Log.d("DrawWebView", "Page finished: $url")
+                        }
                         onLoadingChanged(false)
                     }
 
@@ -181,7 +199,9 @@ fun DrawWebView(
                         request: android.webkit.WebResourceRequest?
                     ): Boolean {
                         val url = request?.url
-                        android.util.Log.d("DrawWebView", "Navigating to: $url")
+                        if (BuildConfig.DEBUG) {
+                            android.util.Log.d("DrawWebView", "Navigating to: $url")
+                        }
 
                         // Check if this is an external link (not the configured base URL domain)
                         if (url != null && url.host != null && !url.host!!.contains(baseUrlHost)) {
@@ -203,7 +223,9 @@ fun DrawWebView(
                 if (parentPostId != null) {
                     postData += "&parent_post_id=$parentPostId"
                 }
-                android.util.Log.d("DrawWebView", "Posting to $baseUrl/draw/mobile with data: $postData")
+                if (BuildConfig.DEBUG) {
+                    android.util.Log.d("DrawWebView", "Posting to $baseUrl/draw/mobile with data: $postData")
+                }
                 postUrl("$baseUrl/draw/mobile", postData.toByteArray())
             }
         },
@@ -227,12 +249,16 @@ class WebAppInterface(
                 val communityId = json.optString("communityId")
                 val imageUrl = json.optString("imageUrl")
 
-                android.util.Log.d("DrawWebView", "Drawing complete: postId=$postId, communityId=$communityId, imageUrl=$imageUrl")
+                if (BuildConfig.DEBUG) {
+                    android.util.Log.d("DrawWebView", "Drawing complete: postId=$postId, communityId=$communityId, imageUrl=$imageUrl")
+                }
 
                 // Clear the drawing session
                 android.os.Handler(android.os.Looper.getMainLooper()).post {
                     webView.evaluateJavascript("Neo.painter.clearSession();") { result ->
-                        android.util.Log.d("DrawWebView", "clearSession() result: $result")
+                        if (BuildConfig.DEBUG) {
+                            android.util.Log.d("DrawWebView", "clearSession() result: $result")
+                        }
                     }
 
                     // Call completion callback
@@ -240,7 +266,9 @@ class WebAppInterface(
                 }
             }
         } catch (e: Exception) {
-            android.util.Log.e("DrawWebView", "Error parsing message", e)
+            if (BuildConfig.DEBUG) {
+                android.util.Log.e("DrawWebView", "Error parsing message", e)
+            }
         }
     }
 }
