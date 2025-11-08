@@ -102,6 +102,11 @@ interface ApiService {
         @Body request: CreateCommentRequest
     ): Comment
 
+    @DELETE("/api/v1/comments/{commentId}")
+    suspend fun deleteComment(
+        @Path("commentId") commentId: String
+    )
+
     @GET("/api/v1/profiles/{loginName}")
     suspend fun getProfileDetail(
         @Path("loginName") loginName: String,

@@ -151,6 +151,9 @@
     <string name="comment_write_placeholder">コメントを書く...</string>
     <string name="comment_post">コメントを投稿</string>
     <string name="comment_cancel_reply">返信をキャンセル</string>
+    <string name="comment_delete">削除</string>
+    <string name="comment_delete_title">コメントを削除</string>
+    <string name="comment_delete_message">このコメントを削除してもよろしいですか？この操作は取り消せません。</string>
     <string name="reactors_none">リアクションなし</string>
 
     <!-- Communities -->

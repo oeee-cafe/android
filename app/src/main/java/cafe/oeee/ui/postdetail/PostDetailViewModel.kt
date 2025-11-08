@@ -87,10 +87,12 @@ class PostDetailViewModel(private val postId: String) : ViewModel() {
                     limit = commentsLimit
                 )
 
+                val filteredComments = response.comments.mapNotNull { filterComment(it) }
+
                 val updatedComments = if (commentsOffset == 0) {
-                    response.comments
+                    filteredComments
                 } else {
-                    _uiState.value.comments + response.comments
+                    _uiState.value.comments + filteredComments
                 }
 
                 _uiState.value = _uiState.value.copy(
@@ -107,6 +109,17 @@ class PostDetailViewModel(private val postId: String) : ViewModel() {
                 )
             }
         }
+    }
+
+    private fun filterComment(comment: Comment): Comment? {
+        // Filter children recursively
+        val filteredChildren = comment.children.mapNotNull { filterComment(it) }
+
+        // Create a new comment with filtered children
+        val updatedComment = comment.copy(children = filteredChildren)
+
+        // Return null if this comment should not be displayed
+        return if (updatedComment.shouldDisplay) updatedComment else null
     }
 
     fun loadMoreComments() {
@@ -212,6 +225,25 @@ class PostDetailViewModel(private val postId: String) : ViewModel() {
             } catch (e: Exception) {
                 _uiState.value = _uiState.value.copy(
                     isPostingComment = false,
+                    error = e.message ?: "Unknown error"
+                )
+            }
+        }
+    }
+
+    fun deleteComment(comment: Comment) {
+        viewModelScope.launch {
+            _uiState.value = _uiState.value.copy(error = null)
+
+            try {
+                apiService.deleteComment(comment.id)
+
+                // Reload comments to show the deleted state
+                commentsOffset = 0
+                _uiState.value = _uiState.value.copy(comments = emptyList())
+                loadComments()
+            } catch (e: Exception) {
+                _uiState.value = _uiState.value.copy(
                     error = e.message ?: "Unknown error"
                 )
             }

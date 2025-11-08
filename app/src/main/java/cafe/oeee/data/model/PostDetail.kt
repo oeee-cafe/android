@@ -60,7 +60,7 @@ data class Comment(
     @Json(name = "post_id") val postId: String,
     @Json(name = "parent_comment_id") val parentCommentId: String?,
     @Json(name = "actor_id") val actorId: String,
-    @Json(name = "content") val content: String,
+    @Json(name = "content") val content: String?,
     @Json(name = "content_html") val contentHtml: String?,
     @Json(name = "actor_name") val actorName: String,
     @Json(name = "actor_handle") val actorHandle: String,
@@ -68,8 +68,27 @@ data class Comment(
     @Json(name = "is_local") val isLocal: Boolean,
     @Json(name = "created_at") val createdAt: Date,
     @Json(name = "updated_at") val updatedAt: Date,
+    @Json(name = "deleted_at") val deletedAt: Date?,
     @Json(name = "children") val children: List<Comment> = emptyList()
-)
+) {
+    val isDeleted: Boolean
+        get() = deletedAt != null
+
+    val shouldDisplay: Boolean
+        get() = !isDeleted || children.isNotEmpty()
+
+    val displayText: String
+        get() = when {
+            isDeleted -> "[deleted]"
+            contentHtml != null -> contentHtml.htmlToPlainText()
+            content != null -> content
+            else -> "[deleted]"
+        }
+
+    private fun String.htmlToPlainText(): String {
+        return this.replace(Regex("<[^>]*>"), "").trim()
+    }
+}
 
 @JsonClass(generateAdapter = true)
 data class ChildPostImage(

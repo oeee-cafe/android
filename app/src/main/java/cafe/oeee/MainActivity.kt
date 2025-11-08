@@ -593,6 +593,7 @@ fun AppNavigation(
             PostDetailScreen(
                 postId = postId,
                 currentUserId = currentUser?.id,
+                currentUserLoginName = currentUser?.loginName,
                 onNavigateBack = { navController.popBackStack() },
                 onProfileClick = { loginName ->
                     navController.navigate("profile/$loginName")

@@ -150,6 +150,9 @@
     <string name="comment_write_placeholder">写评论...</string>
     <string name="comment_post">发布评论</string>
     <string name="comment_cancel_reply">取消回复</string>
+    <string name="comment_delete">删除</string>
+    <string name="comment_delete_title">删除评论</string>
+    <string name="comment_delete_message">您确定要删除此评论吗？此操作无法撤消。</string>
     <string name="reactors_none">没有反应</string>
 
     <!-- Communities -->

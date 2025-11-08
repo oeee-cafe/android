@@ -49,6 +49,7 @@ import java.util.*
 fun PostDetailScreen(
     postId: String,
     currentUserId: String? = null,
+    currentUserLoginName: String? = null,
     onNavigateBack: () -> Unit = {},
     onProfileClick: (String) -> Unit = {},
     onCommunityClick: (String) -> Unit = {},
@@ -66,6 +67,8 @@ fun PostDetailScreen(
     )
     val uiState by viewModel.uiState.collectAsState()
     var showDeleteConfirmation by remember { mutableStateOf(false) }
+    var showCommentDeleteConfirmation by remember { mutableStateOf(false) }
+    var commentToDelete by remember { mutableStateOf<Comment?>(null) }
 
     // Navigate back when post is deleted
     LaunchedEffect(uiState.postDeleted) {
@@ -74,7 +77,7 @@ fun PostDetailScreen(
         }
     }
 
-    // Show delete confirmation dialog
+    // Show post delete confirmation dialog
     if (showDeleteConfirmation) {
         AlertDialog(
             onDismissRequest = { showDeleteConfirmation = false },
@@ -92,6 +95,39 @@ fun PostDetailScreen(
             },
             dismissButton = {
                 TextButton(onClick = { showDeleteConfirmation = false }) {
+                    Text(stringResource(R.string.cancel))
+                }
+            }
+        )
+    }
+
+    // Show comment delete confirmation dialog
+    if (showCommentDeleteConfirmation) {
+        AlertDialog(
+            onDismissRequest = {
+                showCommentDeleteConfirmation = false
+                commentToDelete = null
+            },
+            title = { Text(stringResource(R.string.comment_delete_title)) },
+            text = { Text(stringResource(R.string.comment_delete_message)) },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        commentToDelete?.let { comment ->
+                            viewModel.deleteComment(comment)
+                        }
+                        showCommentDeleteConfirmation = false
+                        commentToDelete = null
+                    }
+                ) {
+                    Text(stringResource(R.string.comment_delete), color = MaterialTheme.colorScheme.error)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = {
+                    showCommentDeleteConfirmation = false
+                    commentToDelete = null
+                }) {
                     Text(stringResource(R.string.cancel))
                 }
             }
@@ -201,6 +237,7 @@ fun PostDetailScreen(
                         replyingToComment = uiState.replyingToComment,
                         isPostingComment = uiState.isPostingComment,
                         isAuthenticated = currentUserId != null,
+                        currentUserLoginName = currentUserLoginName,
                         onProfileClick = onProfileClick,
                         onCommunityClick = onCommunityClick,
                         onPostClick = onPostClick,
@@ -215,7 +252,11 @@ fun PostDetailScreen(
                         onCommentTextChange = { viewModel.updateCommentText(it) },
                         onReplyClick = { comment -> viewModel.setReplyTarget(comment) },
                         onCancelReply = { viewModel.cancelReply() },
-                        onPostComment = { viewModel.postComment() }
+                        onPostComment = { viewModel.postComment() },
+                        onCommentDelete = { comment ->
+                            commentToDelete = comment
+                            showCommentDeleteConfirmation = true
+                        }
                     )
 
                     // Show reactors dialog
@@ -247,6 +288,7 @@ fun PostDetailContent(
     replyingToComment: Comment?,
     isPostingComment: Boolean,
     isAuthenticated: Boolean = true,
+    currentUserLoginName: String? = null,
     onProfileClick: (String) -> Unit,
     onCommunityClick: (String) -> Unit,
     onPostClick: (String) -> Unit,
@@ -255,7 +297,8 @@ fun PostDetailContent(
     onCommentTextChange: (String) -> Unit,
     onReplyClick: (Comment) -> Unit,
     onCancelReply: () -> Unit,
-    onPostComment: () -> Unit
+    onPostComment: () -> Unit,
+    onCommentDelete: (Comment) -> Unit
 ) {
     val context = LocalContext.current
     LazyColumn(
@@ -505,8 +548,10 @@ fun PostDetailContent(
             items(comments) { comment ->
                 CommentCard(
                     comment = comment,
+                    currentUserLoginName = currentUserLoginName,
                     modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
-                    onReply = onReplyClick
+                    onReply = onReplyClick,
+                    onDelete = onCommentDelete
                 )
             }
         }
@@ -670,11 +715,16 @@ fun ChildPostCard(
 @Composable
 fun CommentCard(
     comment: Comment,
+    currentUserLoginName: String? = null,
     modifier: Modifier = Modifier,
     depth: Int = 0,
-    onReply: ((Comment) -> Unit)? = null
+    onReply: ((Comment) -> Unit)? = null,
+    onDelete: ((Comment) -> Unit)? = null
 ) {
     val context = LocalContext.current
+    val isOwnComment = currentUserLoginName != null &&
+                       comment.isLocal &&
+                       comment.actorLoginName == currentUserLoginName
     Column(
         modifier = modifier.fillMaxWidth(),
         verticalArrangement = Arrangement.spacedBy(8.dp)
@@ -704,8 +754,10 @@ fun CommentCard(
                 }
 
                 Text(
-                    text = comment.content,
-                    style = MaterialTheme.typography.bodyMedium
+                    text = comment.displayText,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = if (comment.isDeleted) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onSurface,
+                    fontStyle = if (comment.isDeleted) androidx.compose.ui.text.font.FontStyle.Italic else androidx.compose.ui.text.font.FontStyle.Normal
                 )
 
                 Text(
@@ -714,16 +766,37 @@ fun CommentCard(
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
 
-                // Reply button
-                onReply?.let { onReplyCallback ->
-                    TextButton(onClick = { onReplyCallback(comment) }) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.Reply,
-                            contentDescription = stringResource(R.string.post_reply),
-                            modifier = Modifier.size(16.dp)
-                        )
-                        Spacer(modifier = Modifier.width(4.dp))
-                        Text(stringResource(R.string.post_reply), style = MaterialTheme.typography.bodySmall)
+                // Action buttons (hidden for deleted comments)
+                if (!comment.isDeleted) {
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        // Reply button
+                        onReply?.let { onReplyCallback ->
+                            TextButton(onClick = { onReplyCallback(comment) }) {
+                                Icon(
+                                    imageVector = Icons.AutoMirrored.Filled.Reply,
+                                    contentDescription = stringResource(R.string.post_reply),
+                                    modifier = Modifier.size(16.dp)
+                                )
+                                Spacer(modifier = Modifier.width(4.dp))
+                                Text(stringResource(R.string.post_reply), style = MaterialTheme.typography.bodySmall)
+                            }
+                        }
+
+                        // Delete button (only for own comments)
+                        if (isOwnComment) {
+                            onDelete?.let { onDeleteCallback ->
+                                TextButton(onClick = { onDeleteCallback(comment) }) {
+                                    Icon(
+                                        imageVector = Icons.Default.Delete,
+                                        contentDescription = stringResource(R.string.comment_delete),
+                                        modifier = Modifier.size(16.dp),
+                                        tint = MaterialTheme.colorScheme.error
+                                    )
+                                    Spacer(modifier = Modifier.width(4.dp))
+                                    Text(stringResource(R.string.comment_delete), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.error)
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -740,8 +813,10 @@ fun CommentCard(
                 comment.children.forEach { childComment ->
                     ThreadedCommentCard(
                         comment = childComment,
+                        currentUserLoginName = currentUserLoginName,
                         depth = depth + 1,
-                        onReply = onReply
+                        onReply = onReply,
+                        onDelete = onDelete
                     )
                 }
             }
@@ -752,10 +827,15 @@ fun CommentCard(
 @Composable
 fun ThreadedCommentCard(
     comment: Comment,
+    currentUserLoginName: String? = null,
     depth: Int = 0,
-    onReply: ((Comment) -> Unit)? = null
+    onReply: ((Comment) -> Unit)? = null,
+    onDelete: ((Comment) -> Unit)? = null
 ) {
     val context = LocalContext.current
+    val isOwnComment = currentUserLoginName != null &&
+                       comment.isLocal &&
+                       comment.actorLoginName == currentUserLoginName
     Column(
         modifier = Modifier.fillMaxWidth(),
         verticalArrangement = Arrangement.spacedBy(8.dp)
@@ -803,8 +883,10 @@ fun ThreadedCommentCard(
                     }
 
                     Text(
-                        text = comment.content,
-                        style = MaterialTheme.typography.bodySmall
+                        text = comment.displayText,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = if (comment.isDeleted) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onSurface,
+                        fontStyle = if (comment.isDeleted) androidx.compose.ui.text.font.FontStyle.Italic else androidx.compose.ui.text.font.FontStyle.Normal
                     )
 
                     Text(
@@ -813,20 +895,45 @@ fun ThreadedCommentCard(
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
 
-                    // Reply button
-                    onReply?.let { onReplyCallback ->
-                        TextButton(
-                            onClick = { onReplyCallback(comment) },
-                            modifier = Modifier.height(32.dp),
-                            contentPadding = PaddingValues(horizontal = 8.dp, vertical = 2.dp)
-                        ) {
-                            Icon(
-                                imageVector = Icons.AutoMirrored.Filled.Reply,
-                                contentDescription = stringResource(R.string.post_reply),
-                                modifier = Modifier.size(14.dp)
-                            )
-                            Spacer(modifier = Modifier.width(4.dp))
-                            Text(stringResource(R.string.post_reply), style = MaterialTheme.typography.labelSmall)
+                    // Action buttons (hidden for deleted comments)
+                    if (!comment.isDeleted) {
+                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            // Reply button
+                            onReply?.let { onReplyCallback ->
+                                TextButton(
+                                    onClick = { onReplyCallback(comment) },
+                                    modifier = Modifier.height(32.dp),
+                                    contentPadding = PaddingValues(horizontal = 8.dp, vertical = 2.dp)
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.AutoMirrored.Filled.Reply,
+                                        contentDescription = stringResource(R.string.post_reply),
+                                        modifier = Modifier.size(14.dp)
+                                    )
+                                    Spacer(modifier = Modifier.width(4.dp))
+                                    Text(stringResource(R.string.post_reply), style = MaterialTheme.typography.labelSmall)
+                                }
+                            }
+
+                            // Delete button (only for own comments)
+                            if (isOwnComment) {
+                                onDelete?.let { onDeleteCallback ->
+                                    TextButton(
+                                        onClick = { onDeleteCallback(comment) },
+                                        modifier = Modifier.height(32.dp),
+                                        contentPadding = PaddingValues(horizontal = 8.dp, vertical = 2.dp)
+                                    ) {
+                                        Icon(
+                                            imageVector = Icons.Default.Delete,
+                                            contentDescription = stringResource(R.string.comment_delete),
+                                            modifier = Modifier.size(14.dp),
+                                            tint = MaterialTheme.colorScheme.error
+                                        )
+                                        Spacer(modifier = Modifier.width(4.dp))
+                                        Text(stringResource(R.string.comment_delete), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.error)
+                                    }
+                                }
+                            }
                         }
                     }
                 }
@@ -844,8 +951,10 @@ fun ThreadedCommentCard(
                 comment.children.forEach { childComment ->
                     ThreadedCommentCard(
                         comment = childComment,
+                        currentUserLoginName = currentUserLoginName,
                         depth = depth + 1,
-                        onReply = onReply
+                        onReply = onReply,
+                        onDelete = onDelete
                     )
                 }
             }
