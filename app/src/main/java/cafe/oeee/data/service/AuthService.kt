@@ -100,6 +100,18 @@ class AuthService private constructor(private val context: Context) {
             } else {
                 Result.failure(Exception(response.error ?: "Login failed"))
             }
+        } catch (e: retrofit2.HttpException) {
+            // Parse the error response body to get the actual error message
+            val errorMessage = try {
+                val errorBody = e.response()?.errorBody()?.string()
+                val moshi = com.squareup.moshi.Moshi.Builder().build()
+                val adapter = moshi.adapter(cafe.oeee.data.model.auth.LoginResponse::class.java)
+                val errorResponse = adapter.fromJson(errorBody ?: "")
+                errorResponse?.error ?: "Login failed"
+            } catch (parseException: Exception) {
+                "Login failed"
+            }
+            Result.failure(Exception(errorMessage))
         } catch (e: Exception) {
             Result.failure(e)
         }
@@ -126,6 +138,18 @@ class AuthService private constructor(private val context: Context) {
             } else {
                 Result.failure(Exception(response.error ?: "Signup failed"))
             }
+        } catch (e: retrofit2.HttpException) {
+            // Parse the error response body to get the actual error message
+            val errorMessage = try {
+                val errorBody = e.response()?.errorBody()?.string()
+                val moshi = com.squareup.moshi.Moshi.Builder().build()
+                val adapter = moshi.adapter(cafe.oeee.data.model.auth.SignupResponse::class.java)
+                val errorResponse = adapter.fromJson(errorBody ?: "")
+                errorResponse?.error ?: "Signup failed"
+            } catch (parseException: Exception) {
+                "Signup failed"
+            }
+            Result.failure(Exception(errorMessage))
         } catch (e: Exception) {
             Result.failure(e)
         }
