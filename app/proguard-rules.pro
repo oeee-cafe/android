@@ -12,11 +12,10 @@
 #   public *;
 #}
 
-# Preserve line number information for debugging stack traces
--keepattributes SourceFile,LineNumberTable
+# Uncomment this to preserve the line number information for
+# debugging stack traces.
+#-keepattributes SourceFile,LineNumberTable
 
-# Hide the original source file name
--renamesourcefileattribute SourceFile
-
-# Keep custom exceptions for better crash reporting
--keep public class * extends java.lang.Exception
+# If you keep the line number information, uncomment this to
+# hide the original source file name.
+#-renamesourcefileattribute SourceFile
