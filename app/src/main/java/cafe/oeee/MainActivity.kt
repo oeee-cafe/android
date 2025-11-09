@@ -215,7 +215,7 @@ fun AppNavigation(
                             )
                         },
                         label = { Text(stringResource(R.string.home_title)) },
-                        alwaysShowLabel = true
+                        alwaysShowLabel = false
                     )
 
                     NavigationBarItem(
@@ -234,7 +234,7 @@ fun AppNavigation(
                             )
                         },
                         label = { Text(stringResource(R.string.communities_title)) },
-                        alwaysShowLabel = true
+                        alwaysShowLabel = false
                     )
 
                     if (isAuthenticated) {
@@ -265,7 +265,7 @@ fun AppNavigation(
                                 }
                             },
                             label = { Text(stringResource(R.string.drafts_title)) },
-                            alwaysShowLabel = true
+                            alwaysShowLabel = false
                         )
 
                         val count by unreadCount.collectAsState()
@@ -295,7 +295,7 @@ fun AppNavigation(
                                 }
                             },
                             label = { Text(stringResource(R.string.notifications_title)) },
-                            alwaysShowLabel = true
+                            alwaysShowLabel = false
                         )
 
                         NavigationBarItem(
@@ -314,7 +314,7 @@ fun AppNavigation(
                                 )
                             },
                             label = { Text(stringResource(R.string.profile_title)) },
-                            alwaysShowLabel = true
+                            alwaysShowLabel = false
                         )
                     }
                 }
