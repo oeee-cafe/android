@@ -536,8 +536,8 @@ fun AppNavigation(
                 onDrawingComplete = { postId, returnedCommunityId, imageUrl ->
                     // Navigate to draft post form after drawing completion
                     val encodedImageUrl = java.net.URLEncoder.encode(imageUrl, "UTF-8")
-                    // Use empty string for null communityId (personal posts)
-                    val communityIdParam = returnedCommunityId ?: ""
+                    // Use placeholder "none" for null communityId (personal posts)
+                    val communityIdParam = returnedCommunityId ?: "none"
                     navController.navigate("draftpost/$postId/$communityIdParam/$encodedImageUrl") {
                         popUpTo("draw/{width}/{height}/{tool}?parentPostId={parentPostId}&communityId={communityId}") { inclusive = true }
                     }
@@ -555,8 +555,8 @@ fun AppNavigation(
         ) { backStackEntry ->
             val postId = backStackEntry.arguments?.getString("postId") ?: return@composable
             val communityIdParam = backStackEntry.arguments?.getString("communityId") ?: return@composable
-            // Convert empty string to null for personal posts
-            val communityId = communityIdParam.ifEmpty { null }
+            // Convert "none" placeholder or empty string to null for personal posts
+            val communityId = if (communityIdParam.isEmpty() || communityIdParam == "none") null else communityIdParam
             val encodedImageUrl = backStackEntry.arguments?.getString("imageUrl") ?: return@composable
             val imageUrl = java.net.URLDecoder.decode(encodedImageUrl, "UTF-8")
             cafe.oeee.ui.draftpost.DraftPostScreen(
