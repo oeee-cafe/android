@@ -37,7 +37,7 @@ fun DrawWebViewScreen(
     communityId: String? = null,
     parentPostId: String? = null,
     onNavigateBack: () -> Unit,
-    onDrawingComplete: (String, String, String) -> Unit = { _, _, _ -> }
+    onDrawingComplete: (String, String?, String) -> Unit = { _, _, _ -> }
 ) {
     val context = LocalContext.current
     var isLoading by remember { mutableStateOf(true) }
@@ -92,7 +92,7 @@ fun DrawWebView(
     communityId: String?,
     parentPostId: String?,
     onLoadingChanged: (Boolean) -> Unit,
-    onDrawingComplete: (String, String, String) -> Unit,
+    onDrawingComplete: (String, String?, String) -> Unit,
     modifier: Modifier = Modifier
 ) {
     val baseUrl = ApiClient.getBaseUrl()
@@ -236,7 +236,7 @@ fun DrawWebView(
 class WebAppInterface(
     private val context: Context,
     private val webView: WebView,
-    private val onDrawingComplete: (String, String, String) -> Unit
+    private val onDrawingComplete: (String, String?, String) -> Unit
 ) {
     @JavascriptInterface
     fun postMessage(message: String) {
@@ -246,7 +246,8 @@ class WebAppInterface(
 
             if (type == "drawing_complete") {
                 val postId = json.optString("postId")
-                val communityId = json.optString("communityId")
+                // Handle null communityId for personal posts
+                val communityId = if (json.isNull("communityId")) null else json.optString("communityId")
                 val imageUrl = json.optString("imageUrl")
 
                 if (BuildConfig.DEBUG) {

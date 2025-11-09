@@ -22,7 +22,7 @@ import okhttp3.Request
 @Composable
 fun DraftPostScreen(
     postId: String,
-    communityId: String,
+    communityId: String?,
     imageUrl: String,
     onNavigateBack: () -> Unit,
     onPublished: (String) -> Unit
