@@ -1,6 +1,7 @@
 package cafe.oeee.ui.postdetail
 
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -554,7 +555,8 @@ fun PostDetailContent(
                     currentUserLoginName = currentUserLoginName,
                     modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
                     onReply = onReplyClick,
-                    onDelete = onCommentDelete
+                    onDelete = onCommentDelete,
+                    onProfileClick = onProfileClick
                 )
             }
         }
@@ -722,7 +724,8 @@ fun CommentCard(
     modifier: Modifier = Modifier,
     depth: Int = 0,
     onReply: ((Comment) -> Unit)? = null,
-    onDelete: ((Comment) -> Unit)? = null
+    onDelete: ((Comment) -> Unit)? = null,
+    onProfileClick: ((String) -> Unit)? = null
 ) {
     val context = LocalContext.current
     val isOwnComment = currentUserLoginName != null &&
@@ -742,7 +745,14 @@ fun CommentCard(
             ) {
                 Row(
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    verticalAlignment = Alignment.CenterVertically
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = if (comment.isLocal && comment.actorLoginName != null) {
+                        Modifier.clickable {
+                            onProfileClick?.invoke(comment.actorLoginName)
+                        }
+                    } else {
+                        Modifier
+                    }
                 ) {
                     Text(
                         text = comment.actorName,
@@ -750,7 +760,7 @@ fun CommentCard(
                         fontWeight = FontWeight.Bold
                     )
                     Text(
-                        text = "@${comment.actorHandle}",
+                        text = comment.actorHandle,
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -819,7 +829,8 @@ fun CommentCard(
                         currentUserLoginName = currentUserLoginName,
                         depth = depth + 1,
                         onReply = onReply,
-                        onDelete = onDelete
+                        onDelete = onDelete,
+                        onProfileClick = onProfileClick
                     )
                 }
             }
@@ -833,7 +844,8 @@ fun ThreadedCommentCard(
     currentUserLoginName: String? = null,
     depth: Int = 0,
     onReply: ((Comment) -> Unit)? = null,
-    onDelete: ((Comment) -> Unit)? = null
+    onDelete: ((Comment) -> Unit)? = null,
+    onProfileClick: ((String) -> Unit)? = null
 ) {
     val context = LocalContext.current
     val isOwnComment = currentUserLoginName != null &&
@@ -871,7 +883,14 @@ fun ThreadedCommentCard(
                 ) {
                     Row(
                         horizontalArrangement = Arrangement.spacedBy(6.dp),
-                        verticalAlignment = Alignment.CenterVertically
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = if (comment.isLocal && comment.actorLoginName != null) {
+                            Modifier.clickable {
+                                onProfileClick?.invoke(comment.actorLoginName)
+                            }
+                        } else {
+                            Modifier
+                        }
                     ) {
                         Text(
                             text = comment.actorName,
@@ -879,7 +898,7 @@ fun ThreadedCommentCard(
                             fontWeight = FontWeight.SemiBold
                         )
                         Text(
-                            text = "@${comment.actorHandle}",
+                            text = comment.actorHandle,
                             style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -957,7 +976,8 @@ fun ThreadedCommentCard(
                         currentUserLoginName = currentUserLoginName,
                         depth = depth + 1,
                         onReply = onReply,
-                        onDelete = onDelete
+                        onDelete = onDelete,
+                        onProfileClick = onProfileClick
                     )
                 }
             }
