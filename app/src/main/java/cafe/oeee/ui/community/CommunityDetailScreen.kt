@@ -97,7 +97,7 @@ fun CommunityDetailScreen(
                 title = { Text(uiState.communityDetail?.community?.name ?: "Community") },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.back))
                     }
                 },
                 actions = {
@@ -108,7 +108,7 @@ fun CommunityDetailScreen(
                             IconButton(onClick = onMembersClick) {
                                 Icon(
                                     imageVector = Icons.Default.Group,
-                                    contentDescription = "Members"
+                                    contentDescription = stringResource(R.string.community_members)
                                 )
                             }
                         }
@@ -121,7 +121,7 @@ fun CommunityDetailScreen(
                             IconButton(onClick = onSettingsClick) {
                                 Icon(
                                     imageVector = Icons.Default.Settings,
-                                    contentDescription = "Settings"
+                                    contentDescription = stringResource(R.string.settings_title)
                                 )
                             }
                         }

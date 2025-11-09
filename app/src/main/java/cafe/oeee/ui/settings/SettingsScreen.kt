@@ -292,14 +292,14 @@ fun SettingsScreen(
                         OutlinedTextField(
                             value = customServerURL,
                             onValueChange = { customServerURL = it },
-                            label = { Text("Server URL") },
-                            placeholder = { Text("https://oeee.cafe") },
+                            label = { Text(stringResource(R.string.settings_server_url_label)) },
+                            placeholder = { Text(stringResource(R.string.settings_server_url_placeholder)) },
                             singleLine = true,
                             modifier = Modifier.fillMaxWidth()
                         )
 
                         Text(
-                            text = "Current: ${ApiConfig.getBaseUrl(context)}",
+                            text = stringResource(R.string.settings_current_server_url, ApiConfig.getBaseUrl(context)),
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -330,7 +330,7 @@ fun SettingsScreen(
                                 },
                                 modifier = Modifier.weight(1f)
                             ) {
-                                Text("Save")
+                                Text(stringResource(R.string.save))
                             }
 
                             OutlinedButton(
@@ -341,7 +341,7 @@ fun SettingsScreen(
                                 },
                                 modifier = Modifier.weight(1f)
                             ) {
-                                Text("Reset")
+                                Text(stringResource(R.string.reset))
                             }
                         }
                     }

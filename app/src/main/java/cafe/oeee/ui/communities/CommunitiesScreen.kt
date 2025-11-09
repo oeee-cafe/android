@@ -98,7 +98,7 @@ fun CommunitiesScreen(
                         IconButton(onClick = onCreateCommunityClick) {
                             Icon(
                                 imageVector = Icons.Filled.Add,
-                                contentDescription = "Create Community"
+                                contentDescription = stringResource(R.string.create_community)
                             )
                         }
                     }

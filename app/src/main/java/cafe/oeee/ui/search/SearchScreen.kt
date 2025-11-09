@@ -65,7 +65,7 @@ fun SearchScreen(
                                 IconButton(onClick = { viewModel.updateSearchText("") }) {
                                     Icon(
                                         imageVector = Icons.Default.Clear,
-                                        contentDescription = "Clear search"
+                                        contentDescription = stringResource(R.string.clear_search)
                                     )
                                 }
                             }

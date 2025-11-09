@@ -40,7 +40,7 @@ fun EmailInputDialog(
                         emailError = null
                     },
                     label = { Text(stringResource(R.string.settings_email_label)) },
-                    placeholder = { Text("user@example.com") },
+                    placeholder = { Text(stringResource(R.string.settings_email_placeholder)) },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
                     singleLine = true,
                     enabled = !isLoading,
@@ -143,7 +143,7 @@ fun EmailVerificationCodeDialog(
                         }
                     },
                     label = { Text(stringResource(R.string.settings_email_code_label)) },
-                    placeholder = { Text("123456") },
+                    placeholder = { Text(stringResource(R.string.settings_email_code_placeholder)) },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                     singleLine = true,
                     enabled = !isVerifying,

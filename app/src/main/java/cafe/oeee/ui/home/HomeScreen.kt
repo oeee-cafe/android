@@ -99,7 +99,7 @@ fun HomeScreen(
                         IconButton(onClick = onDrawClick) {
                             Icon(
                                 imageVector = Icons.Default.Add,
-                                contentDescription = "Draw"
+                                contentDescription = stringResource(R.string.draw_icon_desc)
                             )
                         }
                     }

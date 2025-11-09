@@ -73,7 +73,7 @@ fun ProfileScreen(
                 title = { Text(uiState.profileDetail?.user?.displayName ?: loginName) },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.back))
                     }
                 },
                 actions = {
@@ -133,7 +133,7 @@ fun ProfileScreen(
                             item(span = { androidx.compose.foundation.lazy.grid.GridItemSpan(3) }) {
                                 AsyncImage(
                                     model = banner.imageUrl,
-                                    contentDescription = "Profile banner",
+                                    contentDescription = stringResource(R.string.profile_banner),
                                     contentScale = ContentScale.Crop,
                                     modifier = Modifier
                                         .fillMaxWidth()
@@ -299,7 +299,7 @@ fun FollowingsSection(
                         rowItems.forEach { following ->
                             AsyncImage(
                                 model = following.bannerImageUrl,
-                                contentDescription = "${following.displayName}'s banner",
+                                contentDescription = stringResource(R.string.profile_user_banner, following.displayName),
                                 contentScale = ContentScale.Crop,
                                 modifier = Modifier
                                     .weight(1f)

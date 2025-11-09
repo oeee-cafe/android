@@ -172,7 +172,7 @@ fun PostDetailScreen(
                         IconButton(onClick = onReplayClick) {
                             Icon(
                                 imageVector = Icons.Filled.Movie,
-                                contentDescription = "Replay"
+                                contentDescription = stringResource(R.string.replay_title)
                             )
                         }
                     }

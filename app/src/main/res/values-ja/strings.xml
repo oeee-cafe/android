@@ -27,6 +27,10 @@
     <string name="profile_following_list_title">フォロー中</string>
     <string name="profile_links">リンク</string>
     <string name="profile_see_all_following">すべての同盟を見る</string>
+    <string name="profile_follow">フォロー</string>
+    <string name="profile_unfollow">フォロー解除</string>
+    <string name="profile_banner">プロフィールバナー</string>
+    <string name="profile_user_banner">%1$sのバナー</string>
 
     <!-- Community Detail -->
     <string name="community_title">コミュニティ</string>
@@ -34,6 +38,7 @@
     <string name="community_stat_posts">投稿</string>
     <string name="community_stat_contributors">貢献者</string>
     <string name="community_stat_comments">コメント</string>
+    <string name="community_members">メンバー</string>
 
     <!-- Relative Time -->
     <string name="time_just_now">たった今</string>
@@ -73,6 +78,7 @@
     <string name="settings_delete_account_warning">本当にアカウントを削除しますか？この操作は取り消すことができず、すべてのデータが永久に削除されます。</string>
     <string name="settings_email_verification">メール認証</string>
     <string name="settings_email_label">メール</string>
+    <string name="settings_email_placeholder">user@example.com</string>
     <string name="settings_email_verified">認証済み</string>
     <string name="settings_email_not_verified">未認証</string>
     <string name="settings_email_not_set">メールが設定されていません</string>
@@ -84,6 +90,7 @@
     <string name="settings_email_verify_code_title">メールコード認証</string>
     <string name="settings_email_verify_code_description">%1$sに6桁の認証コードが送信されました</string>
     <string name="settings_email_code_label">認証コード</string>
+    <string name="settings_email_code_placeholder">123456</string>
     <string name="settings_email_code_expires">コード有効期限: %1$s</string>
     <string name="settings_email_code_expired">コードの有効期限が切れました</string>
     <string name="settings_email_verify">認証</string>
@@ -102,6 +109,9 @@
     <string name="settings_email_error_network">ネットワークエラー</string>
     <string name="settings_developer_mode_enabled">開発者モードが有効になりました</string>
     <string name="settings_advanced">詳細設定</string>
+    <string name="settings_server_url_label">サーバーURL</string>
+    <string name="settings_server_url_placeholder">https://oeee.cafe</string>
+    <string name="settings_current_server_url">現在: %1$s</string>
     <string name="navigate_back">戻る</string>
 
     <!-- Notifications -->
@@ -110,6 +120,7 @@
     <string name="notifications_empty_message">すべて確認しました！</string>
     <string name="notifications_mark_all_read">すべて既読にする</string>
     <string name="notifications_loading">通知を読み込んでいます...</string>
+    <string name="notifications_invitations">コミュニティへの招待</string>
 
     <!-- Notification types -->
     <string name="notification_comment">%1$sがあなたの投稿にコメントしました</string>
@@ -148,6 +159,7 @@
     <string name="post_reply">返信</string>
     <string name="post_replying_to">返信先:</string>
     <string name="post_share">共有</string>
+    <string name="replay_title">リプレイ</string>
     <string name="comment_write_placeholder">コメントを書く...</string>
     <string name="comment_post">コメントを投稿</string>
     <string name="comment_cancel_reply">返信をキャンセル</string>
@@ -167,11 +179,15 @@
     <string name="communities_error">コミュニティを読み込めませんでした</string>
     <string name="search">検索</string>
     <string name="clear">クリア</string>
+    <string name="create_community">コミュニティを作成</string>
 
     <!-- Common -->
     <string name="cancel">キャンセル</string>
     <string name="back">戻る</string>
     <string name="new_post">新規投稿</string>
+    <string name="save">保存</string>
+    <string name="reset">リセット</string>
+    <string name="prefix_at_symbol">\@</string>
 
     <!-- Errors -->
     <string name="error_password_required">パスワードを入力してください</string>

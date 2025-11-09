@@ -175,7 +175,7 @@ fun EditCommunityScreen(
                 label = { Text(stringResource(R.string.community_id)) },
                 modifier = Modifier.fillMaxWidth(),
                 enabled = false,
-                prefix = { Text("@") },
+                prefix = { Text(stringResource(R.string.prefix_at_symbol)) },
                 supportingText = {
                     Text(stringResource(R.string.community_id_cannot_change))
                 }

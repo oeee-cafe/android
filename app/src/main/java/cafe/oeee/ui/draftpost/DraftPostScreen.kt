@@ -92,7 +92,7 @@ fun DraftPostScreen(
                 // Image preview
                 coil.compose.AsyncImage(
                     model = imageUrl,
-                    contentDescription = "Drawing preview",
+                    contentDescription = stringResource(R.string.drawing_preview),
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(200.dp),

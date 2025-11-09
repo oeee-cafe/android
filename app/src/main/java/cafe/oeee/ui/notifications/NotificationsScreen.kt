@@ -94,7 +94,7 @@ fun NotificationsScreen(
                     IconButton(onClick = onInvitationsClick) {
                         Icon(
                             imageVector = Icons.Default.Mail,
-                            contentDescription = "Community Invitations"
+                            contentDescription = stringResource(R.string.notifications_invitations)
                         )
                     }
 

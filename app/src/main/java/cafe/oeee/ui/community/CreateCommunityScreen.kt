@@ -120,7 +120,7 @@ fun CreateCommunityScreen(
                     }
                 },
                 isError = uiState.slugError != null,
-                prefix = { Text("@") }
+                prefix = { Text(stringResource(R.string.prefix_at_symbol)) }
             )
 
             OutlinedTextField(

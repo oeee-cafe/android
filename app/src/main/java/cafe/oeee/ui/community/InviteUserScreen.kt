@@ -95,7 +95,7 @@ fun InviteUserScreen(
                 onValueChange = { viewModel.updateUsername(it) },
                 label = { Text(stringResource(R.string.community_invite_user_username)) },
                 placeholder = { Text(stringResource(R.string.community_invite_user_username_hint)) },
-                prefix = { Text("@") },
+                prefix = { Text(stringResource(R.string.prefix_at_symbol)) },
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true,
                 enabled = !uiState.isInviting

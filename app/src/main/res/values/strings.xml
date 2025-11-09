@@ -29,6 +29,8 @@
     <string name="profile_see_all_following">See all following</string>
     <string name="profile_follow">Follow</string>
     <string name="profile_unfollow">Unfollow</string>
+    <string name="profile_banner">Profile banner</string>
+    <string name="profile_user_banner">%1$s\'s banner</string>
 
     <!-- Community Detail -->
     <string name="community_title">Community</string>
@@ -36,6 +38,7 @@
     <string name="community_stat_posts">Posts</string>
     <string name="community_stat_contributors">Contributors</string>
     <string name="community_stat_comments">Comments</string>
+    <string name="community_members">Members</string>
 
     <!-- Relative Time -->
     <string name="time_just_now">just now</string>
@@ -75,6 +78,7 @@
     <string name="settings_delete_account_warning">Are you sure you want to delete your account? This action cannot be undone and will permanently delete all your data.</string>
     <string name="settings_email_verification">Email Verification</string>
     <string name="settings_email_label">Email</string>
+    <string name="settings_email_placeholder">user@example.com</string>
     <string name="settings_email_verified">Verified</string>
     <string name="settings_email_not_verified">Not verified</string>
     <string name="settings_email_not_set">No email set</string>
@@ -86,6 +90,7 @@
     <string name="settings_email_verify_code_title">Verify Email Code</string>
     <string name="settings_email_verify_code_description">A 6-digit verification code has been sent to %1$s</string>
     <string name="settings_email_code_label">Verification Code</string>
+    <string name="settings_email_code_placeholder">123456</string>
     <string name="settings_email_code_expires">Code expires in %1$s</string>
     <string name="settings_email_code_expired">Code has expired</string>
     <string name="settings_email_verify">Verify</string>
@@ -104,6 +109,9 @@
     <string name="settings_email_error_network">Network error</string>
     <string name="settings_developer_mode_enabled">Developer mode enabled</string>
     <string name="settings_advanced">Advanced</string>
+    <string name="settings_server_url_label">Server URL</string>
+    <string name="settings_server_url_placeholder">https://oeee.cafe</string>
+    <string name="settings_current_server_url">Current: %1$s</string>
     <string name="navigate_back">Navigate back</string>
 
     <!-- Notifications -->
@@ -112,6 +120,7 @@
     <string name="notifications_empty_message">You\'re all caught up!</string>
     <string name="notifications_mark_all_read">Mark all read</string>
     <string name="notifications_loading">Loading notifications...</string>
+    <string name="notifications_invitations">Community Invitations</string>
 
     <!-- Notification types -->
     <string name="notification_comment">%1$s commented on your post</string>
@@ -170,11 +179,15 @@
     <string name="communities_error">Failed to load communities</string>
     <string name="search">Search</string>
     <string name="clear">Clear</string>
+    <string name="create_community">Create Community</string>
 
     <!-- Common -->
     <string name="cancel">Cancel</string>
     <string name="back">Back</string>
     <string name="new_post">New Post</string>
+    <string name="save">Save</string>
+    <string name="reset">Reset</string>
+    <string name="prefix_at_symbol">\@</string>
 
     <!-- Errors -->
     <string name="error_password_required">Password is required</string>

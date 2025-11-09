@@ -27,6 +27,10 @@
     <string name="profile_following_list_title">팔로잉</string>
     <string name="profile_links">링크</string>
     <string name="profile_see_all_following">모든 팔로잉 보기</string>
+    <string name="profile_follow">팔로우</string>
+    <string name="profile_unfollow">언팔로우</string>
+    <string name="profile_banner">프로필 배너</string>
+    <string name="profile_user_banner">%1$s님의 배너</string>
 
     <!-- Community Detail -->
     <string name="community_title">커뮤니티</string>
@@ -34,6 +38,7 @@
     <string name="community_stat_posts">게시물</string>
     <string name="community_stat_contributors">기여자</string>
     <string name="community_stat_comments">댓글</string>
+    <string name="community_members">멤버</string>
 
     <!-- Relative Time -->
     <string name="time_just_now">방금 전</string>
@@ -73,6 +78,7 @@
     <string name="settings_delete_account_warning">정말 계정을 삭제하시겠습니까? 이 작업은 취소할 수 없으며 모든 데이터가 영구적으로 삭제됩니다.</string>
     <string name="settings_email_verification">이메일 인증</string>
     <string name="settings_email_label">이메일</string>
+    <string name="settings_email_placeholder">user@example.com</string>
     <string name="settings_email_verified">인증됨</string>
     <string name="settings_email_not_verified">인증되지 않음</string>
     <string name="settings_email_not_set">이메일이 설정되지 않았습니다</string>
@@ -84,6 +90,7 @@
     <string name="settings_email_verify_code_title">이메일 코드 인증</string>
     <string name="settings_email_verify_code_description">%1$s로 6자리 인증 코드가 전송되었습니다</string>
     <string name="settings_email_code_label">인증 코드</string>
+    <string name="settings_email_code_placeholder">123456</string>
     <string name="settings_email_code_expires">코드 만료: %1$s</string>
     <string name="settings_email_code_expired">코드가 만료되었습니다</string>
     <string name="settings_email_verify">인증</string>
@@ -102,6 +109,9 @@
     <string name="settings_email_error_network">네트워크 오류</string>
     <string name="settings_developer_mode_enabled">개발자 모드가 활성화되었습니다</string>
     <string name="settings_advanced">고급 설정</string>
+    <string name="settings_server_url_label">서버 URL</string>
+    <string name="settings_server_url_placeholder">https://oeee.cafe</string>
+    <string name="settings_current_server_url">현재: %1$s</string>
     <string name="navigate_back">뒤로 가기</string>
 
     <!-- Notifications -->
@@ -110,6 +120,7 @@
     <string name="notifications_empty_message">모두 확인했습니다!</string>
     <string name="notifications_mark_all_read">모두 읽음으로 표시</string>
     <string name="notifications_loading">알림 불러오는 중...</string>
+    <string name="notifications_invitations">커뮤니티 초대</string>
 
     <!-- Notification types -->
     <string name="notification_comment">%1$s님이 회원님의 게시물에 댓글을 달았습니다</string>
@@ -148,6 +159,7 @@
     <string name="post_reply">답글</string>
     <string name="post_replying_to">답글 대상:</string>
     <string name="post_share">공유</string>
+    <string name="replay_title">리플레이</string>
     <string name="comment_write_placeholder">댓글 작성...</string>
     <string name="comment_post">댓글 게시</string>
     <string name="comment_cancel_reply">답글 취소</string>
@@ -167,11 +179,15 @@
     <string name="communities_error">커뮤니티를 불러올 수 없습니다</string>
     <string name="search">검색</string>
     <string name="clear">지우기</string>
+    <string name="create_community">커뮤니티 만들기</string>
 
     <!-- Common -->
     <string name="cancel">취소</string>
     <string name="back">뒤로</string>
     <string name="new_post">새 게시물</string>
+    <string name="save">저장</string>
+    <string name="reset">초기화</string>
+    <string name="prefix_at_symbol">\@</string>
 
     <!-- Errors -->
     <string name="error_password_required">비밀번호를 입력해주세요</string>
