@@ -24,7 +24,7 @@ import cafe.oeee.data.remote.model.DraftPost
 @Composable
 fun DraftsScreen(
     onNavigateToSettings: () -> Unit,
-    onDraftClick: (String, String, String) -> Unit
+    onDraftClick: (String, String?, String) -> Unit
 ) {
     val viewModel: DraftsViewModel = viewModel()
     val uiState by viewModel.uiState.collectAsState()

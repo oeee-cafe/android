@@ -9,7 +9,7 @@ data class DraftPost(
     @Json(name = "title") val title: String?,
     @Json(name = "image_url") val imageUrl: String,
     @Json(name = "created_at") val createdAt: String,
-    @Json(name = "community_id") val communityId: String,
+    @Json(name = "community_id") val communityId: String?,
     @Json(name = "width") val width: Int,
     @Json(name = "height") val height: Int
 )

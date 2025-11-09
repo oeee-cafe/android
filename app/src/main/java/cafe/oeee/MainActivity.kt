@@ -400,7 +400,8 @@ fun AppNavigation(
                 },
                 onDraftClick = { postId, communityId, imageUrl ->
                     val encodedImageUrl = java.net.URLEncoder.encode(imageUrl, "UTF-8")
-                    navController.navigate("draftpost/$postId/$communityId/$encodedImageUrl")
+                    val communityIdParam = communityId ?: "none"
+                    navController.navigate("draftpost/$postId/$communityIdParam/$encodedImageUrl")
                 }
             )
         }
