@@ -115,7 +115,7 @@
     <string name="navigate_back">Navigate back</string>
 
     <!-- Notifications -->
-    <string name="notifications_title">Notifications</string>
+    <string name="notifications_title">Inbox</string>
     <string name="notifications_empty">No notifications</string>
     <string name="notifications_empty_message">You\'re all caught up!</string>
     <string name="notifications_mark_all_read">Mark all read</string>
@@ -169,7 +169,7 @@
     <string name="reactors_none">No reactors</string>
 
     <!-- Communities -->
-    <string name="communities_title">Communities</string>
+    <string name="communities_title">Community</string>
     <string name="my_communities">My Communities</string>
     <string name="public_communities">Public Communities</string>
     <string name="search_results">Search Results</string>
