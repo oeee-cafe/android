@@ -127,24 +127,27 @@ fun CommunityDetailScreen(
                         }
                     }
 
-                    // Share button - visible to all users
+                    // Share button - visible for public communities only
                     if (uiState.communityDetail != null) {
-                        IconButton(onClick = {
-                            val community = uiState.communityDetail!!.community
-                            val shareUrl = "https://oeee.cafe/communities/@${community.slug}"
-                            val shareIntent = android.content.Intent().apply {
-                                action = android.content.Intent.ACTION_SEND
-                                putExtra(android.content.Intent.EXTRA_TEXT, shareUrl)
-                                type = "text/plain"
+                        val isPrivate = uiState.communityDetail!!.community.visibility == "private"
+                        if (!isPrivate) {
+                            IconButton(onClick = {
+                                val community = uiState.communityDetail!!.community
+                                val shareUrl = "https://oeee.cafe/communities/@${community.slug}"
+                                val shareIntent = android.content.Intent().apply {
+                                    action = android.content.Intent.ACTION_SEND
+                                    putExtra(android.content.Intent.EXTRA_TEXT, shareUrl)
+                                    type = "text/plain"
+                                }
+                                context.startActivity(
+                                    android.content.Intent.createChooser(shareIntent, null)
+                                )
+                            }) {
+                                Icon(
+                                    imageVector = Icons.Default.Share,
+                                    contentDescription = stringResource(R.string.post_share)
+                                )
                             }
-                            context.startActivity(
-                                android.content.Intent.createChooser(shareIntent, null)
-                            )
-                        }) {
-                            Icon(
-                                imageVector = Icons.Default.Share,
-                                contentDescription = stringResource(R.string.post_share)
-                            )
                         }
                     }
 
