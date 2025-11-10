@@ -24,6 +24,7 @@ fun DraftPostScreen(
     postId: String,
     communityId: String?,
     imageUrl: String,
+    parentPostId: String?,
     onNavigateBack: () -> Unit,
     onPublished: (String) -> Unit
 ) {
@@ -64,6 +65,7 @@ fun DraftPostScreen(
                                     hashtags = hashtags,
                                     isSensitive = isSensitive,
                                     allowRelay = allowRelay,
+                                    parentPostId = parentPostId,
                                     onSuccess = { onPublished(postId) },
                                     onError = { errorMessage = it },
                                     setSubmitting = { isSubmitting = it }
@@ -205,6 +207,7 @@ private suspend fun publishPost(
     hashtags: String,
     isSensitive: Boolean,
     allowRelay: Boolean,
+    parentPostId: String?,
     onSuccess: () -> Unit,
     onError: (String) -> Unit,
     setSubmitting: (Boolean) -> Unit
@@ -227,6 +230,10 @@ private suspend fun publishPost(
             }
             if (allowRelay) {
                 formBodyBuilder.add("allow_relay", "on")
+            }
+
+            if (parentPostId != null) {
+                formBodyBuilder.add("parent_post_id", parentPostId)
             }
 
             val request = Request.Builder()

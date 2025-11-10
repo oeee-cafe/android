@@ -581,7 +581,8 @@ fun AppNavigation(
                     val encodedImageUrl = java.net.URLEncoder.encode(imageUrl, "UTF-8")
                     // Use placeholder "none" for null communityId (personal posts)
                     val communityIdParam = returnedCommunityId ?: "none"
-                    navController.navigate("draftpost/$postId/$communityIdParam/$encodedImageUrl") {
+                    val parentPostIdParam = if (parentPostId != null) "?parentPostId=$parentPostId" else ""
+                    navController.navigate("draftpost/$postId/$communityIdParam/$encodedImageUrl$parentPostIdParam") {
                         popUpTo("draw/{width}/{height}/{tool}?parentPostId={parentPostId}&communityId={communityId}") { inclusive = true }
                     }
                 }
@@ -589,11 +590,16 @@ fun AppNavigation(
         }
 
         composable(
-            route = "draftpost/{postId}/{communityId}/{imageUrl}",
+            route = "draftpost/{postId}/{communityId}/{imageUrl}?parentPostId={parentPostId}",
             arguments = listOf(
                 navArgument("postId") { type = NavType.StringType },
                 navArgument("communityId") { type = NavType.StringType },
-                navArgument("imageUrl") { type = NavType.StringType }
+                navArgument("imageUrl") { type = NavType.StringType },
+                navArgument("parentPostId") {
+                    type = NavType.StringType
+                    nullable = true
+                    defaultValue = null
+                }
             )
         ) { backStackEntry ->
             val postId = backStackEntry.arguments?.getString("postId") ?: return@composable
@@ -602,10 +608,12 @@ fun AppNavigation(
             val communityId = if (communityIdParam.isEmpty() || communityIdParam == "none") null else communityIdParam
             val encodedImageUrl = backStackEntry.arguments?.getString("imageUrl") ?: return@composable
             val imageUrl = java.net.URLDecoder.decode(encodedImageUrl, "UTF-8")
+            val parentPostId = backStackEntry.arguments?.getString("parentPostId")
             cafe.oeee.ui.draftpost.DraftPostScreen(
                 postId = postId,
                 communityId = communityId,
                 imageUrl = imageUrl,
+                parentPostId = parentPostId,
                 onNavigateBack = { navController.popBackStack() },
                 onPublished = { publishedPostId ->
                     navController.navigate("post/$publishedPostId") {
