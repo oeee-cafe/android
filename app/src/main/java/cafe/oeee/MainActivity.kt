@@ -513,7 +513,7 @@ fun AppNavigation(
         }
 
         composable(
-            route = "dimensionpicker?parentPostId={parentPostId}&communityId={communityId}",
+            route = "dimensionpicker?parentPostId={parentPostId}&communityId={communityId}&backgroundColor={backgroundColor}&foregroundColor={foregroundColor}",
             arguments = listOf(
                 navArgument("parentPostId") {
                     type = NavType.StringType
@@ -524,11 +524,23 @@ fun AppNavigation(
                     type = NavType.StringType
                     nullable = true
                     defaultValue = null
+                },
+                navArgument("backgroundColor") {
+                    type = NavType.StringType
+                    nullable = true
+                    defaultValue = null
+                },
+                navArgument("foregroundColor") {
+                    type = NavType.StringType
+                    nullable = true
+                    defaultValue = null
                 }
             )
         ) { backStackEntry ->
             val parentPostId = backStackEntry.arguments?.getString("parentPostId")
             val communityId = backStackEntry.arguments?.getString("communityId")
+            val backgroundColor = backStackEntry.arguments?.getString("backgroundColor")
+            val foregroundColor = backStackEntry.arguments?.getString("foregroundColor")
             cafe.oeee.ui.components.CanvasDimensionPicker(
                 onDimensionsSelected = { dimensions ->
                     var route = "draw/${dimensions.width}/${dimensions.height}/${dimensions.tool.value}"
@@ -539,10 +551,12 @@ fun AppNavigation(
                         route += "?" + params.joinToString("&")
                     }
                     navController.navigate(route) {
-                        popUpTo("dimensionpicker?parentPostId={parentPostId}&communityId={communityId}") { inclusive = true }
+                        popUpTo("dimensionpicker?parentPostId={parentPostId}&communityId={communityId}&backgroundColor={backgroundColor}&foregroundColor={foregroundColor}") { inclusive = true }
                     }
                 },
-                onCancel = { navController.popBackStack() }
+                onCancel = { navController.popBackStack() },
+                backgroundColor = backgroundColor,
+                foregroundColor = foregroundColor
             )
         }
 
@@ -713,8 +727,16 @@ fun AppNavigation(
                 onProfileClick = { loginName ->
                     navController.navigate("profile/$loginName")
                 },
-                onDrawClick = { communityId ->
-                    navController.navigate("dimensionpicker?communityId=$communityId")
+                onDrawClick = { communityId, backgroundColor, foregroundColor ->
+                    // If community has defined colors, skip dimension picker and use fixed 640×480
+                    if (backgroundColor != null && foregroundColor != null) {
+                        navController.navigate("draw/640/480/neo-cucumber-offline?communityId=$communityId")
+                    } else {
+                        var route = "dimensionpicker?communityId=$communityId"
+                        if (backgroundColor != null) route += "&backgroundColor=$backgroundColor"
+                        if (foregroundColor != null) route += "&foregroundColor=$foregroundColor"
+                        navController.navigate(route)
+                    }
                 },
                 onMembersClick = {
                     navController.navigate("community/$slug/members")

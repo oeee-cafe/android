@@ -41,7 +41,7 @@ fun CommunityDetailScreen(
     onNavigateBack: () -> Unit = {},
     onPostClick: (String) -> Unit = {},
     onProfileClick: (String) -> Unit = {},
-    onDrawClick: (String) -> Unit = {},
+    onDrawClick: (String, String?, String?) -> Unit = { _, _, _ -> },
     onMembersClick: () -> Unit = {},
     onSettingsClick: () -> Unit = {}
 ) {
@@ -153,7 +153,13 @@ fun CommunityDetailScreen(
 
                     // New post button
                     if (uiState.communityDetail != null) {
-                        IconButton(onClick = { onDrawClick(uiState.communityDetail!!.community.id) }) {
+                        IconButton(onClick = {
+                            onDrawClick(
+                                uiState.communityDetail!!.community.id,
+                                uiState.communityDetail!!.community.backgroundColor,
+                                uiState.communityDetail!!.community.foregroundColor
+                            )
+                        }) {
                             Icon(
                                 imageVector = Icons.Default.Add,
                                 contentDescription = stringResource(R.string.new_post)

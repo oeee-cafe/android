@@ -38,7 +38,8 @@ import cafe.oeee.R
 
 enum class DrawingTool(val value: String, val displayName: String) {
     NEO("neo", "PaintBBS NEO"),
-    TEGAKI("tegaki", "Tegaki")
+    TEGAKI("tegaki", "Tegaki"),
+    NEO_CUCUMBER_OFFLINE("neo-cucumber-offline", "Neo Cucumber Offline")
 }
 
 data class CanvasDimensions(
@@ -51,12 +52,16 @@ data class CanvasDimensions(
 @Composable
 fun CanvasDimensionPicker(
     onDimensionsSelected: (CanvasDimensions) -> Unit,
-    onCancel: () -> Unit
+    onCancel: () -> Unit,
+    backgroundColor: String? = null,
+    foregroundColor: String? = null
 ) {
     var selectedWidth by remember { mutableIntStateOf(300) }
     var selectedHeight by remember { mutableIntStateOf(300) }
     var selectedTool by remember { mutableStateOf(DrawingTool.NEO) }
 
+    val hasDefinedColors = backgroundColor != null && foregroundColor != null
+    val availableTools = DrawingTool.entries.filter { it != DrawingTool.NEO_CUCUMBER_OFFLINE }
     val availableWidths = (300..1000 step 50).toList()
     val availableHeights = (300..800 step 50).toList()
 
@@ -82,26 +87,28 @@ fun CanvasDimensionPicker(
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(24.dp)
         ) {
-            // Tool selection
-            Column {
-                Text(
-                    text = stringResource(R.string.draw_drawing_tool),
-                    style = MaterialTheme.typography.titleMedium,
-                    modifier = Modifier.padding(bottom = 8.dp)
-                )
-                SingleChoiceSegmentedButtonRow(
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    DrawingTool.entries.forEachIndexed { index, tool ->
-                        SegmentedButton(
-                            selected = selectedTool == tool,
-                            onClick = { selectedTool = tool },
-                            shape = SegmentedButtonDefaults.itemShape(
-                                index = index,
-                                count = DrawingTool.entries.size
-                            )
-                        ) {
-                            Text(tool.displayName)
+            // Tool selection (hidden when community has defined colors)
+            if (!hasDefinedColors) {
+                Column {
+                    Text(
+                        text = stringResource(R.string.draw_drawing_tool),
+                        style = MaterialTheme.typography.titleMedium,
+                        modifier = Modifier.padding(bottom = 8.dp)
+                    )
+                    SingleChoiceSegmentedButtonRow(
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        availableTools.forEachIndexed { index, tool ->
+                            SegmentedButton(
+                                selected = selectedTool == tool,
+                                onClick = { selectedTool = tool },
+                                shape = SegmentedButtonDefaults.itemShape(
+                                    index = index,
+                                    count = availableTools.size
+                                )
+                            ) {
+                                Text(tool.displayName)
+                            }
                         }
                     }
                 }
