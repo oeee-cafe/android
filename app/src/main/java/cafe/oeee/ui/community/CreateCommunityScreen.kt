@@ -49,6 +49,7 @@ fun CreateCommunityScreen(
             "unauthorized" -> R.string.error_unauthorized
             "invalid_slug_format" -> R.string.error_invalid_slug_format
             "slug_conflicts_with_user" -> R.string.error_slug_conflicts_with_user
+            "slug_already_exists" -> R.string.error_slug_already_exists
             "network_error" -> R.string.error_network_generic
             else -> R.string.dialog_error_unknown
         }

@@ -200,6 +200,7 @@
     <string name="error_unauthorized">この操作を実行するにはログインが必要です</string>
     <string name="error_invalid_slug_format">IDには英数字、ハイフン、アンダースコアのみ使用できます</string>
     <string name="error_slug_conflicts_with_user">このIDは既にユーザーによって使用されています</string>
+    <string name="error_slug_already_exists">このIDのコミュニティは既に存在します</string>
     <string name="error_network_generic">ネットワークエラーが発生しました。接続を確認して再試行してください。</string>
     <string name="error_signup_failed">登録に失敗しました</string>
     <string name="error_search_failed">検索に失敗しました</string>

@@ -200,6 +200,7 @@
     <string name="error_unauthorized">You must be logged in to perform this action</string>
     <string name="error_invalid_slug_format">The ID must contain only letters, numbers, hyphens, and underscores</string>
     <string name="error_slug_conflicts_with_user">This ID is already taken by a user</string>
+    <string name="error_slug_already_exists">A community with this ID already exists</string>
     <string name="error_network_generic">Network error occurred. Please check your connection and try again.</string>
     <string name="error_signup_failed">Signup failed</string>
     <string name="error_search_failed">Search failed</string>
