@@ -782,7 +782,10 @@ fun AppNavigation(
 
         composable("community-invitations") {
             CommunityInvitationsScreen(
-                onNavigateBack = { navController.popBackStack() }
+                onNavigateBack = { navController.popBackStack() },
+                onNavigateToCommunity = { slug ->
+                    navController.navigate("community/$slug")
+                }
             )
         }
 

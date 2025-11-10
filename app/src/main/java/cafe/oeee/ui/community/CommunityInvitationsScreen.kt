@@ -27,6 +27,7 @@ import kotlinx.coroutines.launch
 @Composable
 fun CommunityInvitationsScreen(
     onNavigateBack: () -> Unit,
+    onNavigateToCommunity: (String) -> Unit,
     viewModel: CommunityInvitationsViewModel = viewModel(
         factory = CommunityInvitationsViewModelFactory()
     )
@@ -35,6 +36,13 @@ fun CommunityInvitationsScreen(
 
     LaunchedEffect(Unit) {
         viewModel.loadInvitations()
+    }
+
+    // Navigate to accepted community
+    LaunchedEffect(uiState.acceptedCommunitySlug) {
+        uiState.acceptedCommunitySlug?.let { slug ->
+            onNavigateToCommunity(slug)
+        }
     }
 
     if (uiState.showError) {
@@ -85,7 +93,7 @@ fun CommunityInvitationsScreen(
                         items(uiState.invitations) { invitation ->
                             InvitationCard(
                                 invitation = invitation,
-                                onAccept = { viewModel.acceptInvitation(invitation.id) },
+                                onAccept = { viewModel.acceptInvitation(invitation.id, invitation.community.slug) },
                                 onReject = { viewModel.rejectInvitation(invitation.id) }
                             )
                         }
@@ -258,7 +266,8 @@ data class CommunityInvitationsUiState(
     val invitations: List<UserInvitation> = emptyList(),
     val isLoading: Boolean = false,
     val showError: Boolean = false,
-    val errorMessage: String? = null
+    val errorMessage: String? = null,
+    val acceptedCommunitySlug: String? = null
 )
 
 class CommunityInvitationsViewModel(
@@ -287,10 +296,14 @@ class CommunityInvitationsViewModel(
         }
     }
 
-    fun acceptInvitation(id: String) {
+    fun acceptInvitation(id: String, communitySlug: String) {
         viewModelScope.launch {
             try {
                 apiClient.apiService.acceptInvitation(id)
+                // Set the accepted community slug to trigger navigation
+                _uiState.value = _uiState.value.copy(
+                    acceptedCommunitySlug = communitySlug
+                )
                 loadInvitations()
             } catch (e: Exception) {
                 _uiState.value = _uiState.value.copy(
