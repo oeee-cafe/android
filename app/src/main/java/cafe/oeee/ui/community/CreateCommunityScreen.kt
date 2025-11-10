@@ -17,11 +17,14 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.compose.viewModel
+import cafe.oeee.data.model.ApiErrorResponse
 import cafe.oeee.data.model.CreateCommunityRequest
 import cafe.oeee.data.remote.ApiClient
+import com.squareup.moshi.Moshi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import retrofit2.HttpException
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -41,10 +44,19 @@ fun CreateCommunityScreen(
     }
 
     if (uiState.showError) {
+        // Map error code to localized string resource
+        val errorMessageResId = when (uiState.errorCode?.lowercase()) {
+            "unauthorized" -> R.string.error_unauthorized
+            "invalid_slug_format" -> R.string.error_invalid_slug_format
+            "slug_conflicts_with_user" -> R.string.error_slug_conflicts_with_user
+            "network_error" -> R.string.error_network_generic
+            else -> R.string.dialog_error_unknown
+        }
+
         AlertDialog(
             onDismissRequest = { viewModel.dismissError() },
             title = { Text(stringResource(R.string.dialog_error)) },
-            text = { Text(uiState.errorMessage ?: stringResource(R.string.dialog_error_unknown)) },
+            text = { Text(stringResource(errorMessageResId)) },
             confirmButton = {
                 TextButton(onClick = { viewModel.dismissError() }) {
                     Text(stringResource(R.string.dialog_ok))
@@ -231,6 +243,7 @@ data class CreateCommunityUiState(
     val isCreating: Boolean = false,
     val showError: Boolean = false,
     val errorMessage: String? = null,
+    val errorCode: String? = null,
     val createdSlug: String? = null
 )
 
@@ -298,11 +311,32 @@ class CreateCommunityViewModel(
                     isCreating = false,
                     createdSlug = response.community.slug
                 )
+            } catch (e: HttpException) {
+                // Try to parse error response
+                val errorBody = e.response()?.errorBody()?.string()
+                val errorMessage = if (errorBody != null) {
+                    try {
+                        val moshi = Moshi.Builder().build()
+                        val adapter = moshi.adapter(ApiErrorResponse::class.java)
+                        val errorResponse = adapter.fromJson(errorBody)
+                        errorResponse?.error?.code // Return error code for localization
+                    } catch (parseException: Exception) {
+                        null
+                    }
+                } else {
+                    null
+                } ?: "UNKNOWN_ERROR"
+
+                _uiState.value = _uiState.value.copy(
+                    isCreating = false,
+                    showError = true,
+                    errorCode = errorMessage
+                )
             } catch (e: Exception) {
                 _uiState.value = _uiState.value.copy(
                     isCreating = false,
                     showError = true,
-                    errorMessage = e.message ?: "Failed to create community"
+                    errorCode = "NETWORK_ERROR"
                 )
             }
         }

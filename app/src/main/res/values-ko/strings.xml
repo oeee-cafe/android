@@ -197,6 +197,10 @@
     <string name="error_failed_to_load_more">더 많은 게시물을 불러오는데 실패했습니다</string>
     <string name="error_failed_to_load_drafts">임시 저장 불러오기 실패</string>
     <string name="error_loading_drafts">임시 저장을 불러오는 중 오류 발생</string>
+    <string name="error_unauthorized">이 작업을 수행하려면 로그인해야 합니다</string>
+    <string name="error_invalid_slug_format">ID는 영문자, 숫자, 하이픈, 밑줄만 포함할 수 있습니다</string>
+    <string name="error_slug_conflicts_with_user">이 ID는 이미 사용자가 사용 중입니다</string>
+    <string name="error_network_generic">네트워크 오류가 발생했습니다. 연결을 확인하고 다시 시도해주세요.</string>
     <string name="error_signup_failed">회원가입 실패</string>
     <string name="error_search_failed">검색 실패</string>
     <string name="error_publish_failed">게시 실패 (상태 %1$d)</string>
