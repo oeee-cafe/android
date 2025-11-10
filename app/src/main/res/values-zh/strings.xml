@@ -201,6 +201,7 @@
     <string name="error_invalid_slug_format">ID只能包含字母、数字、连字符和下划线</string>
     <string name="error_slug_conflicts_with_user">此ID已被用户使用</string>
     <string name="error_slug_already_exists">具有此ID的社区已存在</string>
+    <string name="error_invalid_visibility_change">无法在私密和公开/仅链接之间更改可见性</string>
     <string name="error_network_generic">发生网络错误。请检查您的连接并重试。</string>
     <string name="error_signup_failed">注册失败</string>
     <string name="error_search_failed">搜索失败</string>

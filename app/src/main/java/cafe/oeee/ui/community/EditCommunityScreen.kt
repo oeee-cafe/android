@@ -16,12 +16,15 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.compose.viewModel
+import cafe.oeee.data.model.ApiErrorResponse
 import cafe.oeee.data.model.CommunityInfo
 import cafe.oeee.data.model.UpdateCommunityRequest
 import cafe.oeee.data.remote.ApiClient
+import com.squareup.moshi.Moshi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import retrofit2.HttpException
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -51,10 +54,21 @@ fun EditCommunityScreen(
     }
 
     if (uiState.showError) {
+        // Map error code to localized string resource
+        val errorMessageResId = when (uiState.errorCode?.lowercase()) {
+            "unauthorized" -> R.string.error_unauthorized
+            "invalid_slug_format" -> R.string.error_invalid_slug_format
+            "slug_conflicts_with_user" -> R.string.error_slug_conflicts_with_user
+            "slug_already_exists" -> R.string.error_slug_already_exists
+            "invalid_visibility_change" -> R.string.error_invalid_visibility_change
+            "network_error" -> R.string.error_network_generic
+            else -> R.string.dialog_error_unknown
+        }
+
         AlertDialog(
             onDismissRequest = { viewModel.dismissError() },
             title = { Text(stringResource(R.string.dialog_error)) },
-            text = { Text(uiState.errorMessage ?: stringResource(R.string.dialog_error_unknown)) },
+            text = { Text(stringResource(errorMessageResId)) },
             confirmButton = {
                 TextButton(onClick = { viewModel.dismissError() }) {
                     Text(stringResource(R.string.dialog_ok))
@@ -191,57 +205,34 @@ fun EditCommunityScreen(
                 maxLines = 5
             )
 
-            // Privacy Section
-            Text(
-                text = stringResource(R.string.community_privacy),
-                style = MaterialTheme.typography.titleMedium,
-                color = MaterialTheme.colorScheme.primary
-            )
+            // Privacy Section - only show for non-private communities
+            if (!uiState.isPrivate) {
+                Text(
+                    text = stringResource(R.string.community_privacy),
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.primary
+                )
 
-            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                if (uiState.allowedVisibilities.contains("public")) {
-                    VisibilityOption(
-                        title = stringResource(R.string.community_visibility_public),
-                        description = stringResource(R.string.community_visibility_public_desc),
-                        selected = uiState.visibility == "public",
-                        onClick = { viewModel.updateVisibility("public") },
-                        enabled = true
-                    )
-                }
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    if (uiState.allowedVisibilities.contains("public")) {
+                        VisibilityOption(
+                            title = stringResource(R.string.community_visibility_public),
+                            description = stringResource(R.string.community_visibility_public_desc),
+                            selected = uiState.visibility == "public",
+                            onClick = { viewModel.updateVisibility("public") },
+                            enabled = true
+                        )
+                    }
 
-                if (uiState.allowedVisibilities.contains("unlisted")) {
-                    VisibilityOption(
-                        title = stringResource(R.string.community_visibility_unlisted),
-                        description = stringResource(R.string.community_visibility_unlisted_desc),
-                        selected = uiState.visibility == "unlisted",
-                        onClick = { viewModel.updateVisibility("unlisted") },
-                        enabled = true
-                    )
-                }
-
-                if (uiState.allowedVisibilities.contains("private")) {
-                    VisibilityOption(
-                        title = stringResource(R.string.community_visibility_private),
-                        description = stringResource(R.string.community_visibility_private_desc),
-                        selected = uiState.visibility == "private",
-                        onClick = { viewModel.updateVisibility("private") },
-                        enabled = true
-                    )
-                }
-            }
-
-            if (uiState.isPrivate) {
-                Card(
-                    colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.errorContainer
-                    )
-                ) {
-                    Text(
-                        text = stringResource(R.string.community_visibility_note),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onErrorContainer,
-                        modifier = Modifier.padding(12.dp)
-                    )
+                    if (uiState.allowedVisibilities.contains("unlisted")) {
+                        VisibilityOption(
+                            title = stringResource(R.string.community_visibility_unlisted),
+                            description = stringResource(R.string.community_visibility_unlisted_desc),
+                            selected = uiState.visibility == "unlisted",
+                            onClick = { viewModel.updateVisibility("unlisted") },
+                            enabled = true
+                        )
+                    }
                 }
             }
 
@@ -361,6 +352,7 @@ data class EditCommunityUiState(
     val isDeleting: Boolean = false,
     val showError: Boolean = false,
     val errorMessage: String? = null,
+    val errorCode: String? = null,
     val updateSucceeded: Boolean = false,
     val deleteSucceeded: Boolean = false
 )
@@ -427,11 +419,31 @@ class EditCommunityViewModel(
                     isUpdating = false,
                     updateSucceeded = true
                 )
+            } catch (e: HttpException) {
+                val errorBody = e.response()?.errorBody()?.string()
+                val errorCode = if (errorBody != null) {
+                    try {
+                        val moshi = Moshi.Builder().build()
+                        val adapter = moshi.adapter(ApiErrorResponse::class.java)
+                        val errorResponse = adapter.fromJson(errorBody)
+                        errorResponse?.error?.code
+                    } catch (parseException: Exception) {
+                        null
+                    }
+                } else {
+                    null
+                } ?: "UNKNOWN_ERROR"
+
+                _uiState.value = _uiState.value.copy(
+                    isUpdating = false,
+                    showError = true,
+                    errorCode = errorCode
+                )
             } catch (e: Exception) {
                 _uiState.value = _uiState.value.copy(
                     isUpdating = false,
                     showError = true,
-                    errorMessage = e.message ?: "Failed to update community"
+                    errorCode = "NETWORK_ERROR"
                 )
             }
         }
@@ -461,7 +473,7 @@ class EditCommunityViewModel(
     }
 
     fun dismissError() {
-        _uiState.value = _uiState.value.copy(showError = false, errorMessage = null)
+        _uiState.value = _uiState.value.copy(showError = false, errorMessage = null, errorCode = null)
     }
 }
 
