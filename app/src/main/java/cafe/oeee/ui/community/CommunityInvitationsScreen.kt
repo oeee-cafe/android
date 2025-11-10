@@ -27,7 +27,7 @@ import kotlinx.coroutines.launch
 @Composable
 fun CommunityInvitationsScreen(
     onNavigateBack: () -> Unit,
-    onNavigateToCommunity: (String) -> Unit,
+    onInvitationCountChanged: () -> Unit = {},
     viewModel: CommunityInvitationsViewModel = viewModel(
         factory = CommunityInvitationsViewModelFactory()
     )
@@ -38,10 +38,10 @@ fun CommunityInvitationsScreen(
         viewModel.loadInvitations()
     }
 
-    // Navigate to accepted community
-    LaunchedEffect(uiState.acceptedCommunitySlug) {
-        uiState.acceptedCommunitySlug?.let { slug ->
-            onNavigateToCommunity(slug)
+    // Update invitation count when invitations list changes
+    LaunchedEffect(uiState.invitations.size) {
+        if (uiState.invitations.isNotEmpty() || !uiState.isLoading) {
+            onInvitationCountChanged()
         }
     }
 
@@ -93,7 +93,7 @@ fun CommunityInvitationsScreen(
                         items(uiState.invitations) { invitation ->
                             InvitationCard(
                                 invitation = invitation,
-                                onAccept = { viewModel.acceptInvitation(invitation.id, invitation.community.slug) },
+                                onAccept = { viewModel.acceptInvitation(invitation.id) },
                                 onReject = { viewModel.rejectInvitation(invitation.id) }
                             )
                         }
@@ -266,8 +266,7 @@ data class CommunityInvitationsUiState(
     val invitations: List<UserInvitation> = emptyList(),
     val isLoading: Boolean = false,
     val showError: Boolean = false,
-    val errorMessage: String? = null,
-    val acceptedCommunitySlug: String? = null
+    val errorMessage: String? = null
 )
 
 class CommunityInvitationsViewModel(
@@ -296,14 +295,10 @@ class CommunityInvitationsViewModel(
         }
     }
 
-    fun acceptInvitation(id: String, communitySlug: String) {
+    fun acceptInvitation(id: String) {
         viewModelScope.launch {
             try {
                 apiClient.apiService.acceptInvitation(id)
-                // Set the accepted community slug to trigger navigation
-                _uiState.value = _uiState.value.copy(
-                    acceptedCommunitySlug = communitySlug
-                )
                 loadInvitations()
             } catch (e: Exception) {
                 _uiState.value = _uiState.value.copy(

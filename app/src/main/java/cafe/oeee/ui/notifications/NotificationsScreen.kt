@@ -27,7 +27,8 @@ fun NotificationsScreen(
     onPostClick: (String) -> Unit = {},
     onProfileClick: (String) -> Unit = {},
     onInvitationsClick: () -> Unit = {},
-    invitationCountFlow: kotlinx.coroutines.flow.MutableStateFlow<Int>? = null
+    invitationCountFlow: kotlinx.coroutines.flow.MutableStateFlow<Int>? = null,
+    unreadCountFlow: kotlinx.coroutines.flow.MutableStateFlow<Long>? = null
 ) {
     val context = LocalContext.current
     val viewModel: NotificationsViewModel = viewModel(
@@ -88,9 +89,18 @@ fun NotificationsScreen(
         }
     }
 
-    // Update invitation count in parent flow
-    LaunchedEffect(uiState.invitationCount) {
-        invitationCountFlow?.value = uiState.invitationCount
+    // Update invitation count in parent flow (only after data has been loaded)
+    LaunchedEffect(uiState.invitationCount, uiState.hasLoadedData) {
+        if (uiState.hasLoadedData) {
+            invitationCountFlow?.value = uiState.invitationCount
+        }
+    }
+
+    // Update unread count in parent flow (only after data has been loaded)
+    LaunchedEffect(uiState.unreadCount, uiState.hasLoadedData) {
+        if (uiState.hasLoadedData) {
+            unreadCountFlow?.value = uiState.unreadCount
+        }
     }
 
     Scaffold(

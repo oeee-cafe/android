@@ -18,7 +18,8 @@ data class NotificationsUiState(
     val error: String? = null,
     val hasMore: Boolean = true,
     val unreadCount: Long = 0,
-    val invitationCount: Int = 0
+    val invitationCount: Int = 0,
+    val hasLoadedData: Boolean = false
 )
 
 class NotificationsViewModel(context: Context) : ViewModel() {
@@ -48,7 +49,8 @@ class NotificationsViewModel(context: Context) : ViewModel() {
                     _uiState.value = _uiState.value.copy(
                         notifications = validNotifications,
                         hasMore = response.hasMore,
-                        isLoading = false
+                        isLoading = false,
+                        hasLoadedData = true
                     )
                     currentOffset = pageSize
 
@@ -59,7 +61,8 @@ class NotificationsViewModel(context: Context) : ViewModel() {
                 onFailure = { error ->
                     _uiState.value = _uiState.value.copy(
                         isLoading = false,
-                        error = error.message ?: "Failed to load notifications"
+                        error = error.message ?: "Failed to load notifications",
+                        hasLoadedData = true
                     )
                 }
             )
@@ -136,6 +139,10 @@ class NotificationsViewModel(context: Context) : ViewModel() {
                 onSuccess = {
                     // Refresh to get updated notifications
                     refresh()
+                    // Explicitly update unread count after refresh to ensure badge is updated
+                    viewModelScope.launch {
+                        updateUnreadCount()
+                    }
                 },
                 onFailure = { error ->
                     _uiState.value = _uiState.value.copy(

@@ -42,6 +42,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -157,6 +158,7 @@ fun AppNavigation(
     val currentRoute = navBackStackEntry?.destination?.route
 
     var selectedTabIndex by rememberSaveable { mutableIntStateOf(0) }
+    val scope = rememberCoroutineScope()
     val unreadCount = MutableStateFlow(0L)
     val invitationCount = MutableStateFlow(0)
     val draftCount = MutableStateFlow(0)
@@ -476,7 +478,8 @@ fun AppNavigation(
                 onInvitationsClick = {
                     navController.navigate("community-invitations")
                 },
-                invitationCountFlow = invitationCount
+                invitationCountFlow = invitationCount,
+                unreadCountFlow = unreadCount
             )
         }
 
@@ -822,8 +825,16 @@ fun AppNavigation(
         composable("community-invitations") {
             CommunityInvitationsScreen(
                 onNavigateBack = { navController.popBackStack() },
-                onNavigateToCommunity = { slug ->
-                    navController.navigate("community/$slug")
+                onInvitationCountChanged = {
+                    // Update invitation count when an invitation is accepted/rejected
+                    scope.launch {
+                        try {
+                            val response = ApiClient.apiService.getUserInvitations()
+                            invitationCount.value = response.invitations.size
+                        } catch (e: Exception) {
+                            // Ignore error
+                        }
+                    }
                 }
             )
         }
