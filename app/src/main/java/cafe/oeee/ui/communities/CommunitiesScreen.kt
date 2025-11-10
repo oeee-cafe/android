@@ -197,12 +197,12 @@ fun CommunitiesScreen(
                         )
                     }
 
-                    // My Communities Section
-                    if (isAuthenticated && uiState.filteredMyCommunities.isNotEmpty()) {
-                        item(key = "my_communities_header") {
+                    // Private Communities Section
+                    if (isAuthenticated && uiState.filteredPrivateCommunities.isNotEmpty()) {
+                        item(key = "private_communities_header") {
                             Spacer(modifier = Modifier.height(16.dp))
                             Text(
-                                text = stringResource(R.string.my_communities),
+                                text = stringResource(R.string.private_communities),
                                 style = MaterialTheme.typography.titleLarge,
                                 fontWeight = FontWeight.Bold,
                                 modifier = Modifier.padding(horizontal = 16.dp)
@@ -211,8 +211,8 @@ fun CommunitiesScreen(
                         }
 
                         items(
-                            items = uiState.filteredMyCommunities,
-                            key = { "my_${it.id}" }
+                            items = uiState.filteredPrivateCommunities,
+                            key = { "private_${it.id}" }
                         ) { community ->
                             CommunityCard(
                                 community = community,
@@ -223,21 +223,82 @@ fun CommunitiesScreen(
                         }
                     }
 
-                    // Public Communities Section
-                    val publicCommunities = if (uiState.searchQuery.isNotEmpty()) {
+                    // Unlisted Communities Section
+                    if (isAuthenticated && uiState.filteredUnlistedCommunities.isNotEmpty()) {
+                        item(key = "unlisted_communities_header") {
+                            Spacer(modifier = Modifier.height(if (isAuthenticated && uiState.filteredPrivateCommunities.isNotEmpty()) 24.dp else 16.dp))
+                            Text(
+                                text = stringResource(R.string.unlisted_communities),
+                                style = MaterialTheme.typography.titleLarge,
+                                fontWeight = FontWeight.Bold,
+                                modifier = Modifier.padding(horizontal = 16.dp)
+                            )
+                            Spacer(modifier = Modifier.height(12.dp))
+                        }
+
+                        items(
+                            items = uiState.filteredUnlistedCommunities,
+                            key = { "unlisted_${it.id}" }
+                        ) { community ->
+                            CommunityCard(
+                                community = community,
+                                onCommunityClick = { onCommunityClick(community.slug) },
+                                onPostClick = onPostClick,
+                                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+                            )
+                        }
+                    }
+
+                    // My Public Communities Section
+                    if (isAuthenticated && uiState.filteredPublicMyCommunities.isNotEmpty()) {
+                        item(key = "my_public_communities_header") {
+                            val hasAnySectionAbove = uiState.filteredPrivateCommunities.isNotEmpty() || uiState.filteredUnlistedCommunities.isNotEmpty()
+                            Spacer(modifier = Modifier.height(if (isAuthenticated && hasAnySectionAbove) 24.dp else 16.dp))
+                            Text(
+                                text = stringResource(R.string.my_public_communities),
+                                style = MaterialTheme.typography.titleLarge,
+                                fontWeight = FontWeight.Bold,
+                                modifier = Modifier.padding(horizontal = 16.dp)
+                            )
+                            Spacer(modifier = Modifier.height(12.dp))
+                        }
+
+                        items(
+                            items = uiState.filteredPublicMyCommunities,
+                            key = { "my_public_${it.id}" }
+                        ) { community ->
+                            CommunityCard(
+                                community = community,
+                                onCommunityClick = { onCommunityClick(community.slug) },
+                                onPostClick = onPostClick,
+                                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+                            )
+                        }
+                    }
+
+                    // Other Public Communities Section
+                    val allPublicCommunities = if (uiState.searchQuery.isNotEmpty()) {
                         uiState.searchResults
                     } else {
                         uiState.filteredPublicCommunities
                     }
+                    // Filter out communities that are already in My Communities to avoid duplicates
+                    val myCommunityIds = uiState.filteredMyCommunities.map { it.id }.toSet()
+                    val publicCommunities = allPublicCommunities.filter { it.id !in myCommunityIds }
 
                     if (publicCommunities.isNotEmpty()) {
                         item(key = "public_communities_header") {
-                            Spacer(modifier = Modifier.height(if (isAuthenticated && uiState.filteredMyCommunities.isNotEmpty()) 24.dp else 16.dp))
+                            val hasAnySectionAbove = isAuthenticated && (
+                                uiState.filteredPrivateCommunities.isNotEmpty() ||
+                                uiState.filteredUnlistedCommunities.isNotEmpty() ||
+                                uiState.filteredPublicMyCommunities.isNotEmpty()
+                            )
+                            Spacer(modifier = Modifier.height(if (hasAnySectionAbove) 24.dp else 16.dp))
                             Text(
                                 text = if (uiState.searchQuery.isNotEmpty()) {
                                     stringResource(R.string.search_results)
                                 } else {
-                                    stringResource(R.string.public_communities)
+                                    stringResource(R.string.other_public_communities)
                                 },
                                 style = MaterialTheme.typography.titleLarge,
                                 fontWeight = FontWeight.Bold,

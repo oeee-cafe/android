@@ -171,7 +171,11 @@
     <!-- Communities -->
     <string name="communities_title">コミュニティ</string>
     <string name="my_communities">マイコミュニティ</string>
+    <string name="private_communities">非公開コミュニティ</string>
+    <string name="unlisted_communities">限定公開コミュニティ</string>
+    <string name="my_public_communities">自分の公開コミュニティ</string>
     <string name="public_communities">公開コミュニティ</string>
+    <string name="other_public_communities">他の公開コミュニティ</string>
     <string name="search_results">検索結果</string>
     <string name="no_communities">コミュニティが見つかりません</string>
     <string name="no_search_results">結果が見つかりません</string>

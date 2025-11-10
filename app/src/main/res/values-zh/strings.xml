@@ -171,7 +171,11 @@
     <!-- Communities -->
     <string name="communities_title">社群</string>
     <string name="my_communities">我的社群</string>
+    <string name="private_communities">私密社区</string>
+    <string name="unlisted_communities">不公开社区</string>
+    <string name="my_public_communities">我的公开社区</string>
     <string name="public_communities">公开社群</string>
+    <string name="other_public_communities">其他公开社区</string>
     <string name="search_results">搜索结果</string>
     <string name="no_communities">未找到社群</string>
     <string name="no_search_results">未找到结果</string>

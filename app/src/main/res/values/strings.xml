@@ -171,7 +171,11 @@
     <!-- Communities -->
     <string name="communities_title">Community</string>
     <string name="my_communities">My Communities</string>
+    <string name="private_communities">Private Communities</string>
+    <string name="unlisted_communities">Unlisted Communities</string>
+    <string name="my_public_communities">My Public Communities</string>
     <string name="public_communities">Public Communities</string>
+    <string name="other_public_communities">Other Public Communities</string>
     <string name="search_results">Search Results</string>
     <string name="no_communities">No communities found</string>
     <string name="no_search_results">No results found</string>
