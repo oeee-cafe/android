@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import cafe.oeee.data.model.notification.NotificationItem
+import cafe.oeee.data.remote.ApiClient
 import cafe.oeee.data.service.NotificationService
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -16,11 +17,13 @@ data class NotificationsUiState(
     val isLoadingMore: Boolean = false,
     val error: String? = null,
     val hasMore: Boolean = true,
-    val unreadCount: Long = 0
+    val unreadCount: Long = 0,
+    val invitationCount: Int = 0
 )
 
 class NotificationsViewModel(context: Context) : ViewModel() {
     private val notificationService = NotificationService.getInstance(context)
+    private val apiClient = ApiClient
 
     private val _uiState = MutableStateFlow(NotificationsUiState())
     val uiState: StateFlow<NotificationsUiState> = _uiState.asStateFlow()
@@ -49,8 +52,9 @@ class NotificationsViewModel(context: Context) : ViewModel() {
                     )
                     currentOffset = pageSize
 
-                    // Also load unread count
+                    // Also load unread count and invitation count
                     updateUnreadCount()
+                    updateInvitationCount()
                 },
                 onFailure = { error ->
                     _uiState.value = _uiState.value.copy(
@@ -174,5 +178,17 @@ class NotificationsViewModel(context: Context) : ViewModel() {
                 // Silently fail for unread count updates
             }
         )
+    }
+
+    fun updateInvitationCount() {
+        viewModelScope.launch {
+            try {
+                val response = apiClient.apiService.getUserInvitations()
+                _uiState.value = _uiState.value.copy(invitationCount = response.invitations.size)
+            } catch (e: Exception) {
+                // Silently fail for invitation count updates
+                android.util.Log.d("NotificationsViewModel", "Failed to update invitation count: ${e.message}")
+            }
+        }
     }
 }

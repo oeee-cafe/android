@@ -158,7 +158,30 @@ fun AppNavigation(
 
     var selectedTabIndex by rememberSaveable { mutableIntStateOf(0) }
     val unreadCount = MutableStateFlow(0L)
+    val invitationCount = MutableStateFlow(0)
     val draftCount = MutableStateFlow(0)
+
+    // Refresh counts when returning to main tabs
+    LaunchedEffect(currentRoute) {
+        if (isAuthenticated && currentRoute in listOf("home", "communities", "drafts", "notifications", "myprofile")) {
+            launch {
+                try {
+                    val response = ApiClient.apiService.getUserInvitations()
+                    invitationCount.value = response.invitations.size
+                } catch (e: Exception) {
+                    // Ignore error
+                }
+            }
+            launch {
+                try {
+                    val response = ApiClient.apiService.getDraftPosts()
+                    draftCount.value = response.drafts.size
+                } catch (e: Exception) {
+                    // Ignore error
+                }
+            }
+        }
+    }
 
     // Request push notification permissions after login
     LaunchedEffect(isAuthenticated) {
@@ -191,12 +214,25 @@ fun AppNavigation(
             }
             launch {
                 try {
+                    val response = ApiClient.apiService.getUserInvitations()
+                    invitationCount.value = response.invitations.size
+                } catch (e: Exception) {
+                    // Ignore error
+                }
+            }
+            launch {
+                try {
                     val response = ApiClient.apiService.getDraftPosts()
                     draftCount.value = response.drafts.size
                 } catch (e: Exception) {
                     // Ignore error
                 }
             }
+        } else {
+            // Clear counts when logged out
+            unreadCount.value = 0L
+            invitationCount.value = 0
+            draftCount.value = 0
         }
     }
 
@@ -288,7 +324,9 @@ fun AppNavigation(
                             alwaysShowLabel = true
                         )
 
-                        val count by unreadCount.collectAsState()
+                        val unread by unreadCount.collectAsState()
+                        val invitations by invitationCount.collectAsState()
+                        val totalBadgeCount = unread + invitations
                         NavigationBarItem(
                             selected = selectedTabIndex == 3,
                             onClick = {
@@ -301,9 +339,9 @@ fun AppNavigation(
                             icon = {
                                 BadgedBox(
                                     badge = {
-                                        if (count > 0) {
+                                        if (totalBadgeCount > 0) {
                                             Badge {
-                                                Text(count.toString())
+                                                Text(totalBadgeCount.toString())
                                             }
                                         }
                                     }
@@ -437,7 +475,8 @@ fun AppNavigation(
                 },
                 onInvitationsClick = {
                     navController.navigate("community-invitations")
-                }
+                },
+                invitationCountFlow = invitationCount
             )
         }
 

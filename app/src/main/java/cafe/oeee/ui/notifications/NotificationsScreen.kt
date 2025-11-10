@@ -26,7 +26,8 @@ import cafe.oeee.ui.components.LoadingState
 fun NotificationsScreen(
     onPostClick: (String) -> Unit = {},
     onProfileClick: (String) -> Unit = {},
-    onInvitationsClick: () -> Unit = {}
+    onInvitationsClick: () -> Unit = {},
+    invitationCountFlow: kotlinx.coroutines.flow.MutableStateFlow<Int>? = null
 ) {
     val context = LocalContext.current
     val viewModel: NotificationsViewModel = viewModel(
@@ -69,6 +70,14 @@ fun NotificationsScreen(
         viewModel.loadInitial()
     }
 
+    // Refresh invitation count when screen reappears
+    DisposableEffect(Unit) {
+        onDispose {
+            // Refresh count when leaving this screen so it's fresh when we come back
+            viewModel.updateInvitationCount()
+        }
+    }
+
     // Auto-mark all notifications as read when viewing the notifications screen
     var hasAutoMarkedRead by remember { mutableStateOf(false) }
     LaunchedEffect(uiState.unreadCount, uiState.isLoading) {
@@ -77,6 +86,11 @@ fun NotificationsScreen(
             viewModel.markAllAsRead()
             hasAutoMarkedRead = true
         }
+    }
+
+    // Update invitation count in parent flow
+    LaunchedEffect(uiState.invitationCount) {
+        invitationCountFlow?.value = uiState.invitationCount
     }
 
     Scaffold(
@@ -90,12 +104,22 @@ fun NotificationsScreen(
                     )
                 },
                 actions = {
-                    // Community Invitations button
+                    // Community Invitations button with badge
                     IconButton(onClick = onInvitationsClick) {
-                        Icon(
-                            imageVector = Icons.Default.Mail,
-                            contentDescription = stringResource(R.string.notifications_invitations)
-                        )
+                        BadgedBox(
+                            badge = {
+                                if (uiState.invitationCount > 0) {
+                                    Badge(
+                                        containerColor = MaterialTheme.colorScheme.error
+                                    )
+                                }
+                            }
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Mail,
+                                contentDescription = stringResource(R.string.notifications_invitations)
+                            )
+                        }
                     }
 
                     // Mark all read button
