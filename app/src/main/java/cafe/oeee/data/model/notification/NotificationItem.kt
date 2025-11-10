@@ -11,6 +11,7 @@ data class NotificationItem(
     @Json(name = "actor_id") val actorId: String,
     @Json(name = "actor_name") val actorName: String,
     @Json(name = "actor_handle") val actorHandle: String,
+    @Json(name = "actor_login_name") val actorLoginName: String?,
     @Json(name = "notification_type") val notificationType: NotificationType?,
     @Json(name = "post_id") val postId: String?,
     @Json(name = "comment_id") val commentId: String?,

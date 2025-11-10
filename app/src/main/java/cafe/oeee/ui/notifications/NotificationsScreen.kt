@@ -171,9 +171,16 @@ fun NotificationsScreen(
                                         viewModel.markAsRead(notification)
                                     }
 
-                                    // Navigate to post if available
-                                    notification.postId?.let { postId ->
-                                        onPostClick(postId)
+                                    // Navigate based on notification type
+                                    when {
+                                        notification.postId != null -> {
+                                            onPostClick(notification.postId)
+                                        }
+                                        notification.notificationType == cafe.oeee.data.model.notification.NotificationType.FOLLOW &&
+                                        notification.actorLoginName != null -> {
+                                            // Navigate to follower's profile (local users only)
+                                            onProfileClick(notification.actorLoginName)
+                                        }
                                     }
                                 }
                             )
