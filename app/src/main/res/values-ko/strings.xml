@@ -263,6 +263,9 @@
     <string name="community_role_owner">소유자</string>
     <string name="community_role_moderator">운영자</string>
     <string name="community_role_member">멤버</string>
+    <string name="community_leave_title">커뮤니티 나가기</string>
+    <string name="community_leave_confirm">정말 이 커뮤니티를 나가시겠습니까?</string>
+    <string name="community_leave">나가기</string>
     <string name="community_invitation_invited">초대됨</string>
     <string name="community_invitation_retract">취소</string>
     <string name="community_error_load_members">멤버 불러오기에 실패했습니다</string>

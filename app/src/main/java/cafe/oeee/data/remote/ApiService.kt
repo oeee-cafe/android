@@ -258,6 +258,11 @@ interface ApiService {
         @Path("userId") userId: String
     )
 
+    @POST("/api/v1/communities/{slug}/leave")
+    suspend fun leaveCommunity(
+        @Path("slug") slug: String
+    ): retrofit2.Response<Void>
+
     @GET("/api/v1/communities/{slug}/invitations")
     suspend fun getCommunityInvitations(
         @Path("slug") slug: String

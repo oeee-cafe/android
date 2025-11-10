@@ -263,6 +263,9 @@
     <string name="community_role_owner">オーナー</string>
     <string name="community_role_moderator">モデレーター</string>
     <string name="community_role_member">メンバー</string>
+    <string name="community_leave_title">コミュニティを退出</string>
+    <string name="community_leave_confirm">本当にこのコミュニティを退出しますか？</string>
+    <string name="community_leave">退出</string>
     <string name="community_invitation_invited">招待済み</string>
     <string name="community_invitation_retract">取り消す</string>
     <string name="community_error_load_members">メンバーの読み込みに失敗しました</string>

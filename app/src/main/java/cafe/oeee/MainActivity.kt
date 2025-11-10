@@ -794,9 +794,14 @@ fun AppNavigation(
                     slug = slug,
                     isOwner = isOwner,
                     isOwnerOrModerator = isOwnerOrModerator,
+                    currentUserId = user?.id,
                     onNavigateBack = { navController.popBackStack() },
                     onInviteUser = {
                         navController.navigate("community/$slug/invite")
+                    },
+                    onLeaveCommunity = {
+                        // Pop all the way back to communities list
+                        navController.popBackStack("communities", inclusive = false)
                     }
                 )
             } else {

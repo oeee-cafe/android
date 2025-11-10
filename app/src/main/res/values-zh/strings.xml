@@ -263,6 +263,9 @@
     <string name="community_role_owner">所有者</string>
     <string name="community_role_moderator">版主</string>
     <string name="community_role_member">成员</string>
+    <string name="community_leave_title">退出社区</string>
+    <string name="community_leave_confirm">您确定要退出此社区吗？</string>
+    <string name="community_leave">退出</string>
     <string name="community_invitation_invited">已邀请</string>
     <string name="community_invitation_retract">撤回</string>
     <string name="community_error_load_members">加载成员失败</string>

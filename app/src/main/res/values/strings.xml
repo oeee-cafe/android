@@ -263,6 +263,9 @@
     <string name="community_role_owner">Owner</string>
     <string name="community_role_moderator">Moderator</string>
     <string name="community_role_member">Member</string>
+    <string name="community_leave_title">Leave Community</string>
+    <string name="community_leave_confirm">Are you sure you want to leave this community?</string>
+    <string name="community_leave">Leave</string>
     <string name="community_invitation_invited">Invited</string>
     <string name="community_invitation_retract">Retract</string>
     <string name="community_error_load_members">Failed to load members</string>

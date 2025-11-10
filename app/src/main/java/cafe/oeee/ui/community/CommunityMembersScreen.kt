@@ -29,17 +29,27 @@ fun CommunityMembersScreen(
     slug: String,
     isOwner: Boolean,
     isOwnerOrModerator: Boolean,
+    currentUserId: String? = null,
     onNavigateBack: () -> Unit,
     onInviteUser: () -> Unit,
+    onLeaveCommunity: () -> Unit = {},
     viewModel: CommunityMembersViewModel = viewModel(
         factory = CommunityMembersViewModelFactory(slug, isOwner, isOwnerOrModerator)
     )
 ) {
     val uiState by viewModel.uiState.collectAsState()
     var memberToRemove by remember { mutableStateOf<CommunityMember?>(null) }
+    var showLeaveDialog by remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) {
         viewModel.loadMembers()
+    }
+
+    // Handle successful leave - navigate back
+    LaunchedEffect(uiState.leftCommunity) {
+        if (uiState.leftCommunity) {
+            onLeaveCommunity()
+        }
     }
 
     // Refresh member list when returning from other screens (like invite)
@@ -73,6 +83,29 @@ fun CommunityMembersScreen(
             },
             dismissButton = {
                 TextButton(onClick = { memberToRemove = null }) {
+                    Text(stringResource(R.string.cancel))
+                }
+            }
+        )
+    }
+
+    if (showLeaveDialog) {
+        AlertDialog(
+            onDismissRequest = { showLeaveDialog = false },
+            title = { Text(stringResource(R.string.community_leave_title)) },
+            text = { Text(stringResource(R.string.community_leave_confirm)) },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        viewModel.leaveCommunity()
+                        showLeaveDialog = false
+                    }
+                ) {
+                    Text(stringResource(R.string.community_leave))
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showLeaveDialog = false }) {
                     Text(stringResource(R.string.cancel))
                 }
             }
@@ -131,7 +164,9 @@ fun CommunityMembersScreen(
                         MemberCard(
                             member = member,
                             canManage = isOwnerOrModerator && member.role != "owner",
-                            onRemove = { memberToRemove = member }
+                            isCurrentUser = currentUserId != null && member.userId == currentUserId,
+                            onRemove = { memberToRemove = member },
+                            onLeave = { showLeaveDialog = true }
                         )
                     }
 
@@ -161,7 +196,9 @@ fun CommunityMembersScreen(
 private fun MemberCard(
     member: CommunityMember,
     canManage: Boolean,
-    onRemove: () -> Unit
+    isCurrentUser: Boolean,
+    onRemove: () -> Unit,
+    onLeave: () -> Unit
 ) {
     Card(
         modifier = Modifier.fillMaxWidth()
@@ -199,6 +236,13 @@ private fun MemberCard(
                             Icons.Default.Close,
                             contentDescription = stringResource(R.string.community_member_remove),
                             tint = MaterialTheme.colorScheme.error
+                        )
+                    }
+                } else if (isCurrentUser && member.role != "owner") {
+                    TextButton(onClick = onLeave) {
+                        Text(
+                            text = stringResource(R.string.community_leave),
+                            color = MaterialTheme.colorScheme.error
                         )
                     }
                 }
@@ -287,7 +331,8 @@ data class CommunityMembersUiState(
     val invitations: List<CommunityInvitation> = emptyList(),
     val isLoading: Boolean = false,
     val showError: Boolean = false,
-    val errorMessage: String? = null
+    val errorMessage: String? = null,
+    val leftCommunity: Boolean = false
 )
 
 class CommunityMembersViewModel(
@@ -355,6 +400,27 @@ class CommunityMembersViewModel(
                 _uiState.value = _uiState.value.copy(
                     showError = true,
                     errorMessage = e.message ?: "Failed to retract invitation"
+                )
+            }
+        }
+    }
+
+    fun leaveCommunity() {
+        viewModelScope.launch {
+            try {
+                val response = apiClient.apiService.leaveCommunity(slug)
+                if (response.isSuccessful) {
+                    _uiState.value = _uiState.value.copy(leftCommunity = true)
+                } else {
+                    _uiState.value = _uiState.value.copy(
+                        showError = true,
+                        errorMessage = "Failed to leave community"
+                    )
+                }
+            } catch (e: Exception) {
+                _uiState.value = _uiState.value.copy(
+                    showError = true,
+                    errorMessage = e.message ?: "Failed to leave community"
                 )
             }
         }
