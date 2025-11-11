@@ -254,9 +254,11 @@ class WebAppInterface(
                     android.util.Log.d("DrawWebView", "Drawing complete: postId=$postId, communityId=$communityId, imageUrl=$imageUrl")
                 }
 
-                // Clear the drawing session
+                // Clear the drawing session (only for legacy Neo painter)
                 android.os.Handler(android.os.Looper.getMainLooper()).post {
-                    webView.evaluateJavascript("Neo.painter.clearSession();") { result ->
+                    webView.evaluateJavascript(
+                        "if (typeof Neo !== 'undefined' && Neo.painter) { Neo.painter.clearSession(); }"
+                    ) { result ->
                         if (BuildConfig.DEBUG) {
                             android.util.Log.d("DrawWebView", "clearSession() result: $result")
                         }
