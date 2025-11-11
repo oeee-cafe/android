@@ -47,6 +47,7 @@ fun SettingsScreen(
     val emailResendFailed = stringResource(R.string.settings_email_error_resend_failed)
     val emailNetworkError = stringResource(R.string.settings_email_error_network)
     val developerModeEnabled = stringResource(R.string.settings_developer_mode_enabled)
+    val developerModeDisabled = stringResource(R.string.settings_developer_mode_disabled)
 
     var isLoggingOut by remember { mutableStateOf(false) }
     var isDeletingAccount by remember { mutableStateOf(false) }
@@ -366,6 +367,25 @@ fun SettingsScreen(
                             ) {
                                 Text(stringResource(R.string.reset))
                             }
+                        }
+
+                        OutlinedButton(
+                            onClick = {
+                                // Disable developer mode and reset to default
+                                ApiConfig.disableDeveloperMode(context)
+                                isDeveloperMode = false
+                                customServerURL = ""
+                                serverURLError = null
+                                coroutineScope.launch {
+                                    snackbarHostState.showSnackbar(developerModeDisabled)
+                                }
+                            },
+                            modifier = Modifier.fillMaxWidth(),
+                            colors = ButtonDefaults.outlinedButtonColors(
+                                contentColor = MaterialTheme.colorScheme.error
+                            )
+                        ) {
+                            Text(stringResource(R.string.settings_turn_off_developer_mode))
                         }
                     }
                 }

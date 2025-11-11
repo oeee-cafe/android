@@ -108,6 +108,8 @@
     <string name="settings_email_error_resend_failed">코드 재전송에 실패했습니다</string>
     <string name="settings_email_error_network">네트워크 오류</string>
     <string name="settings_developer_mode_enabled">개발자 모드가 활성화되었습니다</string>
+    <string name="settings_developer_mode_disabled">개발자 모드가 비활성화되었습니다</string>
+    <string name="settings_turn_off_developer_mode">개발자 모드 끄기</string>
     <string name="settings_advanced">고급 설정</string>
     <string name="settings_server_url_label">서버 URL</string>
     <string name="settings_server_url_placeholder">https://oeee.cafe</string>

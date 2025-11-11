@@ -63,6 +63,18 @@ object ApiConfig {
         prefs.edit().remove(KEY_BASE_URL).apply()
     }
 
+    fun disableDeveloperMode(context: Context) {
+        init(context)
+
+        // Disable developer mode
+        setDeveloperMode(context, false)
+
+        // Reset URL to default
+        clearAuthState(context)
+        clearCookies(context)
+        prefs.edit().remove(KEY_BASE_URL).apply()
+    }
+
     private fun isValidUrl(urlString: String): Boolean {
         // Check if URL starts with http:// or https://
         if (!urlString.startsWith("http://") && !urlString.startsWith("https://")) {

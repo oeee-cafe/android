@@ -108,6 +108,8 @@
     <string name="settings_email_error_resend_failed">重新发送验证码失败</string>
     <string name="settings_email_error_network">网络错误</string>
     <string name="settings_developer_mode_enabled">开发者模式已启用</string>
+    <string name="settings_developer_mode_disabled">开发者模式已禁用</string>
+    <string name="settings_turn_off_developer_mode">关闭开发者模式</string>
     <string name="settings_advanced">高级设置</string>
     <string name="settings_server_url_label">服务器URL</string>
     <string name="settings_server_url_placeholder">https://oeee.cafe</string>
