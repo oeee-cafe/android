@@ -11,6 +11,7 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.Reply
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Folder
 import androidx.compose.material.icons.filled.Movie
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Share
@@ -70,6 +71,7 @@ fun PostDetailScreen(
     var showDeleteConfirmation by remember { mutableStateOf(false) }
     var showCommentDeleteConfirmation by remember { mutableStateOf(false) }
     var commentToDelete by remember { mutableStateOf<Comment?>(null) }
+    var showMoveDialog by remember { mutableStateOf(false) }
 
     // Navigate back when post is deleted
     LaunchedEffect(uiState.postDeleted) {
@@ -135,6 +137,20 @@ fun PostDetailScreen(
         )
     }
 
+    // Show move post dialog
+    if (showMoveDialog) {
+        MovePostDialog(
+            postId = postId,
+            apiService = cafe.oeee.data.remote.ApiClient.apiService,
+            onDismiss = { showMoveDialog = false },
+            onSuccess = {
+                // Refresh post after successful move
+                viewModel.loadPostDetail()
+                showMoveDialog = false
+            }
+        )
+    }
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -190,6 +206,16 @@ fun PostDetailScreen(
                             Icon(
                                 imageVector = Icons.AutoMirrored.Filled.Reply,
                                 contentDescription = stringResource(R.string.post_reply)
+                            )
+                        }
+                    }
+
+                    // Show move button only if current user is the author
+                    if (currentUserId != null && uiState.post?.author?.id == currentUserId) {
+                        IconButton(onClick = { showMoveDialog = true }) {
+                            Icon(
+                                imageVector = Icons.Default.Folder,
+                                contentDescription = stringResource(R.string.post_move_to_community)
                             )
                         }
                     }

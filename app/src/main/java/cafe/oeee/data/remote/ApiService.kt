@@ -14,6 +14,8 @@ import cafe.oeee.data.model.CreateCommunityRequest
 import cafe.oeee.data.model.CreateCommunityResponse
 import cafe.oeee.data.model.UpdateCommunityRequest
 import cafe.oeee.data.model.InviteUserRequest
+import cafe.oeee.data.model.MovableCommunitiesResponse
+import cafe.oeee.data.model.MoveCommunityRequest
 import cafe.oeee.data.model.PostDetailResponse
 import cafe.oeee.data.model.PostsResponse
 import cafe.oeee.data.model.ProfileDetail
@@ -304,4 +306,16 @@ interface ApiService {
     suspend fun deleteCommunity(
         @Path("slug") slug: String
     )
+
+    // Move post endpoints
+    @GET("/api/v1/posts/{postId}/movable-communities")
+    suspend fun getMovableCommunities(
+        @Path("postId") postId: String
+    ): MovableCommunitiesResponse
+
+    @retrofit2.http.PUT("/api/v1/posts/{postId}/community")
+    suspend fun movePostToCommunity(
+        @Path("postId") postId: String,
+        @Body request: MoveCommunityRequest
+    ): retrofit2.Response<Void>
 }

@@ -160,6 +160,17 @@
     <string name="post_replying_to">답글 대상:</string>
     <string name="post_share">공유</string>
     <string name="replay_title">리플레이</string>
+    <string name="post_move_to_community">커뮤니티로 이동</string>
+    <string name="post_move_loading">커뮤니티 불러오는 중...</string>
+    <string name="post_move_error">오류</string>
+    <string name="post_move_cannot_move_title">게시물 이동 불가</string>
+    <string name="post_move_cannot_move_message">이 게시물을 이동할 수 없습니다. 스레드의 일부이거나 제한된 커뮤니티에 있을 수 있습니다.</string>
+    <string name="post_move_personal_post">개인 게시물</string>
+    <string name="post_move_moving">게시물 이동 중...</string>
+    <string name="move_section_unlisted">참여한 커뮤니티</string>
+    <string name="move_section_public_participated">참여한 공개 커뮤니티</string>
+    <string name="move_section_public_other">다른 공개 커뮤니티</string>
+    <string name="move_search_placeholder">커뮤니티 검색...</string>
     <string name="comment_write_placeholder">댓글 작성...</string>
     <string name="comment_post">댓글 게시</string>
     <string name="comment_cancel_reply">답글 취소</string>
@@ -187,6 +198,9 @@
 
     <!-- Common -->
     <string name="cancel">취소</string>
+    <string name="common_cancel">취소</string>
+    <string name="common_error">오류</string>
+    <string name="common_by">작성자: %s</string>
     <string name="back">뒤로</string>
     <string name="new_post">새 게시물</string>
     <string name="save">저장</string>

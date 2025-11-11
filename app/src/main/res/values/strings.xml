@@ -160,6 +160,17 @@
     <string name="post_replying_to">Replying to:</string>
     <string name="post_share">Share</string>
     <string name="replay_title">Replay</string>
+    <string name="post_move_to_community">Move to Community</string>
+    <string name="post_move_loading">Loading communities...</string>
+    <string name="post_move_error">Error</string>
+    <string name="post_move_cannot_move_title">Cannot Move Post</string>
+    <string name="post_move_cannot_move_message">This post cannot be moved. It may be part of a thread or in a restricted community.</string>
+    <string name="post_move_personal_post">Personal Post</string>
+    <string name="post_move_moving">Moving post...</string>
+    <string name="move_section_unlisted">Communities You\'ve Posted In</string>
+    <string name="move_section_public_participated">Public Communities You\'ve Posted In</string>
+    <string name="move_section_public_other">Other Public Communities</string>
+    <string name="move_search_placeholder">Search communities...</string>
     <string name="comment_write_placeholder">Write a comment...</string>
     <string name="comment_post">Post comment</string>
     <string name="comment_cancel_reply">Cancel reply</string>
@@ -187,6 +198,9 @@
 
     <!-- Common -->
     <string name="cancel">Cancel</string>
+    <string name="common_cancel">Cancel</string>
+    <string name="common_error">Error</string>
+    <string name="common_by">By %s</string>
     <string name="back">Back</string>
     <string name="new_post">New Post</string>
     <string name="save">Save</string>

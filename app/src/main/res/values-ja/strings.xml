@@ -160,6 +160,17 @@
     <string name="post_replying_to">返信先:</string>
     <string name="post_share">共有</string>
     <string name="replay_title">リプレイ</string>
+    <string name="post_move_to_community">コミュニティに移動</string>
+    <string name="post_move_loading">コミュニティを読み込み中...</string>
+    <string name="post_move_error">エラー</string>
+    <string name="post_move_cannot_move_title">投稿を移動できません</string>
+    <string name="post_move_cannot_move_message">この投稿は移動できません。スレッドの一部であるか、制限されたコミュニティにある可能性があります。</string>
+    <string name="post_move_personal_post">個人投稿</string>
+    <string name="post_move_moving">投稿を移動中...</string>
+    <string name="move_section_unlisted">投稿したコミュニティ</string>
+    <string name="move_section_public_participated">投稿したパブリックコミュニティ</string>
+    <string name="move_section_public_other">その他のパブリックコミュニティ</string>
+    <string name="move_search_placeholder">コミュニティを検索...</string>
     <string name="comment_write_placeholder">コメントを書く...</string>
     <string name="comment_post">コメントを投稿</string>
     <string name="comment_cancel_reply">返信をキャンセル</string>
@@ -187,6 +198,9 @@
 
     <!-- Common -->
     <string name="cancel">キャンセル</string>
+    <string name="common_cancel">キャンセル</string>
+    <string name="common_error">エラー</string>
+    <string name="common_by">作成者: %s</string>
     <string name="back">戻る</string>
     <string name="new_post">新規投稿</string>
     <string name="save">保存</string>

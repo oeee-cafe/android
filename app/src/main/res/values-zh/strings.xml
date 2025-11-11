@@ -160,6 +160,17 @@
     <string name="post_replying_to">回复给:</string>
     <string name="post_share">分享</string>
     <string name="replay_title">回放</string>
+    <string name="post_move_to_community">移至社区</string>
+    <string name="post_move_loading">加载社区中...</string>
+    <string name="post_move_error">错误</string>
+    <string name="post_move_cannot_move_title">无法移动作品</string>
+    <string name="post_move_cannot_move_message">无法移动此作品。它可能是话题串的一部分或位于受限社区中。</string>
+    <string name="post_move_personal_post">个人作品</string>
+    <string name="post_move_moving">移动作品中...</string>
+    <string name="move_section_unlisted">您参与过的社区</string>
+    <string name="move_section_public_participated">您参与过的公开社区</string>
+    <string name="move_section_public_other">其他公开社区</string>
+    <string name="move_search_placeholder">搜索社区...</string>
     <string name="comment_write_placeholder">写评论...</string>
     <string name="comment_post">发布评论</string>
     <string name="comment_cancel_reply">取消回复</string>
@@ -187,6 +198,9 @@
 
     <!-- Common -->
     <string name="cancel">取消</string>
+    <string name="common_cancel">取消</string>
+    <string name="common_error">错误</string>
+    <string name="common_by">作者：%s</string>
     <string name="back">返回</string>
     <string name="new_post">新帖子</string>
     <string name="save">保存</string>
