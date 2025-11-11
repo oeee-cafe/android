@@ -15,6 +15,12 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.OeeeCafe">
+
+        <!-- Digital Asset Links for credential sharing -->
+        <meta-data
+            android:name="asset_statements"
+            android:resource="@string/asset_statements" />
+
         <activity
             android:name=".MainActivity"
             android:exported="true"

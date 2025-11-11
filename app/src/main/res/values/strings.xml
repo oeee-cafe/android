@@ -1,6 +1,13 @@
 <resources>
     <string name="app_name">Oeee Cafe</string>
 
+    <!-- Digital Asset Links for credential sharing with oeee.cafe -->
+    <string name="asset_statements" translatable="false">
+  [{
+    \"include\": \"https://oeee.cafe/.well-known/assetlinks.json\"
+  }]
+  </string>
+
     <!-- Home Screen -->
     <string name="home_title">Home</string>
     <string name="loading">Loading...</string>
