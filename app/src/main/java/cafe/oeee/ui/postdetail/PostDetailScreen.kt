@@ -55,7 +55,7 @@ fun PostDetailScreen(
     onProfileClick: (String) -> Unit = {},
     onCommunityClick: (String) -> Unit = {},
     onPostClick: (String) -> Unit = {},
-    onReplyClick: () -> Unit = {},
+    onReplyClick: (String?, String?, String?) -> Unit = { _, _, _ -> },
     onReplayClick: () -> Unit = {}
 ) {
     val viewModel: PostDetailViewModel = viewModel(
@@ -180,7 +180,13 @@ fun PostDetailScreen(
 
                     // Reply button - visible to all users
                     if (uiState.post != null) {
-                        IconButton(onClick = onReplyClick) {
+                        IconButton(onClick = {
+                            onReplyClick(
+                                uiState.post?.community?.backgroundColor,
+                                uiState.post?.community?.foregroundColor,
+                                uiState.post?.community?.id
+                            )
+                        }) {
                             Icon(
                                 imageVector = Icons.AutoMirrored.Filled.Reply,
                                 contentDescription = stringResource(R.string.post_reply)

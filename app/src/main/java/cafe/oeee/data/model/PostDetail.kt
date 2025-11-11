@@ -37,7 +37,9 @@ data class AuthorInfo(
 data class PostCommunityInfo(
     @Json(name = "id") val id: String,
     @Json(name = "name") val name: String,
-    @Json(name = "slug") val slug: String
+    @Json(name = "slug") val slug: String,
+    @Json(name = "background_color") val backgroundColor: String? = null,
+    @Json(name = "foreground_color") val foregroundColor: String? = null
 )
 
 @JsonClass(generateAdapter = true)

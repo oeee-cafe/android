@@ -653,8 +653,13 @@ fun AppNavigation(
                 onCommunityClick = { slug ->
                     navController.navigate("community/$slug")
                 },
-                onReplyClick = {
-                    navController.navigate("dimensionpicker?parentPostId=$postId")
+                onReplyClick = { backgroundColor, foregroundColor, communityId ->
+                    if (backgroundColor != null && foregroundColor != null && communityId != null) {
+                        // Two-tone community: skip dimension picker, use fixed 640×480
+                        navController.navigate("draw/640/480/neo-cucumber-offline?communityId=$communityId&parentPostId=$postId")
+                    } else {
+                        navController.navigate("dimensionpicker?parentPostId=$postId")
+                    }
                 },
                 onReplayClick = {
                     if (isAuthenticated) {
