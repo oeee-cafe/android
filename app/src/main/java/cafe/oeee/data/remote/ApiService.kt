@@ -1,6 +1,7 @@
 package cafe.oeee.data.remote
 
 import cafe.oeee.data.model.ActiveCommunitiesResponse
+import cafe.oeee.data.model.BannerListResponse
 import cafe.oeee.data.model.Comment
 import cafe.oeee.data.model.CommentsListResponse
 import cafe.oeee.data.model.CommunityDetail
@@ -131,6 +132,19 @@ interface ApiService {
     @POST("/api/v1/profiles/{loginName}/unfollow")
     suspend fun unfollowProfile(
         @Path("loginName") loginName: String
+    )
+
+    @GET("/api/v1/banners")
+    suspend fun getBanners(): BannerListResponse
+
+    @POST("/api/v1/banners/{bannerId}/activate")
+    suspend fun activateBanner(
+        @Path("bannerId") bannerId: String
+    )
+
+    @DELETE("/api/v1/banners/{bannerId}")
+    suspend fun deleteBanner(
+        @Path("bannerId") bannerId: String
     )
 
     @GET("/api/v1/communities/{slug}")

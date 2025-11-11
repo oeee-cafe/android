@@ -27,7 +27,8 @@ import kotlinx.coroutines.withContext
 @OptIn(ExperimentalMaterial3Api::class, coil.annotation.ExperimentalCoilApi::class)
 @Composable
 fun SettingsScreen(
-    onNavigateBack: () -> Unit = {}
+    onNavigateBack: () -> Unit = {},
+    onNavigateToBannerManagement: () -> Unit = {}
 ) {
     val context = LocalContext.current
     val packageInfo = remember {
@@ -210,6 +211,28 @@ fun SettingsScreen(
                                 )
                             }
                         }
+                    }
+                }
+            }
+
+            // Profile section
+            Card(
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Column(
+                    modifier = Modifier.padding(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    Text(
+                        text = "Profile",
+                        style = MaterialTheme.typography.titleMedium
+                    )
+
+                    OutlinedButton(
+                        onClick = onNavigateToBannerManagement,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text("Banner Management")
                     }
                 }
             }

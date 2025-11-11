@@ -64,6 +64,8 @@ import cafe.oeee.ui.community.CommunityInvitationsScreen
 import cafe.oeee.ui.community.CommunityMembersScreen
 import cafe.oeee.ui.community.InviteUserScreen
 import cafe.oeee.data.service.NotificationService
+import cafe.oeee.ui.bannermanagement.BannerManagementScreen
+import cafe.oeee.ui.bannermanagement.BannerDrawWebViewScreen
 import cafe.oeee.ui.drafts.DraftsScreen
 import cafe.oeee.ui.home.HomeScreen
 import cafe.oeee.ui.login.LoginScreen
@@ -508,7 +510,34 @@ fun AppNavigation(
 
         composable("settings") {
             SettingsScreen(
-                onNavigateBack = { navController.popBackStack() }
+                onNavigateBack = { navController.popBackStack() },
+                onNavigateToBannerManagement = { navController.navigate("bannerManagement") }
+            )
+        }
+
+        composable("bannerManagement") { backStackEntry ->
+            val savedStateHandle = backStackEntry.savedStateHandle
+            val reloadTrigger = savedStateHandle.getStateFlow("reload_trigger", 0)
+                .collectAsState()
+
+            BannerManagementScreen(
+                onNavigateBack = { navController.popBackStack() },
+                onNavigateToDrawBanner = { navController.navigate("bannerDraw") },
+                reloadTrigger = reloadTrigger.value
+            )
+        }
+
+        composable("bannerDraw") {
+            BannerDrawWebViewScreen(
+                onNavigateBack = { navController.popBackStack() },
+                onBannerComplete = { bannerId, imageUrl ->
+                    // Trigger reload in the previous screen
+                    navController.previousBackStackEntry?.savedStateHandle?.let { handle ->
+                        val currentValue = handle.get<Int>("reload_trigger") ?: 0
+                        handle["reload_trigger"] = currentValue + 1
+                    }
+                    navController.popBackStack()
+                }
             )
         }
 
