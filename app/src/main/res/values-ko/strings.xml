@@ -225,6 +225,10 @@
     <string name="draw_preview">미리보기</string>
     <string name="draw_start_drawing">그리기 시작</string>
     <string name="draw_icon_desc">그리기</string>
+    <string name="draw_canvas_orientation">캔버스 방향</string>
+    <string name="draw_select_orientation">캔버스 방향을 선택하세요</string>
+    <string name="draw_orientation_landscape">가로</string>
+    <string name="draw_orientation_portrait">세로</string>
     <string name="clear_search">검색 지우기</string>
     <string name="drawing_preview">그림 미리보기</string>
 

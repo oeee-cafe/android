@@ -225,6 +225,10 @@
     <string name="draw_preview">プレビュー</string>
     <string name="draw_start_drawing">描画を開始</string>
     <string name="draw_icon_desc">描画</string>
+    <string name="draw_canvas_orientation">キャンバスの向き</string>
+    <string name="draw_select_orientation">キャンバスの向きを選択</string>
+    <string name="draw_orientation_landscape">横向き</string>
+    <string name="draw_orientation_portrait">縦向き</string>
     <string name="clear_search">検索をクリア</string>
     <string name="drawing_preview">描画プレビュー</string>
 

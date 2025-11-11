@@ -225,6 +225,10 @@
     <string name="draw_preview">预览</string>
     <string name="draw_start_drawing">开始绘画</string>
     <string name="draw_icon_desc">绘画</string>
+    <string name="draw_canvas_orientation">画布方向</string>
+    <string name="draw_select_orientation">选择画布方向</string>
+    <string name="draw_orientation_landscape">横向</string>
+    <string name="draw_orientation_portrait">纵向</string>
     <string name="clear_search">清除搜索</string>
     <string name="drawing_preview">绘画预览</string>
 

@@ -561,6 +561,40 @@ fun AppNavigation(
         }
 
         composable(
+            route = "orientationpicker?parentPostId={parentPostId}&communityId={communityId}",
+            arguments = listOf(
+                navArgument("parentPostId") {
+                    type = NavType.StringType
+                    nullable = true
+                    defaultValue = null
+                },
+                navArgument("communityId") {
+                    type = NavType.StringType
+                    nullable = true
+                    defaultValue = null
+                }
+            )
+        ) { backStackEntry ->
+            val parentPostId = backStackEntry.arguments?.getString("parentPostId")
+            val communityId = backStackEntry.arguments?.getString("communityId")
+            cafe.oeee.ui.components.OrientationPickerScreen(
+                onOrientationSelected = { width, height ->
+                    var route = "draw/$width/$height/neo-cucumber-offline"
+                    val params = mutableListOf<String>()
+                    if (parentPostId != null) params.add("parentPostId=$parentPostId")
+                    if (communityId != null) params.add("communityId=$communityId")
+                    if (params.isNotEmpty()) {
+                        route += "?" + params.joinToString("&")
+                    }
+                    navController.navigate(route) {
+                        popUpTo("orientationpicker?parentPostId={parentPostId}&communityId={communityId}") { inclusive = true }
+                    }
+                },
+                onCancel = { navController.popBackStack() }
+            )
+        }
+
+        composable(
             route = "draw/{width}/{height}/{tool}?parentPostId={parentPostId}&communityId={communityId}",
             arguments = listOf(
                 navArgument("width") { type = NavType.IntType },
@@ -655,8 +689,8 @@ fun AppNavigation(
                 },
                 onReplyClick = { backgroundColor, foregroundColor, communityId ->
                     if (backgroundColor != null && foregroundColor != null && communityId != null) {
-                        // Two-tone community: skip dimension picker, use fixed 640×480
-                        navController.navigate("draw/640/480/neo-cucumber-offline?communityId=$communityId&parentPostId=$postId")
+                        // Two-tone community: show orientation picker
+                        navController.navigate("orientationpicker?communityId=$communityId&parentPostId=$postId")
                     } else {
                         navController.navigate("dimensionpicker?parentPostId=$postId")
                     }
@@ -733,9 +767,9 @@ fun AppNavigation(
                     navController.navigate("profile/$loginName")
                 },
                 onDrawClick = { communityId, backgroundColor, foregroundColor ->
-                    // If community has defined colors, skip dimension picker and use fixed 640×480
+                    // If community has defined colors, show orientation picker
                     if (backgroundColor != null && foregroundColor != null) {
-                        navController.navigate("draw/640/480/neo-cucumber-offline?communityId=$communityId")
+                        navController.navigate("orientationpicker?communityId=$communityId")
                     } else {
                         var route = "dimensionpicker?communityId=$communityId"
                         if (backgroundColor != null) route += "&backgroundColor=$backgroundColor"

@@ -225,6 +225,10 @@
     <string name="draw_preview">Preview</string>
     <string name="draw_start_drawing">Start Drawing</string>
     <string name="draw_icon_desc">Draw</string>
+    <string name="draw_canvas_orientation">Canvas Orientation</string>
+    <string name="draw_select_orientation">Select canvas orientation</string>
+    <string name="draw_orientation_landscape">Landscape</string>
+    <string name="draw_orientation_portrait">Portrait</string>
     <string name="clear_search">Clear search</string>
     <string name="drawing_preview">Drawing preview</string>
 
