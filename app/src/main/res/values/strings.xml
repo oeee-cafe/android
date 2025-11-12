@@ -327,4 +327,16 @@
     <string name="dialog_ok">OK</string>
     <string name="dialog_error_unknown">An unknown error occurred</string>
     <string name="dialog_error_generic">An error occurred</string>
+
+    <!-- Banner Management -->
+    <string name="banner_management_title">Banner Management</string>
+    <string name="banner_draw_title">Draw Banner</string>
+    <string name="banner_delete_title">Delete Banner</string>
+    <string name="banner_delete_message">Are you sure you want to delete this banner? This action cannot be undone.</string>
+    <string name="banner_set_active">Set as Active</string>
+    <string name="banner_active_label">Active</string>
+    <string name="banner_content_desc">Banner</string>
+    <string name="banner_create_new_desc">Create New Banner</string>
+    <string name="banner_empty_title">No banners yet</string>
+    <string name="banner_empty_message">Create your first banner to get started</string>
 </resources>

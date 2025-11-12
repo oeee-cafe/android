@@ -40,7 +40,7 @@ fun BannerDrawWebViewScreen(
     androidx.compose.material3.Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Draw Banner") },
+                title = { Text(stringResource(R.string.banner_draw_title)) },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
                         Icon(

@@ -46,12 +46,12 @@ fun BannerManagementScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Banner Management") },
+                title = { Text(stringResource(R.string.banner_management_title)) },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
                         Icon(
                             Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Back"
+                            contentDescription = stringResource(R.string.back)
                         )
                     }
                 },
@@ -59,7 +59,7 @@ fun BannerManagementScreen(
                     IconButton(onClick = onNavigateToDrawBanner) {
                         Icon(
                             Icons.Filled.Add,
-                            contentDescription = "Create New Banner"
+                            contentDescription = stringResource(R.string.banner_create_new_desc)
                         )
                     }
                 }
@@ -86,7 +86,7 @@ fun BannerManagementScreen(
                         verticalArrangement = Arrangement.Center
                     ) {
                         Text(
-                            text = uiState.error ?: "Unknown error",
+                            text = uiState.error ?: stringResource(R.string.unknown_error),
                             style = MaterialTheme.typography.bodyLarge,
                             color = MaterialTheme.colorScheme.error
                         )
@@ -95,7 +95,7 @@ fun BannerManagementScreen(
                             viewModel.clearError()
                             viewModel.loadBanners()
                         }) {
-                            Text("Retry")
+                            Text(stringResource(R.string.retry))
                         }
                     }
                 }
@@ -108,12 +108,12 @@ fun BannerManagementScreen(
                         verticalArrangement = Arrangement.Center
                     ) {
                         Text(
-                            text = "No banners yet",
+                            text = stringResource(R.string.banner_empty_title),
                             style = MaterialTheme.typography.headlineSmall
                         )
                         Spacer(modifier = Modifier.height(8.dp))
                         Text(
-                            text = "Create your first banner to get started",
+                            text = stringResource(R.string.banner_empty_message),
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -145,8 +145,8 @@ fun BannerManagementScreen(
     if (showDeleteDialog) {
         AlertDialog(
             onDismissRequest = { showDeleteDialog = false },
-            title = { Text("Delete Banner") },
-            text = { Text("Are you sure you want to delete this banner? This action cannot be undone.") },
+            title = { Text(stringResource(R.string.banner_delete_title)) },
+            text = { Text(stringResource(R.string.banner_delete_message)) },
             confirmButton = {
                 TextButton(
                     onClick = {
@@ -155,12 +155,12 @@ fun BannerManagementScreen(
                         bannerToDelete = null
                     }
                 ) {
-                    Text("Delete")
+                    Text(stringResource(R.string.post_delete))
                 }
             },
             dismissButton = {
                 TextButton(onClick = { showDeleteDialog = false }) {
-                    Text("Cancel")
+                    Text(stringResource(R.string.cancel))
                 }
             }
         )
@@ -193,7 +193,7 @@ fun BannerCard(
         ) {
             AsyncImage(
                 model = banner.imageUrl,
-                contentDescription = "Banner",
+                contentDescription = stringResource(R.string.banner_content_desc),
                 contentScale = ContentScale.FillWidth,
                 modifier = Modifier
                     .fillMaxWidth()
@@ -217,13 +217,13 @@ fun BannerCard(
                 ) {
                     Icon(
                         Icons.Filled.CheckCircle,
-                        contentDescription = "Active",
+                        contentDescription = stringResource(R.string.banner_active_label),
                         tint = MaterialTheme.colorScheme.primary,
                         modifier = Modifier.size(16.dp)
                     )
                     Spacer(modifier = Modifier.width(4.dp))
                     Text(
-                        text = "Active",
+                        text = stringResource(R.string.banner_active_label),
                         style = MaterialTheme.typography.bodySmall,
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.primary
@@ -241,7 +241,7 @@ fun BannerCard(
                         modifier = Modifier.size(16.dp)
                     )
                     Spacer(modifier = Modifier.width(4.dp))
-                    Text("Set as Active", style = MaterialTheme.typography.bodySmall)
+                    Text(stringResource(R.string.banner_set_active), style = MaterialTheme.typography.bodySmall)
                 }
 
                 Spacer(modifier = Modifier.height(4.dp))
@@ -260,7 +260,7 @@ fun BannerCard(
                         modifier = Modifier.size(16.dp)
                     )
                     Spacer(modifier = Modifier.width(4.dp))
-                    Text("Delete", style = MaterialTheme.typography.bodySmall)
+                    Text(stringResource(R.string.post_delete), style = MaterialTheme.typography.bodySmall)
                 }
             }
         }

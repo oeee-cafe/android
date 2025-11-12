@@ -320,4 +320,16 @@
     <string name="dialog_ok">确定</string>
     <string name="dialog_error_unknown">发生未知错误</string>
     <string name="dialog_error_generic">发生错误</string>
+
+    <!-- Banner Management -->
+    <string name="banner_management_title">横幅管理</string>
+    <string name="banner_draw_title">绘制横幅</string>
+    <string name="banner_delete_title">删除横幅</string>
+    <string name="banner_delete_message">确定要删除此横幅吗？此操作无法撤销。</string>
+    <string name="banner_set_active">设为活动</string>
+    <string name="banner_active_label">活动</string>
+    <string name="banner_content_desc">横幅</string>
+    <string name="banner_create_new_desc">创建新横幅</string>
+    <string name="banner_empty_title">还没有横幅</string>
+    <string name="banner_empty_message">创建您的第一个横幅开始使用</string>
 </resources>

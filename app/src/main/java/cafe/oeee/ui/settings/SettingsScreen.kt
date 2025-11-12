@@ -225,7 +225,7 @@ fun SettingsScreen(
                     verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     Text(
-                        text = "Profile",
+                        text = stringResource(R.string.profile_title),
                         style = MaterialTheme.typography.titleMedium
                     )
 
@@ -233,7 +233,7 @@ fun SettingsScreen(
                         onClick = onNavigateToBannerManagement,
                         modifier = Modifier.fillMaxWidth()
                     ) {
-                        Text("Banner Management")
+                        Text(stringResource(R.string.banner_management_title))
                     }
                 }
             }
