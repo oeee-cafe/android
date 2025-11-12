@@ -161,6 +161,11 @@
     <string name="post_reply">返信</string>
     <string name="post_replying_to">返信先:</string>
     <string name="post_share">共有</string>
+    <string name="post_save_image">画像を保存</string>
+    <string name="post_image_saved">画像をフォトライブラリに保存しました</string>
+    <string name="post_image_save_failed">画像の保存に失敗しました</string>
+    <string name="post_image_download_failed">画像のダウンロードに失敗しました</string>
+    <string name="post_image_permission_denied">アクセス拒否されました。設定でストレージへのアクセスを許可してください。</string>
     <string name="replay_title">リプレイ</string>
     <string name="post_move_to_community">コミュニティに移動</string>
     <string name="post_move_loading">コミュニティを読み込み中...</string>

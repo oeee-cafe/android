@@ -1,5 +1,7 @@
 package cafe.oeee.ui.postdetail
 
+import android.Manifest
+import android.os.Build
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
@@ -11,6 +13,7 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.Reply
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.Folder
 import androidx.compose.material.icons.filled.Movie
 import androidx.compose.material.icons.filled.Person
@@ -42,7 +45,11 @@ import cafe.oeee.data.model.ReactionCount
 import cafe.oeee.data.model.reaction.Reactor
 import cafe.oeee.ui.components.ErrorState
 import cafe.oeee.ui.components.LoadingState
+import cafe.oeee.util.ImageSaver
 import coil.compose.AsyncImage
+import kotlinx.coroutines.launch
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -72,11 +79,66 @@ fun PostDetailScreen(
     var showCommentDeleteConfirmation by remember { mutableStateOf(false) }
     var commentToDelete by remember { mutableStateOf<Comment?>(null) }
     var showMoveDialog by remember { mutableStateOf(false) }
+    var isSavingImage by remember { mutableStateOf(false) }
+    var showSaveSuccessSnackbar by remember { mutableStateOf(false) }
+    var saveErrorMessage by remember { mutableStateOf<String?>(null) }
+    var pendingImageUrl by remember { mutableStateOf<String?>(null) }
+    val context = LocalContext.current
+    val snackbarHostState = remember { SnackbarHostState() }
+    val coroutineScope = androidx.compose.runtime.rememberCoroutineScope()
+
+    // Permission launcher for storage access (Android 9 and below)
+    val storagePermissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) { isGranted ->
+        if (isGranted) {
+            // Permission granted, proceed with saving
+            pendingImageUrl?.let { url ->
+                isSavingImage = true
+                coroutineScope.launch {
+                    ImageSaver.saveImage(
+                        context = context,
+                        imageUrl = url,
+                        onSuccess = {
+                            isSavingImage = false
+                            showSaveSuccessSnackbar = true
+                        },
+                        onError = { error ->
+                            isSavingImage = false
+                            saveErrorMessage = error
+                        }
+                    )
+                }
+            }
+            pendingImageUrl = null
+        } else {
+            // Permission denied
+            isSavingImage = false
+            saveErrorMessage = context.getString(R.string.post_image_permission_denied)
+            pendingImageUrl = null
+        }
+    }
 
     // Navigate back when post is deleted
     LaunchedEffect(uiState.postDeleted) {
         if (uiState.postDeleted) {
             onNavigateBack()
+        }
+    }
+
+    // Show save success snackbar
+    LaunchedEffect(showSaveSuccessSnackbar) {
+        if (showSaveSuccessSnackbar) {
+            snackbarHostState.showSnackbar(context.getString(R.string.post_image_saved))
+            showSaveSuccessSnackbar = false
+        }
+    }
+
+    // Show save error snackbar
+    LaunchedEffect(saveErrorMessage) {
+        saveErrorMessage?.let { message ->
+            snackbarHostState.showSnackbar(message)
+            saveErrorMessage = null
         }
     }
 
@@ -152,6 +214,7 @@ fun PostDetailScreen(
     }
 
     Scaffold(
+        snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
             TopAppBar(
                 title = { Text(stringResource(R.string.post_detail_title)) },
@@ -181,6 +244,69 @@ fun PostDetailScreen(
                                 imageVector = Icons.Default.Share,
                                 contentDescription = stringResource(R.string.post_share)
                             )
+                        }
+                    }
+
+                    // Save Image button - visible to all users
+                    if (uiState.post != null) {
+                        IconButton(
+                            onClick = {
+                                val post = uiState.post!!
+                                val imageUrl = post.image.url
+
+                                // Check if we need permission (API 28 and below)
+                                if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.P) {
+                                    if (ImageSaver.hasStoragePermission(context)) {
+                                        // Permission already granted
+                                        isSavingImage = true
+                                        coroutineScope.launch {
+                                            ImageSaver.saveImage(
+                                                context = context,
+                                                imageUrl = imageUrl,
+                                                onSuccess = {
+                                                    isSavingImage = false
+                                                    showSaveSuccessSnackbar = true
+                                                },
+                                                onError = { error ->
+                                                    isSavingImage = false
+                                                    saveErrorMessage = error
+                                                }
+                                            )
+                                        }
+                                    } else {
+                                        // Request permission
+                                        pendingImageUrl = imageUrl
+                                        storagePermissionLauncher.launch(Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                                    }
+                                } else {
+                                    // API 29+, no permission needed
+                                    isSavingImage = true
+                                    coroutineScope.launch {
+                                        ImageSaver.saveImage(
+                                            context = context,
+                                            imageUrl = imageUrl,
+                                            onSuccess = {
+                                                isSavingImage = false
+                                                showSaveSuccessSnackbar = true
+                                            },
+                                            onError = { error ->
+                                                isSavingImage = false
+                                                saveErrorMessage = error
+                                            }
+                                        )
+                                    }
+                                }
+                            },
+                            enabled = !isSavingImage
+                        ) {
+                            if (isSavingImage) {
+                                CircularProgressIndicator(modifier = Modifier.size(24.dp))
+                            } else {
+                                Icon(
+                                    imageVector = Icons.Default.Download,
+                                    contentDescription = stringResource(R.string.post_save_image)
+                                )
+                            }
                         }
                     }
 

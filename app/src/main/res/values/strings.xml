@@ -168,6 +168,11 @@
     <string name="post_reply">Reply</string>
     <string name="post_replying_to">Replying to:</string>
     <string name="post_share">Share</string>
+    <string name="post_save_image">Save Image</string>
+    <string name="post_image_saved">Image saved to photo library</string>
+    <string name="post_image_save_failed">Failed to save image</string>
+    <string name="post_image_download_failed">Failed to download image</string>
+    <string name="post_image_permission_denied">Permission denied. Please enable storage access in Settings.</string>
     <string name="replay_title">Replay</string>
     <string name="post_move_to_community">Move to Community</string>
     <string name="post_move_loading">Loading communities...</string>

@@ -161,6 +161,11 @@
     <string name="post_reply">回复</string>
     <string name="post_replying_to">回复给:</string>
     <string name="post_share">分享</string>
+    <string name="post_save_image">保存图片</string>
+    <string name="post_image_saved">图片已保存到相册</string>
+    <string name="post_image_save_failed">保存图片失败</string>
+    <string name="post_image_download_failed">下载图片失败</string>
+    <string name="post_image_permission_denied">权限被拒绝。请在设置中允许访问存储。</string>
     <string name="replay_title">回放</string>
     <string name="post_move_to_community">移至社区</string>
     <string name="post_move_loading">加载社区中...</string>

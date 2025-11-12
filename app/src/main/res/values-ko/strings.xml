@@ -161,6 +161,11 @@
     <string name="post_reply">답글</string>
     <string name="post_replying_to">답글 대상:</string>
     <string name="post_share">공유</string>
+    <string name="post_save_image">이미지 저장</string>
+    <string name="post_image_saved">이미지가 사진 라이브러리에 저장되었습니다</string>
+    <string name="post_image_save_failed">이미지 저장 실패</string>
+    <string name="post_image_download_failed">이미지 다운로드 실패</string>
+    <string name="post_image_permission_denied">권한이 거부되었습니다. 설정에서 저장소 액세스를 허용해 주세요.</string>
     <string name="replay_title">리플레이</string>
     <string name="post_move_to_community">커뮤니티로 이동</string>
     <string name="post_move_loading">커뮤니티 불러오는 중...</string>
