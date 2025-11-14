@@ -181,6 +181,7 @@
     <string name="post_move_cannot_move_message">This post cannot be moved. It may be part of a thread or in a restricted community.</string>
     <string name="post_move_personal_post">Personal Post</string>
     <string name="post_move_moving">Moving post...</string>
+    <string name="post_edit_post">Edit Post</string>
     <string name="move_section_unlisted">Communities You\'ve Posted In</string>
     <string name="move_section_public_participated">Public Communities You\'ve Posted In</string>
     <string name="move_section_public_other">Other Public Communities</string>

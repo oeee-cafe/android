@@ -17,6 +17,8 @@ import cafe.oeee.data.model.UpdateCommunityRequest
 import cafe.oeee.data.model.InviteUserRequest
 import cafe.oeee.data.model.MovableCommunitiesResponse
 import cafe.oeee.data.model.MoveCommunityRequest
+import cafe.oeee.data.model.EditPostRequest
+import cafe.oeee.data.model.EditPostResponse
 import cafe.oeee.data.model.PostDetailResponse
 import cafe.oeee.data.model.PostsResponse
 import cafe.oeee.data.model.ProfileDetail
@@ -230,6 +232,13 @@ interface ApiService {
     suspend fun deletePost(
         @Path("postId") postId: String
     )
+
+    // Post edit endpoint
+    @retrofit2.http.PUT("/api/v1/posts/{postId}")
+    suspend fun editPost(
+        @Path("postId") postId: String,
+        @Body request: EditPostRequest
+    ): EditPostResponse
 
     // Reaction endpoints
     @POST("/api/v1/posts/{postId}/reactions/{emoji}")

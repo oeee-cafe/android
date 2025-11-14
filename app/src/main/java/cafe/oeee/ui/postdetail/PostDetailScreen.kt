@@ -14,6 +14,7 @@ import androidx.compose.material.icons.automirrored.filled.Reply
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Download
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Folder
 import androidx.compose.material.icons.filled.Movie
 import androidx.compose.material.icons.filled.Person
@@ -213,6 +214,24 @@ fun PostDetailScreen(
         )
     }
 
+    // Show edit post dialog
+    if (uiState.showEditDialog && uiState.post != null) {
+        EditPostDialog(
+            postId = postId,
+            initialTitle = uiState.post?.title ?: "",
+            initialContent = uiState.post?.content ?: "",
+            initialHashtags = uiState.post?.hashtags?.joinToString(", ") ?: "",
+            initialIsSensitive = uiState.post?.isSensitive ?: false,
+            initialAllowRelay = true, // Default value since it's not in PostDetail
+            apiService = cafe.oeee.data.remote.ApiClient.apiService,
+            onDismiss = { viewModel.hideEditDialog() },
+            onSuccess = {
+                // Refresh post after successful edit
+                viewModel.refresh()
+            }
+        )
+    }
+
     Scaffold(
         snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
@@ -342,6 +361,16 @@ fun PostDetailScreen(
                             Icon(
                                 imageVector = Icons.Default.Folder,
                                 contentDescription = stringResource(R.string.post_move_to_community)
+                            )
+                        }
+                    }
+
+                    // Show edit button only if current user is the author
+                    if (currentUserId != null && uiState.post?.author?.id == currentUserId) {
+                        IconButton(onClick = { viewModel.showEditDialog() }) {
+                            Icon(
+                                imageVector = Icons.Default.Edit,
+                                contentDescription = stringResource(R.string.post_edit_post)
                             )
                         }
                     }

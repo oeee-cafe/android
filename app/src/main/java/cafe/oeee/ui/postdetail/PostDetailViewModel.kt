@@ -32,7 +32,8 @@ data class PostDetailUiState(
     val replyingToComment: Comment? = null,
     val isPostingComment: Boolean = false,
     val isDeleting: Boolean = false,
-    val postDeleted: Boolean = false
+    val postDeleted: Boolean = false,
+    val showEditDialog: Boolean = false
 )
 
 class PostDetailViewModel(private val postId: String) : ViewModel() {
@@ -298,5 +299,13 @@ class PostDetailViewModel(private val postId: String) : ViewModel() {
                 )
             }
         }
+    }
+
+    fun showEditDialog() {
+        _uiState.value = _uiState.value.copy(showEditDialog = true)
+    }
+
+    fun hideEditDialog() {
+        _uiState.value = _uiState.value.copy(showEditDialog = false)
     }
 }
