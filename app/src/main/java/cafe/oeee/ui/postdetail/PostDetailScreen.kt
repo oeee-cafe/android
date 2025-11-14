@@ -222,7 +222,7 @@ fun PostDetailScreen(
             initialContent = uiState.post?.content ?: "",
             initialHashtags = uiState.post?.hashtags?.joinToString(", ") ?: "",
             initialIsSensitive = uiState.post?.isSensitive ?: false,
-            initialAllowRelay = true, // Default value since it's not in PostDetail
+            initialAllowRelay = uiState.post?.allowRelay ?: true,
             apiService = cafe.oeee.data.remote.ApiClient.apiService,
             onDismiss = { viewModel.hideEditDialog() },
             onSuccess = {
