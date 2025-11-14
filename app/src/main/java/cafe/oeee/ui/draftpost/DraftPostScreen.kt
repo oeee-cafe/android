@@ -3,6 +3,7 @@ package cafe.oeee.ui.draftpost
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -26,6 +27,7 @@ fun DraftPostScreen(
     imageUrl: String,
     parentPostId: String?,
     onNavigateBack: () -> Unit,
+    onDeleted: () -> Unit,
     onPublished: (String) -> Unit
 ) {
     var title by remember { mutableStateOf("") }
@@ -35,6 +37,7 @@ fun DraftPostScreen(
     var allowRelay by remember { mutableStateOf(true) }
     var isSubmitting by remember { mutableStateOf(false) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
+    var showDeleteConfirmation by remember { mutableStateOf(false) }
 
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
@@ -55,6 +58,15 @@ fun DraftPostScreen(
                     }
                 },
                 actions = {
+                    IconButton(
+                        onClick = { showDeleteConfirmation = true },
+                        enabled = !isSubmitting
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Delete,
+                            contentDescription = stringResource(R.string.delete)
+                        )
+                    }
                     TextButton(
                         onClick = {
                             scope.launch {
@@ -197,6 +209,40 @@ fun DraftPostScreen(
                 }
             }
         }
+
+        // Delete confirmation dialog
+        if (showDeleteConfirmation) {
+            AlertDialog(
+                onDismissRequest = { showDeleteConfirmation = false },
+                title = { Text(stringResource(R.string.drafts_delete_confirmation_title)) },
+                text = { Text(stringResource(R.string.drafts_delete_confirmation_message)) },
+                confirmButton = {
+                    TextButton(
+                        onClick = {
+                            showDeleteConfirmation = false
+                            scope.launch {
+                                deleteDraft(
+                                    postId = postId,
+                                    onSuccess = onDeleted,
+                                    onError = { errorMessage = it },
+                                    setSubmitting = { isSubmitting = it }
+                                )
+                            }
+                        }
+                    ) {
+                        Text(
+                            stringResource(R.string.delete),
+                            color = MaterialTheme.colorScheme.error
+                        )
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { showDeleteConfirmation = false }) {
+                        Text(stringResource(R.string.cancel))
+                    }
+                }
+            )
+        }
     }
 }
 
@@ -257,6 +303,31 @@ private suspend fun publishPost(
         withContext(Dispatchers.Main) {
             setSubmitting(false)
             onError("Network error: ${e.localizedMessage}")
+        }
+    }
+}
+
+private suspend fun deleteDraft(
+    postId: String,
+    onSuccess: () -> Unit,
+    onError: (String) -> Unit,
+    setSubmitting: (Boolean) -> Unit
+) {
+    setSubmitting(true)
+
+    try {
+        withContext(Dispatchers.IO) {
+            ApiClient.apiService.deletePost(postId)
+
+            withContext(Dispatchers.Main) {
+                setSubmitting(false)
+                onSuccess()
+            }
+        }
+    } catch (e: Exception) {
+        withContext(Dispatchers.Main) {
+            setSubmitting(false)
+            onError("Failed to delete: ${e.localizedMessage}")
         }
     }
 }

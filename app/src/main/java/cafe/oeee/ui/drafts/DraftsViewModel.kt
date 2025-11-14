@@ -13,7 +13,9 @@ import kotlinx.coroutines.launch
 data class DraftsUiState(
     val drafts: List<DraftPost> = emptyList(),
     val isLoading: Boolean = false,
-    val error: String? = null
+    val error: String? = null,
+    val draftToDelete: DraftPost? = null,
+    val isDeleting: Boolean = false
 )
 
 class DraftsViewModel : ViewModel() {
@@ -44,5 +46,38 @@ class DraftsViewModel : ViewModel() {
 
     fun refresh() {
         loadDrafts()
+    }
+
+    fun requestDelete(draft: DraftPost) {
+        _uiState.update { it.copy(draftToDelete = draft) }
+    }
+
+    fun confirmDelete() {
+        val draft = _uiState.value.draftToDelete ?: return
+
+        viewModelScope.launch {
+            _uiState.update { it.copy(isDeleting = true, error = null) }
+            try {
+                ApiClient.apiService.deletePost(draft.id)
+                _uiState.update { state ->
+                    state.copy(
+                        drafts = state.drafts.filter { it.id != draft.id },
+                        draftToDelete = null,
+                        isDeleting = false
+                    )
+                }
+            } catch (e: Exception) {
+                _uiState.update {
+                    it.copy(
+                        isDeleting = false,
+                        error = e.message ?: "Failed to delete draft"
+                    )
+                }
+            }
+        }
+    }
+
+    fun cancelDelete() {
+        _uiState.update { it.copy(draftToDelete = null) }
     }
 }

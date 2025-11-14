@@ -237,6 +237,9 @@
     <string name="drafts_no_drafts">下書きはありません</string>
     <string name="drafts_empty_message">下書きの投稿がここに表示されます</string>
     <string name="drafts_untitled">タイトルなし</string>
+    <string name="drafts_delete_confirmation_title">下書きを削除</string>
+    <string name="drafts_delete_confirmation_message">この下書きを削除してもよろしいですか？この操作は元に戻せません。</string>
+    <string name="delete">削除</string>
 
     <!-- Drawing -->
     <string name="draw_select_canvas_size">キャンバスサイズを選択</string>

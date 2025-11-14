@@ -13,6 +13,9 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalLifecycleOwner
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -28,9 +31,18 @@ fun DraftsScreen(
 ) {
     val viewModel: DraftsViewModel = viewModel()
     val uiState by viewModel.uiState.collectAsState()
+    val lifecycleOwner = LocalLifecycleOwner.current
 
-    LaunchedEffect(Unit) {
-        viewModel.loadDrafts()
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) {
+                viewModel.loadDrafts()
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose {
+            lifecycleOwner.lifecycle.removeObserver(observer)
+        }
     }
 
     Scaffold(
@@ -141,35 +153,13 @@ fun DraftGridItem(
     draft: DraftPost,
     onClick: () -> Unit
 ) {
-    Column(
+    coil.compose.AsyncImage(
+        model = draft.imageUrl,
+        contentDescription = stringResource(R.string.drafts_untitled),
         modifier = Modifier
-            .clickable(onClick = onClick)
-    ) {
-        coil.compose.AsyncImage(
-            model = draft.imageUrl,
-            contentDescription = draft.title ?: stringResource(R.string.drafts_untitled),
-            modifier = Modifier
-                .fillMaxWidth()
-                .aspectRatio(1f),
-            contentScale = ContentScale.Crop
-        )
-
-        if (draft.title != null && draft.title.isNotEmpty()) {
-            Text(
-                text = draft.title,
-                style = MaterialTheme.typography.bodySmall,
-                maxLines = 2,
-                overflow = TextOverflow.Ellipsis,
-                modifier = Modifier.padding(top = 4.dp)
-            )
-        } else {
-            Text(
-                text = stringResource(R.string.drafts_untitled),
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                maxLines = 1,
-                modifier = Modifier.padding(top = 4.dp)
-            )
-        }
-    }
+            .fillMaxWidth()
+            .aspectRatio(1f)
+            .clickable(onClick = onClick),
+        contentScale = ContentScale.Crop
+    )
 }

@@ -237,6 +237,9 @@
     <string name="drafts_no_drafts">임시 저장된 게시물 없음</string>
     <string name="drafts_empty_message">임시 저장된 게시물이 여기에 표시됩니다</string>
     <string name="drafts_untitled">제목 없음</string>
+    <string name="drafts_delete_confirmation_title">임시 저장 삭제</string>
+    <string name="drafts_delete_confirmation_message">이 임시 저장을 삭제하시겠습니까? 이 작업은 취소할 수 없습니다.</string>
+    <string name="delete">삭제</string>
 
     <!-- Drawing -->
     <string name="draw_select_canvas_size">캔버스 크기 선택</string>

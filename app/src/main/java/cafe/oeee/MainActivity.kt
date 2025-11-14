@@ -692,6 +692,7 @@ fun AppNavigation(
                 imageUrl = imageUrl,
                 parentPostId = parentPostId,
                 onNavigateBack = { navController.popBackStack() },
+                onDeleted = { navController.popBackStack() },
                 onPublished = { publishedPostId ->
                     navController.navigate("post/$publishedPostId") {
                         popUpTo("home") { inclusive = false }

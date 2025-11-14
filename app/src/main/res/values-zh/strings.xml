@@ -237,6 +237,9 @@
     <string name="drafts_no_drafts">暂无草稿</string>
     <string name="drafts_empty_message">草稿作品会显示在这里</string>
     <string name="drafts_untitled">无标题</string>
+    <string name="drafts_delete_confirmation_title">删除草稿</string>
+    <string name="drafts_delete_confirmation_message">确定要删除此草稿吗？此操作无法撤销。</string>
+    <string name="delete">删除</string>
 
     <!-- Drawing -->
     <string name="draw_select_canvas_size">选择画布大小</string>
