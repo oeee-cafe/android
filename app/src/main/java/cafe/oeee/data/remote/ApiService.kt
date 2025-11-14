@@ -40,7 +40,6 @@ import cafe.oeee.data.model.notification.MarkAllReadResponse
 import cafe.oeee.data.model.notification.MarkNotificationReadResponse
 import cafe.oeee.data.model.notification.NotificationsResponse
 import cafe.oeee.data.model.notification.UnreadCountResponse
-import cafe.oeee.data.model.push.DeletePushTokenResponse
 import cafe.oeee.data.model.push.RegisterPushTokenRequest
 import cafe.oeee.data.model.push.RegisterPushTokenResponse
 import cafe.oeee.data.model.reaction.ReactionResponse
@@ -254,7 +253,7 @@ interface ApiService {
     @DELETE("/api/v1/push-tokens/{deviceToken}")
     suspend fun deletePushToken(
         @Path("deviceToken") deviceToken: String
-    ): DeletePushTokenResponse
+    )
 
     // Community member management endpoints
     @GET("/api/v1/communities/{slug}/members")
