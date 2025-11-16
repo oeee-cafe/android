@@ -26,6 +26,7 @@
     <string name="post_comments">%1$d Comments</string>
     <string name="post_hashtags">Hashtags</string>
     <string name="post_hashtags_hint">Add hashtags (comma or space separated)</string>
+    <string name="post_hashtags_placeholder">Hashtags</string>
 
     <!-- Profile -->
     <string name="profile_title">Profile</string>
@@ -160,6 +161,9 @@
     <string name="draft_sensitive_content">Sensitive Content</string>
     <string name="draft_allow_relay">Allow Relay</string>
     <string name="drafts_title">Drafts</string>
+    <string name="drafts_description_placeholder">Description</string>
+    <string name="drafts_sensitive_content">Sensitive Content</string>
+    <string name="drafts_allow_relay">Allow Relay</string>
 
     <!-- Post Actions -->
     <string name="post_delete">Delete</string>
@@ -216,6 +220,8 @@
     <string name="common_cancel">Cancel</string>
     <string name="common_error">Error</string>
     <string name="common_by">By %s</string>
+    <string name="common_title">Title</string>
+    <string name="common_save">Save</string>
     <string name="back">Back</string>
     <string name="new_post">New Post</string>
     <string name="save">Save</string>

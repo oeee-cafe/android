@@ -19,6 +19,7 @@
     <string name="post_comments">댓글 %1$d개</string>
     <string name="post_hashtags">해시태그</string>
     <string name="post_hashtags_hint">해시태그 추가 (쉼표나 공백으로 구분)</string>
+    <string name="post_hashtags_placeholder">해시태그</string>
 
     <!-- Profile -->
     <string name="profile_title">프로필</string>
@@ -153,6 +154,9 @@
     <string name="draft_sensitive_content">민감한 콘텐츠</string>
     <string name="draft_allow_relay">릴레이 허용</string>
     <string name="drafts_title">임시 저장함</string>
+    <string name="drafts_description_placeholder">설명</string>
+    <string name="drafts_sensitive_content">민감한 콘텐츠</string>
+    <string name="drafts_allow_relay">릴레이 허용</string>
 
     <!-- Post Actions -->
     <string name="post_delete">삭제</string>
@@ -209,6 +213,8 @@
     <string name="common_cancel">취소</string>
     <string name="common_error">오류</string>
     <string name="common_by">작성자: %s</string>
+    <string name="common_title">제목</string>
+    <string name="common_save">저장</string>
     <string name="back">뒤로</string>
     <string name="new_post">새 게시물</string>
     <string name="save">저장</string>

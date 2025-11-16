@@ -19,6 +19,7 @@
     <string name="post_comments">%1$d 条评论</string>
     <string name="post_hashtags">标签</string>
     <string name="post_hashtags_hint">添加标签 (逗号或空格分隔)</string>
+    <string name="post_hashtags_placeholder">标签</string>
 
     <!-- Profile -->
     <string name="profile_title">个人资料</string>
@@ -153,6 +154,9 @@
     <string name="draft_sensitive_content">敏感内容</string>
     <string name="draft_allow_relay">允许中继</string>
     <string name="drafts_title">草稿</string>
+    <string name="drafts_description_placeholder">描述</string>
+    <string name="drafts_sensitive_content">敏感内容</string>
+    <string name="drafts_allow_relay">允许中继</string>
 
     <!-- Post Actions -->
     <string name="post_delete">删除</string>
@@ -209,6 +213,8 @@
     <string name="common_cancel">取消</string>
     <string name="common_error">错误</string>
     <string name="common_by">作者：%s</string>
+    <string name="common_title">标题</string>
+    <string name="common_save">保存</string>
     <string name="back">返回</string>
     <string name="new_post">新帖子</string>
     <string name="save">保存</string>
