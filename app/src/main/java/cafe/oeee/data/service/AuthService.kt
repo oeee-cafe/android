@@ -171,10 +171,10 @@ class AuthService private constructor(private val context: Context) {
             // Continue with local logout even if API call fails
         }
 
-        // Also delete push notification token using the old endpoint as a fallback
+        // Also delete device using the dedicated endpoint as a fallback
         // This ensures cleanup even if the logout API call failed
-        Log.d("AuthService", "Calling deletePushToken as fallback")
-        pushService.deletePushToken()
+        Log.d("AuthService", "Calling deleteDevice as fallback")
+        pushService.deleteDevice()
 
         // Clear state (always execute)
         _currentUser.value = null
@@ -197,8 +197,8 @@ class AuthService private constructor(private val context: Context) {
             if (response.success) {
                 Log.d("AuthService", "Account deleted successfully")
 
-                // Delete push notification token locally
-                pushService.deletePushToken()
+                // Delete device locally
+                pushService.deleteDevice()
 
                 // Clear state
                 _currentUser.value = null

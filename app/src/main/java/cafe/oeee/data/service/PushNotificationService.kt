@@ -187,10 +187,10 @@ class PushNotificationService private constructor(private val context: Context) 
     }
 
     /**
-     * Delete push token from backend
+     * Delete device from backend
      * This should be called during logout
      */
-    suspend fun deletePushToken() {
+    suspend fun deleteDevice() {
         try {
             val deviceToken = prefs.getString(TOKEN_KEY, null)
 
@@ -206,7 +206,7 @@ class PushNotificationService private constructor(private val context: Context) 
             // Clear saved token
             prefs.edit().remove(TOKEN_KEY).apply()
         } catch (e: Exception) {
-            Log.e(TAG, "Failed to delete push token", e)
+            Log.e(TAG, "Failed to delete device", e)
             // Still clear the local token even if backend deletion fails
             prefs.edit().remove(TOKEN_KEY).apply()
         }
