@@ -42,8 +42,8 @@ import cafe.oeee.data.model.notification.MarkAllReadResponse
 import cafe.oeee.data.model.notification.MarkNotificationReadResponse
 import cafe.oeee.data.model.notification.NotificationsResponse
 import cafe.oeee.data.model.notification.UnreadCountResponse
-import cafe.oeee.data.model.push.RegisterPushTokenRequest
-import cafe.oeee.data.model.push.RegisterPushTokenResponse
+import cafe.oeee.data.model.device.RegisterDeviceRequest
+import cafe.oeee.data.model.device.RegisterDeviceResponse
 import cafe.oeee.data.model.reaction.ReactionResponse
 import cafe.oeee.data.model.reaction.ReactorsResponse
 import cafe.oeee.data.model.search.SearchResponse
@@ -253,14 +253,14 @@ interface ApiService {
         @Path("emoji") emoji: String
     ): ReactionResponse
 
-    // Push token endpoints
-    @POST("/api/v1/push-tokens")
-    suspend fun registerPushToken(
-        @Body request: RegisterPushTokenRequest
-    ): RegisterPushTokenResponse
+    // Device endpoints
+    @POST("/api/v1/devices")
+    suspend fun registerDevice(
+        @Body request: RegisterDeviceRequest
+    ): RegisterDeviceResponse
 
-    @DELETE("/api/v1/push-tokens/{deviceToken}")
-    suspend fun deletePushToken(
+    @DELETE("/api/v1/devices/{deviceToken}")
+    suspend fun deleteDevice(
         @Path("deviceToken") deviceToken: String
     )
 

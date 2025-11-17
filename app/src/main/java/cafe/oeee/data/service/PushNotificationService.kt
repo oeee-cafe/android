@@ -12,7 +12,7 @@ import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKey
-import cafe.oeee.data.model.push.RegisterPushTokenRequest
+import cafe.oeee.data.model.device.RegisterDeviceRequest
 import cafe.oeee.data.remote.ApiClient
 import com.google.firebase.messaging.FirebaseMessaging
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -164,13 +164,13 @@ class PushNotificationService private constructor(private val context: Context) 
             }
 
             // Register with backend
-            val request = RegisterPushTokenRequest(
+            val request = RegisterDeviceRequest(
                 deviceToken = fcmToken,
                 platform = "android"
             )
 
-            val response = apiService.registerPushToken(request)
-            Log.d(TAG, "Successfully registered push token: ${response.id}")
+            val response = apiService.registerDevice(request)
+            Log.d(TAG, "Successfully registered device: ${response.id}")
 
             // Save token to prevent duplicate registrations
             prefs.edit().putString(TOKEN_KEY, fcmToken).apply()
@@ -199,9 +199,9 @@ class PushNotificationService private constructor(private val context: Context) 
                 return
             }
 
-            Log.d(TAG, "Deleting push token from backend")
-            apiService.deletePushToken(deviceToken)
-            Log.d(TAG, "Successfully deleted push token")
+            Log.d(TAG, "Deleting device from backend")
+            apiService.deleteDevice(deviceToken)
+            Log.d(TAG, "Successfully deleted device")
 
             // Clear saved token
             prefs.edit().remove(TOKEN_KEY).apply()
