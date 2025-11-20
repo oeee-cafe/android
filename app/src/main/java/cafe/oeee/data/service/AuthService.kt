@@ -88,26 +88,22 @@ class AuthService private constructor(private val context: Context) {
             val request = LoginRequest(loginName, password)
             val response = apiService.login(request)
 
-            if (response.success && response.user != null) {
-                // Update state
-                _currentUser.value = response.user
-                _isAuthenticated.value = true
+            // Update state
+            _currentUser.value = response.user
+            _isAuthenticated.value = true
 
-                // Save auth state to SharedPreferences
-                prefs.edit().putBoolean(AUTH_STATE_KEY, true).apply()
+            // Save auth state to SharedPreferences
+            prefs.edit().putBoolean(AUTH_STATE_KEY, true).apply()
 
-                Result.success(response.user)
-            } else {
-                Result.failure(Exception(response.error ?: "Login failed"))
-            }
+            Result.success(response.user)
         } catch (e: retrofit2.HttpException) {
             // Parse the error response body to get the actual error message
             val errorMessage = try {
                 val errorBody = e.response()?.errorBody()?.string()
                 val moshi = com.squareup.moshi.Moshi.Builder().build()
-                val adapter = moshi.adapter(cafe.oeee.data.model.auth.LoginResponse::class.java)
+                val adapter = moshi.adapter(cafe.oeee.data.model.ErrorResponse::class.java)
                 val errorResponse = adapter.fromJson(errorBody ?: "")
-                errorResponse?.error ?: "Login failed"
+                errorResponse?.error?.message ?: "Login failed"
             } catch (parseException: Exception) {
                 "Login failed"
             }
@@ -126,26 +122,22 @@ class AuthService private constructor(private val context: Context) {
             val request = SignupRequest(loginName, password, displayName)
             val response = apiService.signup(request)
 
-            if (response.success && response.user != null) {
-                // Update state (user is auto-logged in after signup)
-                _currentUser.value = response.user
-                _isAuthenticated.value = true
+            // Update state (user is auto-logged in after signup)
+            _currentUser.value = response.user
+            _isAuthenticated.value = true
 
-                // Save auth state to SharedPreferences
-                prefs.edit().putBoolean(AUTH_STATE_KEY, true).apply()
+            // Save auth state to SharedPreferences
+            prefs.edit().putBoolean(AUTH_STATE_KEY, true).apply()
 
-                Result.success(response.user)
-            } else {
-                Result.failure(Exception(response.error ?: "Signup failed"))
-            }
+            Result.success(response.user)
         } catch (e: retrofit2.HttpException) {
             // Parse the error response body to get the actual error message
             val errorMessage = try {
                 val errorBody = e.response()?.errorBody()?.string()
                 val moshi = com.squareup.moshi.Moshi.Builder().build()
-                val adapter = moshi.adapter(cafe.oeee.data.model.auth.SignupResponse::class.java)
+                val adapter = moshi.adapter(cafe.oeee.data.model.ErrorResponse::class.java)
                 val errorResponse = adapter.fromJson(errorBody ?: "")
-                errorResponse?.error ?: "Signup failed"
+                errorResponse?.error?.message ?: "Signup failed"
             } catch (parseException: Exception) {
                 "Signup failed"
             }
@@ -192,28 +184,35 @@ class AuthService private constructor(private val context: Context) {
     suspend fun deleteAccount(password: String): Result<Unit> {
         return try {
             val request = DeleteAccountRequest(password)
-            val response = apiService.deleteAccount(request)
+            apiService.deleteAccount(request)
 
-            if (response.success) {
-                Log.d("AuthService", "Account deleted successfully")
+            Log.d("AuthService", "Account deleted successfully")
 
-                // Delete device locally
-                pushService.deleteDevice()
+            // Delete device locally
+            pushService.deleteDevice()
 
-                // Clear state
-                _currentUser.value = null
-                _isAuthenticated.value = false
+            // Clear state
+            _currentUser.value = null
+            _isAuthenticated.value = false
 
-                // Clear SharedPreferences
-                prefs.edit().remove(AUTH_STATE_KEY).apply()
+            // Clear SharedPreferences
+            prefs.edit().remove(AUTH_STATE_KEY).apply()
 
-                // Clear cookies
-                ApiClient.clearCookies()
+            // Clear cookies
+            ApiClient.clearCookies()
 
-                Result.success(Unit)
-            } else {
-                Result.failure(Exception(response.error ?: "Failed to delete account"))
+            Result.success(Unit)
+        } catch (e: retrofit2.HttpException) {
+            val errorMessage = try {
+                val errorBody = e.response()?.errorBody()?.string()
+                val moshi = com.squareup.moshi.Moshi.Builder().build()
+                val adapter = moshi.adapter(cafe.oeee.data.model.ErrorResponse::class.java)
+                val errorResponse = adapter.fromJson(errorBody ?: "")
+                errorResponse?.error?.message ?: "Failed to delete account"
+            } catch (parseException: Exception) {
+                "Failed to delete account"
             }
+            Result.failure(Exception(errorMessage))
         } catch (e: Exception) {
             Result.failure(e)
         }

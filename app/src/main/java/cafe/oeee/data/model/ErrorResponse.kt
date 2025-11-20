@@ -13,3 +13,6 @@ data class ApiErrorDetail(
     @Json(name = "code") val code: String,
     @Json(name = "message") val message: String
 )
+
+// Alias for convenience
+typealias ErrorResponse = ApiErrorResponse

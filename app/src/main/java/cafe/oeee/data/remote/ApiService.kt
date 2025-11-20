@@ -18,7 +18,6 @@ import cafe.oeee.data.model.InviteUserRequest
 import cafe.oeee.data.model.MovableCommunitiesResponse
 import cafe.oeee.data.model.MoveCommunityRequest
 import cafe.oeee.data.model.EditPostRequest
-import cafe.oeee.data.model.EditPostResponse
 import cafe.oeee.data.model.PostDetailResponse
 import cafe.oeee.data.model.PostsResponse
 import cafe.oeee.data.model.ProfileDetail
@@ -26,18 +25,14 @@ import cafe.oeee.data.model.ProfileFollowingsListResponse
 import cafe.oeee.data.model.RecentCommentsResponse
 import cafe.oeee.data.model.auth.CurrentUser
 import cafe.oeee.data.model.auth.DeleteAccountRequest
-import cafe.oeee.data.model.auth.DeleteAccountResponse
 import cafe.oeee.data.model.auth.LoginRequest
 import cafe.oeee.data.model.auth.LoginResponse
 import cafe.oeee.data.model.auth.LogoutRequest
-import cafe.oeee.data.model.auth.LogoutResponse
 import cafe.oeee.data.model.auth.RequestEmailVerificationRequest
 import cafe.oeee.data.model.auth.RequestEmailVerificationResponse
 import cafe.oeee.data.model.auth.SignupRequest
 import cafe.oeee.data.model.auth.SignupResponse
 import cafe.oeee.data.model.auth.VerifyEmailCodeRequest
-import cafe.oeee.data.model.auth.VerifyEmailCodeResponse
-import cafe.oeee.data.model.notification.DeleteNotificationResponse
 import cafe.oeee.data.model.notification.MarkAllReadResponse
 import cafe.oeee.data.model.notification.MarkNotificationReadResponse
 import cafe.oeee.data.model.notification.NotificationsResponse
@@ -162,7 +157,7 @@ interface ApiService {
     ): LoginResponse
 
     @POST("/api/v1/auth/logout")
-    suspend fun logout(@Body request: LogoutRequest): LogoutResponse
+    suspend fun logout(@Body request: LogoutRequest)
 
     @POST("/api/v1/auth/signup")
     suspend fun signup(
@@ -175,7 +170,7 @@ interface ApiService {
     @HTTP(method = "DELETE", path = "/api/v1/account", hasBody = true)
     suspend fun deleteAccount(
         @Body request: DeleteAccountRequest
-    ): DeleteAccountResponse
+    )
 
     @GET("/api/v1/account")
     suspend fun getAccount(): CurrentUser
@@ -188,7 +183,7 @@ interface ApiService {
     @POST("/api/v1/account/verify-email")
     suspend fun verifyEmailCode(
         @Body request: VerifyEmailCodeRequest
-    ): VerifyEmailCodeResponse
+    )
 
     // Notification endpoints
     @GET("/api/v1/notifications")
@@ -211,7 +206,7 @@ interface ApiService {
     @DELETE("/api/v1/notifications/{notificationId}")
     suspend fun deleteNotification(
         @Path("notificationId") notificationId: String
-    ): DeleteNotificationResponse
+    )
 
     // Search endpoint
     @GET("/api/v1/search")
@@ -238,7 +233,7 @@ interface ApiService {
     suspend fun editPost(
         @Path("postId") postId: String,
         @Body request: EditPostRequest
-    ): EditPostResponse
+    )
 
     // Reaction endpoints
     @POST("/api/v1/posts/{postId}/reactions/{emoji}")
