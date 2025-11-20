@@ -1,9 +1,6 @@
 package cafe.oeee.data.service
 
 import android.content.Context
-import cafe.oeee.data.model.notification.DeleteNotificationResponse
-import cafe.oeee.data.model.notification.MarkAllReadResponse
-import cafe.oeee.data.model.notification.MarkNotificationReadResponse
 import cafe.oeee.data.model.notification.NotificationItem
 import cafe.oeee.data.model.notification.NotificationsResponse
 import cafe.oeee.data.remote.ApiClient
@@ -43,11 +40,7 @@ class NotificationService private constructor(private val context: Context) {
     suspend fun markAsRead(notificationId: String): Result<NotificationItem?> {
         return try {
             val response = apiService.markNotificationAsRead(notificationId)
-            if (response.success) {
-                Result.success(response.notification)
-            } else {
-                Result.failure(Exception(response.error ?: "Failed to mark notification as read"))
-            }
+            Result.success(response.notification)
         } catch (e: Exception) {
             Result.failure(e)
         }
@@ -56,11 +49,7 @@ class NotificationService private constructor(private val context: Context) {
     suspend fun markAllAsRead(): Result<Long> {
         return try {
             val response = apiService.markAllNotificationsAsRead()
-            if (response.success) {
-                Result.success(response.count)
-            } else {
-                Result.failure(Exception("Failed to mark all notifications as read"))
-            }
+            Result.success(response.count)
         } catch (e: Exception) {
             Result.failure(e)
         }
@@ -68,12 +57,9 @@ class NotificationService private constructor(private val context: Context) {
 
     suspend fun deleteNotification(notificationId: String): Result<Unit> {
         return try {
-            val response = apiService.deleteNotification(notificationId)
-            if (response.success) {
-                Result.success(Unit)
-            } else {
-                Result.failure(Exception(response.error ?: "Failed to delete notification"))
-            }
+            // Server returns 204 No Content on success
+            apiService.deleteNotification(notificationId)
+            Result.success(Unit)
         } catch (e: Exception) {
             Result.failure(e)
         }

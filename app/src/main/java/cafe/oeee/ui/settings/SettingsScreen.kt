@@ -575,15 +575,11 @@ fun SettingsScreen(
                                 RequestEmailVerificationRequest(email)
                             )
                             withContext(Dispatchers.Main) {
-                                if (response.success && response.challengeId != null) {
-                                    challengeId = response.challengeId
-                                    emailToVerify = email
-                                    expiresInSeconds = response.expiresInSeconds ?: 300
-                                    showEmailInputDialog = false
-                                    showVerificationCodeDialog = true
-                                } else {
-                                    emailVerificationError = response.error ?: emailRequestFailed
-                                }
+                                challengeId = response.challengeId
+                                emailToVerify = email
+                                expiresInSeconds = response.expiresInSeconds
+                                showEmailInputDialog = false
+                                showVerificationCodeDialog = true
                                 isRequestingVerification = false
                             }
                         } catch (e: Exception) {
@@ -614,33 +610,29 @@ fun SettingsScreen(
                     emailVerificationError = null
                     coroutineScope.launch {
                         try {
-                            val response = ApiClient.apiService.verifyEmailCode(
+                            // Server returns 204 No Content on success
+                            ApiClient.apiService.verifyEmailCode(
                                 VerifyEmailCodeRequest(
                                     challengeId = challengeId!!,
                                     token = code
                                 )
                             )
                             withContext(Dispatchers.Main) {
-                                if (response.success) {
-                                    // Update the current user's email and emailVerifiedAt fields locally
-                                    currentUser?.let { user ->
-                                        authService.updateCurrentUser(
-                                            user.copy(
-                                                email = emailToVerify,
-                                                emailVerifiedAt = java.time.Instant.now().toString()
-                                            )
+                                // Update the current user's email and emailVerifiedAt fields locally
+                                currentUser?.let { user ->
+                                    authService.updateCurrentUser(
+                                        user.copy(
+                                            email = emailToVerify,
+                                            emailVerifiedAt = java.time.Instant.now().toString()
                                         )
-                                    }
-
-                                    isVerifyingCode = false
-                                    showVerificationCodeDialog = false
-                                    challengeId = null
-                                    emailToVerify = null
-                                    snackbarHostState.showSnackbar(emailVerifiedSuccess)
-                                } else {
-                                    emailVerificationError = response.error ?: emailVerificationFailed
-                                    isVerifyingCode = false
+                                    )
                                 }
+
+                                isVerifyingCode = false
+                                showVerificationCodeDialog = false
+                                challengeId = null
+                                emailToVerify = null
+                                snackbarHostState.showSnackbar(emailVerifiedSuccess)
                             }
                         } catch (e: Exception) {
                             withContext(Dispatchers.Main) {
@@ -659,13 +651,9 @@ fun SettingsScreen(
                                 RequestEmailVerificationRequest(emailToVerify!!)
                             )
                             withContext(Dispatchers.Main) {
-                                if (response.success && response.challengeId != null) {
-                                    challengeId = response.challengeId
-                                    expiresInSeconds = response.expiresInSeconds ?: 300
-                                    snackbarHostState.showSnackbar(emailCodeResent)
-                                } else {
-                                    emailVerificationError = response.error ?: emailResendFailed
-                                }
+                                challengeId = response.challengeId
+                                expiresInSeconds = response.expiresInSeconds
+                                snackbarHostState.showSnackbar(emailCodeResent)
                                 isResendingCode = false
                             }
                         } catch (e: Exception) {
