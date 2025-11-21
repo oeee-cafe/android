@@ -39,6 +39,13 @@
     <string name="profile_unfollow">Unfollow</string>
     <string name="profile_banner">Profile banner</string>
     <string name="profile_user_banner">%1$s\'s banner</string>
+    <string name="profile_report">Report</string>
+    <string name="profile_report_title">Report this profile</string>
+    <string name="profile_report_description_label">Reason for reporting</string>
+    <string name="profile_report_description_placeholder">Please describe why you are reporting this profile...</string>
+    <string name="profile_report_submit">Submit Report</string>
+    <string name="profile_report_success">Profile reported successfully. Thank you for helping keep our community safe.</string>
+    <string name="profile_report_error">Failed to submit report. Please try again.</string>
 
     <!-- Community Detail -->
     <string name="community_title">Community</string>
@@ -190,6 +197,13 @@
     <string name="post_move_personal_post">Personal Post</string>
     <string name="post_move_moving">Moving post...</string>
     <string name="post_edit_post">Edit Post</string>
+    <string name="post_report">Report</string>
+    <string name="post_report_title">Report this post</string>
+    <string name="post_report_description_label">Reason for reporting</string>
+    <string name="post_report_description_placeholder">Please describe why you are reporting this post...</string>
+    <string name="post_report_submit">Submit Report</string>
+    <string name="post_report_success">Post reported successfully. Thank you for helping keep our community safe.</string>
+    <string name="post_report_error">Failed to submit report. Please try again.</string>
     <string name="move_section_unlisted">Communities You\'ve Posted In</string>
     <string name="move_section_public_participated">Public Communities You\'ve Posted In</string>
     <string name="move_section_public_other">Other Public Communities</string>

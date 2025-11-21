@@ -32,6 +32,13 @@
     <string name="profile_unfollow">取消关注</string>
     <string name="profile_banner">个人资料横幅</string>
     <string name="profile_user_banner">%1$s的横幅</string>
+    <string name="profile_report">举报</string>
+    <string name="profile_report_title">举报此个人资料</string>
+    <string name="profile_report_description_label">举报原因</string>
+    <string name="profile_report_description_placeholder">请描述您举报此个人资料的原因...</string>
+    <string name="profile_report_submit">提交举报</string>
+    <string name="profile_report_success">个人资料已被举报。感谢您帮助维护社区安全。</string>
+    <string name="profile_report_error">提交举报失败。请重试。</string>
 
     <!-- Community Detail -->
     <string name="community_title">社群</string>
@@ -183,6 +190,13 @@
     <string name="post_move_personal_post">个人作品</string>
     <string name="post_move_moving">移动作品中...</string>
     <string name="post_edit_post">编辑帖子</string>
+    <string name="post_report">举报</string>
+    <string name="post_report_title">举报此帖子</string>
+    <string name="post_report_description_label">举报原因</string>
+    <string name="post_report_description_placeholder">请描述您举报此帖子的原因...</string>
+    <string name="post_report_submit">提交举报</string>
+    <string name="post_report_success">帖子已被举报。感谢您帮助维护社区安全。</string>
+    <string name="post_report_error">提交举报失败。请重试。</string>
     <string name="move_section_unlisted">您参与过的社区</string>
     <string name="move_section_public_participated">您参与过的公开社区</string>
     <string name="move_section_public_other">其他公开社区</string>

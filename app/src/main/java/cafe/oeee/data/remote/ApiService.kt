@@ -130,6 +130,12 @@ interface ApiService {
         @Path("loginName") loginName: String
     )
 
+    @POST("/api/v1/profiles/{loginName}/report")
+    suspend fun reportProfile(
+        @Path("loginName") loginName: String,
+        @Body request: cafe.oeee.data.model.ReportPostRequest
+    ): cafe.oeee.data.model.ReportPostResponse
+
     @GET("/api/v1/banners")
     suspend fun getBanners(): BannerListResponse
 
@@ -234,6 +240,13 @@ interface ApiService {
         @Path("postId") postId: String,
         @Body request: EditPostRequest
     )
+
+    // Post report endpoint
+    @POST("/api/v1/posts/{postId}/report")
+    suspend fun reportPost(
+        @Path("postId") postId: String,
+        @Body request: cafe.oeee.data.model.ReportPostRequest
+    ): cafe.oeee.data.model.ReportPostResponse
 
     // Reaction endpoints
     @POST("/api/v1/posts/{postId}/reactions/{emoji}")

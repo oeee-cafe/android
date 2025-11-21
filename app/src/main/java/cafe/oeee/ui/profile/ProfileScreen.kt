@@ -10,6 +10,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.*
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.*
@@ -51,6 +52,8 @@ fun ProfileScreen(
     )
     val uiState by viewModel.uiState.collectAsState()
     val gridState = rememberLazyGridState()
+    var showReportDialog by remember { mutableStateOf(false) }
+    var reportDescription by remember { mutableStateOf("") }
 
     // Pagination logic
     val shouldLoadMore by remember {
@@ -77,7 +80,7 @@ fun ProfileScreen(
                     }
                 },
                 actions = {
-                    // Show follow/unfollow button if user is authenticated and viewing another user's profile
+                    // Show follow/unfollow button and more menu if user is authenticated and viewing another user's profile
                     val isAuthenticated = currentUserLoginName != null
                     val isOtherUser = currentUserLoginName != loginName
                     if (isAuthenticated && isOtherUser && uiState.profileDetail != null) {
@@ -91,6 +94,14 @@ fun ProfileScreen(
                                     stringResource(R.string.profile_unfollow)
                                 else
                                     stringResource(R.string.profile_follow)
+                            )
+                        }
+
+                        IconButton(onClick = { showReportDialog = true }) {
+                            Icon(
+                                imageVector = Icons.Default.Warning,
+                                contentDescription = stringResource(R.string.profile_report),
+                                tint = MaterialTheme.colorScheme.error
                             )
                         }
                     }
@@ -219,6 +230,72 @@ fun ProfileScreen(
                 }
             }
         }
+    }
+
+    // Show report profile dialog
+    if (showReportDialog) {
+        AlertDialog(
+            onDismissRequest = {
+                showReportDialog = false
+                reportDescription = ""
+            },
+            title = { Text(stringResource(R.string.profile_report_title)) },
+            text = {
+                Column {
+                    Text(stringResource(R.string.profile_report_description_label))
+                    Spacer(modifier = Modifier.height(8.dp))
+                    TextField(
+                        value = reportDescription,
+                        onValueChange = { reportDescription = it },
+                        placeholder = { Text(stringResource(R.string.profile_report_description_placeholder)) },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(120.dp),
+                        maxLines = 5
+                    )
+                }
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        if (reportDescription.isNotBlank()) {
+                            viewModel.reportProfile(reportDescription)
+                            showReportDialog = false
+                            reportDescription = ""
+                        }
+                    },
+                    enabled = reportDescription.isNotBlank()
+                ) {
+                    Text(stringResource(R.string.profile_report_submit))
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = {
+                    showReportDialog = false
+                    reportDescription = ""
+                }) {
+                    Text(stringResource(R.string.cancel))
+                }
+            }
+        )
+    }
+
+    // Show report result dialog
+    uiState.reportResult?.let { result ->
+        val message = when (result) {
+            is cafe.oeee.ui.profile.ProfileReportResult.Success -> stringResource(R.string.profile_report_success)
+            is cafe.oeee.ui.profile.ProfileReportResult.Error -> result.message
+        }
+        AlertDialog(
+            onDismissRequest = { viewModel.clearReportResult() },
+            title = { Text(stringResource(R.string.profile_report)) },
+            text = { Text(message) },
+            confirmButton = {
+                TextButton(onClick = { viewModel.clearReportResult() }) {
+                    Text(stringResource(R.string.dialog_ok))
+                }
+            }
+        )
     }
 }
 

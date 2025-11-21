@@ -32,6 +32,13 @@
     <string name="profile_unfollow">언팔로우</string>
     <string name="profile_banner">프로필 배너</string>
     <string name="profile_user_banner">%1$s님의 배너</string>
+    <string name="profile_report">신고</string>
+    <string name="profile_report_title">이 프로필 신고하기</string>
+    <string name="profile_report_description_label">신고 사유</string>
+    <string name="profile_report_description_placeholder">이 프로필을 신고하는 이유를 설명해주세요...</string>
+    <string name="profile_report_submit">신고하기</string>
+    <string name="profile_report_success">프로필이 신고되었습니다. 커뮤니티를 안전하게 유지하는 데 도움을 주셔서 감사합니다.</string>
+    <string name="profile_report_error">신고 제출에 실패했습니다. 다시 시도해주세요.</string>
 
     <!-- Community Detail -->
     <string name="community_title">커뮤니티</string>
@@ -183,6 +190,13 @@
     <string name="post_move_personal_post">개인 게시물</string>
     <string name="post_move_moving">게시물 이동 중...</string>
     <string name="post_edit_post">게시물 편집</string>
+    <string name="post_report">신고</string>
+    <string name="post_report_title">이 게시물 신고하기</string>
+    <string name="post_report_description_label">신고 사유</string>
+    <string name="post_report_description_placeholder">이 게시물을 신고하는 이유를 설명해주세요...</string>
+    <string name="post_report_submit">신고하기</string>
+    <string name="post_report_success">게시물이 신고되었습니다. 커뮤니티를 안전하게 유지하는 데 도움을 주셔서 감사합니다.</string>
+    <string name="post_report_error">신고 제출에 실패했습니다. 다시 시도해주세요.</string>
     <string name="move_section_unlisted">참여한 커뮤니티</string>
     <string name="move_section_public_participated">참여한 공개 커뮤니티</string>
     <string name="move_section_public_other">다른 공개 커뮤니티</string>

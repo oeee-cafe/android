@@ -10,6 +10,11 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
+sealed class ProfileReportResult {
+    data object Success : ProfileReportResult()
+    data class Error(val message: String) : ProfileReportResult()
+}
+
 data class ProfileUiState(
     val profileDetail: ProfileDetail? = null,
     val posts: List<ProfilePost> = emptyList(),
@@ -17,7 +22,8 @@ data class ProfileUiState(
     val isLoadingMore: Boolean = false,
     val error: String? = null,
     val hasMore: Boolean = false,
-    val currentOffset: Int = 0
+    val currentOffset: Int = 0,
+    val reportResult: ProfileReportResult? = null
 )
 
 class ProfileViewModel(private val loginName: String) : ViewModel() {
@@ -123,5 +129,24 @@ class ProfileViewModel(private val loginName: String) : ViewModel() {
                 )
             }
         }
+    }
+
+    fun reportProfile(description: String) {
+        viewModelScope.launch {
+            try {
+                apiService.reportProfile(loginName, cafe.oeee.data.model.ReportPostRequest(description))
+                _uiState.value = _uiState.value.copy(
+                    reportResult = ProfileReportResult.Success
+                )
+            } catch (e: Exception) {
+                _uiState.value = _uiState.value.copy(
+                    reportResult = ProfileReportResult.Error(e.message ?: "Unknown error")
+                )
+            }
+        }
+    }
+
+    fun clearReportResult() {
+        _uiState.value = _uiState.value.copy(reportResult = null)
     }
 }

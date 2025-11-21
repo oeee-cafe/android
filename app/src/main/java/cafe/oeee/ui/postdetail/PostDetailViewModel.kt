@@ -15,6 +15,11 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
+sealed class ReportResult {
+    data object Success : ReportResult()
+    data class Error(val message: String) : ReportResult()
+}
+
 data class PostDetailUiState(
     val post: PostDetail? = null,
     val parentPost: ChildPost? = null,
@@ -33,7 +38,8 @@ data class PostDetailUiState(
     val isPostingComment: Boolean = false,
     val isDeleting: Boolean = false,
     val postDeleted: Boolean = false,
-    val showEditDialog: Boolean = false
+    val showEditDialog: Boolean = false,
+    val reportResult: ReportResult? = null
 )
 
 class PostDetailViewModel(private val postId: String) : ViewModel() {
@@ -270,6 +276,25 @@ class PostDetailViewModel(private val postId: String) : ViewModel() {
                 )
             }
         }
+    }
+
+    fun reportPost(description: String) {
+        viewModelScope.launch {
+            try {
+                apiService.reportPost(postId, cafe.oeee.data.model.ReportPostRequest(description))
+                _uiState.value = _uiState.value.copy(
+                    reportResult = ReportResult.Success
+                )
+            } catch (e: Exception) {
+                _uiState.value = _uiState.value.copy(
+                    reportResult = ReportResult.Error(e.message ?: "Unknown error")
+                )
+            }
+        }
+    }
+
+    fun clearReportResult() {
+        _uiState.value = _uiState.value.copy(reportResult = null)
     }
 
     fun toggleReaction(emoji: String) {

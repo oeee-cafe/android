@@ -32,6 +32,13 @@
     <string name="profile_unfollow">フォロー解除</string>
     <string name="profile_banner">プロフィールバナー</string>
     <string name="profile_user_banner">%1$sのバナー</string>
+    <string name="profile_report">報告</string>
+    <string name="profile_report_title">このプロフィールを報告</string>
+    <string name="profile_report_description_label">報告理由</string>
+    <string name="profile_report_description_placeholder">このプロフィールを報告する理由を説明してください...</string>
+    <string name="profile_report_submit">報告する</string>
+    <string name="profile_report_success">プロフィールが報告されました。コミュニティの安全維持にご協力いただきありがとうございます。</string>
+    <string name="profile_report_error">報告の送信に失敗しました。もう一度お試しください。</string>
 
     <!-- Community Detail -->
     <string name="community_title">コミュニティ</string>
@@ -183,6 +190,13 @@
     <string name="post_move_personal_post">個人投稿</string>
     <string name="post_move_moving">投稿を移動中...</string>
     <string name="post_edit_post">投稿を編集</string>
+    <string name="post_report">報告</string>
+    <string name="post_report_title">この投稿を報告</string>
+    <string name="post_report_description_label">報告理由</string>
+    <string name="post_report_description_placeholder">この投稿を報告する理由を説明してください...</string>
+    <string name="post_report_submit">報告する</string>
+    <string name="post_report_success">投稿が報告されました。コミュニティの安全維持にご協力いただきありがとうございます。</string>
+    <string name="post_report_error">報告の送信に失敗しました。もう一度お試しください。</string>
     <string name="move_section_unlisted">投稿したコミュニティ</string>
     <string name="move_section_public_participated">投稿したパブリックコミュニティ</string>
     <string name="move_section_public_other">その他のパブリックコミュニティ</string>

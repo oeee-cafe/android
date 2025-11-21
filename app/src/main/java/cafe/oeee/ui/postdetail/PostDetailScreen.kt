@@ -19,6 +19,7 @@ import androidx.compose.material.icons.filled.Folder
 import androidx.compose.material.icons.filled.Movie
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Share
+import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
@@ -80,6 +81,8 @@ fun PostDetailScreen(
     var showCommentDeleteConfirmation by remember { mutableStateOf(false) }
     var commentToDelete by remember { mutableStateOf<Comment?>(null) }
     var showMoveDialog by remember { mutableStateOf(false) }
+    var showReportDialog by remember { mutableStateOf(false) }
+    var reportDescription by remember { mutableStateOf("") }
     var isSavingImage by remember { mutableStateOf(false) }
     var showSaveSuccessSnackbar by remember { mutableStateOf(false) }
     var saveErrorMessage by remember { mutableStateOf<String?>(null) }
@@ -210,6 +213,72 @@ fun PostDetailScreen(
                 // Refresh post after successful move
                 viewModel.loadPostDetail()
                 showMoveDialog = false
+            }
+        )
+    }
+
+    // Show report post dialog
+    if (showReportDialog) {
+        AlertDialog(
+            onDismissRequest = {
+                showReportDialog = false
+                reportDescription = ""
+            },
+            title = { Text(stringResource(R.string.post_report_title)) },
+            text = {
+                Column {
+                    Text(stringResource(R.string.post_report_description_label))
+                    Spacer(modifier = Modifier.height(8.dp))
+                    TextField(
+                        value = reportDescription,
+                        onValueChange = { reportDescription = it },
+                        placeholder = { Text(stringResource(R.string.post_report_description_placeholder)) },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(120.dp),
+                        maxLines = 5
+                    )
+                }
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        if (reportDescription.isNotBlank()) {
+                            viewModel.reportPost(reportDescription)
+                            showReportDialog = false
+                            reportDescription = ""
+                        }
+                    },
+                    enabled = reportDescription.isNotBlank()
+                ) {
+                    Text(stringResource(R.string.post_report_submit))
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = {
+                    showReportDialog = false
+                    reportDescription = ""
+                }) {
+                    Text(stringResource(R.string.cancel))
+                }
+            }
+        )
+    }
+
+    // Show report result dialog
+    uiState.reportResult?.let { result ->
+        val message = when (result) {
+            is cafe.oeee.ui.postdetail.ReportResult.Success -> stringResource(R.string.post_report_success)
+            is cafe.oeee.ui.postdetail.ReportResult.Error -> result.message
+        }
+        AlertDialog(
+            onDismissRequest = { viewModel.clearReportResult() },
+            title = { Text(stringResource(R.string.post_report)) },
+            text = { Text(message) },
+            confirmButton = {
+                TextButton(onClick = { viewModel.clearReportResult() }) {
+                    Text(stringResource(R.string.dialog_ok))
+                }
             }
         )
     }
@@ -371,6 +440,17 @@ fun PostDetailScreen(
                             Icon(
                                 imageVector = Icons.Default.Edit,
                                 contentDescription = stringResource(R.string.post_edit_post)
+                            )
+                        }
+                    }
+
+                    // Show report button only if current user is NOT the author
+                    if (currentUserId != null && uiState.post?.author?.id != currentUserId) {
+                        IconButton(onClick = { showReportDialog = true }) {
+                            Icon(
+                                imageVector = Icons.Default.Warning,
+                                contentDescription = stringResource(R.string.post_report),
+                                tint = MaterialTheme.colorScheme.error
                             )
                         }
                     }
