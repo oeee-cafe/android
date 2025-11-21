@@ -72,6 +72,10 @@
     <string name="signup_password_confirm">Confirm Password</string>
     <string name="signup_button">Sign Up</string>
     <string name="signup_link">Don\'t have an account? Sign Up</string>
+    <string name="auth_terms_agreement_prefix">I agree to the</string>
+    <string name="auth_privacy_policy">Privacy Policy</string>
+    <string name="auth_community_guidelines">Community Guidelines</string>
+    <string name="auth_terms_and">and</string>
 
     <!-- Settings -->
     <string name="settings_title">Settings</string>

@@ -15,6 +15,7 @@ data class SignupUiState(
     val password: String = "",
     val passwordConfirm: String = "",
     val displayName: String = "",
+    val agreedToTerms: Boolean = false,
     val isLoading: Boolean = false,
     val errorMessage: String? = null,
     val isSignupSuccess: Boolean = false
@@ -40,6 +41,10 @@ class SignupViewModel(private val context: Context) : ViewModel() {
 
     fun updateDisplayName(displayName: String) {
         _uiState.value = _uiState.value.copy(displayName = displayName, errorMessage = null)
+    }
+
+    fun updateAgreedToTerms(agreed: Boolean) {
+        _uiState.value = _uiState.value.copy(agreedToTerms = agreed, errorMessage = null)
     }
 
     fun signup() {
@@ -88,6 +93,7 @@ class SignupViewModel(private val context: Context) : ViewModel() {
         return state.loginName.isNotBlank() &&
                state.password.isNotBlank() &&
                state.passwordConfirm.isNotBlank() &&
-               state.displayName.isNotBlank()
+               state.displayName.isNotBlank() &&
+               state.agreedToTerms
     }
 }

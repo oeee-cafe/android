@@ -1,8 +1,12 @@
 package cafe.oeee.ui.signup
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.CheckBox
+import androidx.compose.material.icons.filled.CheckBoxOutlineBlank
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -18,14 +22,20 @@ import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalAutofill
 import androidx.compose.ui.platform.LocalAutofillTree
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import cafe.oeee.R
+import cafe.oeee.data.remote.ApiClient
 
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
@@ -178,6 +188,74 @@ fun SignupScreen(
                     ),
                     modifier = Modifier.fillMaxWidth()
                 )
+
+                // Terms agreement checkbox
+                val uriHandler = LocalUriHandler.current
+                val baseUrl = ApiClient.getBaseUrl()
+
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 8.dp),
+                    verticalAlignment = Alignment.Top
+                ) {
+                    IconButton(
+                        onClick = { viewModel.updateAgreedToTerms(!uiState.agreedToTerms) },
+                        modifier = Modifier.size(32.dp)
+                    ) {
+                        Icon(
+                            imageVector = if (uiState.agreedToTerms) {
+                                Icons.Default.CheckBox
+                            } else {
+                                Icons.Default.CheckBoxOutlineBlank
+                            },
+                            contentDescription = null,
+                            tint = if (uiState.agreedToTerms) {
+                                MaterialTheme.colorScheme.primary
+                            } else {
+                                MaterialTheme.colorScheme.onSurfaceVariant
+                            }
+                        )
+                    }
+
+                    Column(
+                        modifier = Modifier.padding(start = 4.dp)
+                    ) {
+                        Text(
+                            text = stringResource(R.string.auth_terms_agreement_prefix),
+                            style = MaterialTheme.typography.bodySmall
+                        )
+
+                        Row {
+                            Text(
+                                text = stringResource(R.string.auth_privacy_policy),
+                                style = MaterialTheme.typography.bodySmall.copy(
+                                    color = MaterialTheme.colorScheme.primary,
+                                    textDecoration = TextDecoration.Underline
+                                ),
+                                modifier = Modifier.clickable {
+                                    uriHandler.openUri("$baseUrl/privacy")
+                                }
+                            )
+
+                            Text(
+                                text = " ${stringResource(R.string.auth_terms_and)} ",
+                                style = MaterialTheme.typography.bodySmall
+                            )
+
+                            Text(
+                                text = stringResource(R.string.auth_community_guidelines),
+                                style = MaterialTheme.typography.bodySmall.copy(
+                                    color = MaterialTheme.colorScheme.primary,
+                                    textDecoration = TextDecoration.Underline
+                                ),
+                                modifier = Modifier.clickable {
+                                    uriHandler.openUri("$baseUrl/policy")
+                                }
+                            )
+                        }
+                    }
+                }
 
                 // Error message
                 if (uiState.errorMessage != null) {

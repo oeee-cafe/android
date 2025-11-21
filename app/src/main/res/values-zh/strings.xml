@@ -65,6 +65,10 @@
     <string name="signup_password_confirm">确认密码</string>
     <string name="signup_button">注册</string>
     <string name="signup_link">没有账号？ 注册</string>
+    <string name="auth_terms_agreement_prefix">我同意：</string>
+    <string name="auth_privacy_policy">隐私政策</string>
+    <string name="auth_community_guidelines">社区准则</string>
+    <string name="auth_terms_and">和</string>
 
     <!-- Settings -->
     <string name="settings_title">设置</string>
