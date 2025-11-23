@@ -5,6 +5,8 @@ plugins {
     alias(libs.plugins.ksp)
     alias(libs.plugins.google.services)
     id("kotlin-parcelize")
+
+    id("io.sentry.android.gradle") version "5.12.2"
 }
 
 android {
@@ -93,4 +95,13 @@ dependencies {
     androidTestImplementation(libs.androidx.compose.ui.test.junit4)
     debugImplementation(libs.androidx.compose.ui.tooling)
     debugImplementation(libs.androidx.compose.ui.test.manifest)
+}
+
+sentry {
+    org.set("limeburst")
+    projectName.set("oeee-cafe-android")
+
+    // this will upload your source code to Sentry to show it as part of the stack traces
+    // disable if you don't want to expose your sources
+    includeSourceContext.set(true)
 }

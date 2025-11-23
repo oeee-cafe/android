@@ -10,3 +10,6 @@
 local.properties
 *.aab
 /.kotlin
+
+# Sentry Config File
+sentry.properties
