@@ -2,6 +2,7 @@ package cafe.oeee
 
 import android.Manifest
 import android.app.NotificationManager
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
@@ -81,6 +82,11 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
+    companion object {
+        // Shared navigation event flow for handling deep links from notifications
+        val navigationEventFlow = MutableStateFlow<String?>(null)
+    }
+
     // Modern permission launcher
     private val pushNotificationPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestPermission()
@@ -106,10 +112,84 @@ class MainActivity : ComponentActivity() {
             }
         }
 
+        // Handle notification deep link (cold start)
+        intent?.let { handleNotificationIntent(it) }
+
         setContent {
             OeeeCafeTheme {
-                AppNavigation(pushNotificationPermissionLauncher)
+                AppNavigation(
+                    pushNotificationPermissionLauncher = pushNotificationPermissionLauncher
+                )
             }
+        }
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        // Handle notification deep link (warm/hot start)
+        setIntent(intent)
+        handleNotificationIntent(intent)
+    }
+
+    private fun handleNotificationIntent(intent: Intent) {
+        // Extract notification data from intent extras
+        val notificationType = intent.getStringExtra("notification_type")
+        if (notificationType == null) {
+            android.util.Log.d("MainActivity", "No notification_type in intent, skipping deep link")
+            return
+        }
+
+        android.util.Log.i("MainActivity", "Handling notification tap: type=$notificationType")
+
+        // Map notification type to navigation route
+        val route = when (notificationType) {
+            "Comment", "Mention", "CommentReply", "PostReply", "CommunityPost", "Reaction" -> {
+                // Navigate to post detail
+                val postId = intent.getStringExtra("post_id")
+                if (postId != null) {
+                    "post/$postId"
+                } else {
+                    android.util.Log.w("MainActivity", "Missing post_id for $notificationType")
+                    null
+                }
+            }
+
+            "Follow", "GuestbookEntry", "GuestbookReply" -> {
+                // Navigate to actor's profile
+                val actorLoginName = intent.getStringExtra("actor_login_name")
+                if (actorLoginName != null) {
+                    "profile/$actorLoginName"
+                } else {
+                    android.util.Log.w("MainActivity", "Missing actor_login_name for $notificationType")
+                    null
+                }
+            }
+
+            "community_invite" -> {
+                // Navigate to community invitations screen
+                "community-invitations"
+            }
+
+            "invitation_accepted", "invitation_declined" -> {
+                // Navigate to community members screen
+                val communitySlug = intent.getStringExtra("community_slug")
+                if (communitySlug != null) {
+                    "community/$communitySlug/members"
+                } else {
+                    android.util.Log.w("MainActivity", "Missing community_slug for $notificationType")
+                    null
+                }
+            }
+
+            else -> {
+                android.util.Log.w("MainActivity", "Unknown notification type: $notificationType")
+                null
+            }
+        }
+
+        route?.let {
+            android.util.Log.i("MainActivity", "Emitting navigation event: $it")
+            navigationEventFlow.value = it
         }
     }
 
@@ -145,6 +225,20 @@ fun AppNavigation(
     val unreadCount = MutableStateFlow(0L)
     val invitationCount = MutableStateFlow(0)
     val draftCount = MutableStateFlow(0)
+
+    // Handle deep link navigation from push notification
+    val navigationEvent by MainActivity.navigationEventFlow.collectAsState()
+    LaunchedEffect(navigationEvent) {
+        navigationEvent?.let { route ->
+            android.util.Log.i("AppNavigation", "Handling navigation event: $route")
+            navController.navigate(route) {
+                // Don't clear back stack - let user navigate back normally
+                launchSingleTop = true
+            }
+            // Clear the event after handling
+            MainActivity.navigationEventFlow.value = null
+        }
+    }
 
     // Refresh counts when returning to main tabs
     LaunchedEffect(currentRoute) {
