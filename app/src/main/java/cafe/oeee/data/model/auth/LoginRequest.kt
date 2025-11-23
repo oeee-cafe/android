@@ -5,6 +5,7 @@ import com.squareup.moshi.JsonClass
 
 @JsonClass(generateAdapter = true)
 data class LoginRequest(
-    @Json(name = "login_name") val loginName: String,
-    @Json(name = "password") val password: String
+    val loginName: String,
+    val password: String,
+    val preferredLanguage: String? = null
 )

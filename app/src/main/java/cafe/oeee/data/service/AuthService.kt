@@ -85,7 +85,15 @@ class AuthService private constructor(private val context: Context) {
 
     suspend fun login(loginName: String, password: String): Result<CurrentUser> {
         return try {
-            val request = LoginRequest(loginName, password)
+            // Detect device language preference
+            val deviceLanguage = java.util.Locale.getDefault().language
+            val preferredLanguage = if (deviceLanguage in listOf("ko", "ja", "en", "zh")) {
+                deviceLanguage
+            } else {
+                null
+            }
+
+            val request = LoginRequest(loginName, password, preferredLanguage)
             val response = apiService.login(request)
 
             // Update state
@@ -119,7 +127,15 @@ class AuthService private constructor(private val context: Context) {
         displayName: String
     ): Result<CurrentUser> {
         return try {
-            val request = SignupRequest(loginName, password, displayName)
+            // Detect device language preference
+            val deviceLanguage = java.util.Locale.getDefault().language
+            val preferredLanguage = if (deviceLanguage in listOf("ko", "ja", "en", "zh")) {
+                deviceLanguage
+            } else {
+                null
+            }
+
+            val request = SignupRequest(loginName, password, displayName, preferredLanguage)
             val response = apiService.signup(request)
 
             // Update state (user is auto-logged in after signup)
