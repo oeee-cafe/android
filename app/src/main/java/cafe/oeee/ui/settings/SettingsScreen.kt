@@ -217,23 +217,25 @@ fun SettingsScreen(
             }
 
             // Profile section
-            Card(
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Column(
-                    modifier = Modifier.padding(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
+            if (isAuthenticated) {
+                Card(
+                    modifier = Modifier.fillMaxWidth()
                 ) {
-                    Text(
-                        text = stringResource(R.string.profile_title),
-                        style = MaterialTheme.typography.titleMedium
-                    )
-
-                    OutlinedButton(
-                        onClick = onNavigateToBannerManagement,
-                        modifier = Modifier.fillMaxWidth()
+                    Column(
+                        modifier = Modifier.padding(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
-                        Text(stringResource(R.string.banner_management_title))
+                        Text(
+                            text = stringResource(R.string.profile_title),
+                            style = MaterialTheme.typography.titleMedium
+                        )
+
+                        OutlinedButton(
+                            onClick = onNavigateToBannerManagement,
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Text(stringResource(R.string.banner_management_title))
+                        }
                     }
                 }
             }
