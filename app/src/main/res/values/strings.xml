@@ -18,6 +18,7 @@
     <string name="active_communities">Active Communities</string>
     <string name="recent_comments">Recent Comments</string>
     <string name="recent_posts">Recent Posts</string>
+    <string name="posts_without_community">Posts without a community</string>
 
     <!-- Post Detail -->
     <string name="post_detail_title">Post Details</string>

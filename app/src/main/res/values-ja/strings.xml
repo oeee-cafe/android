@@ -11,6 +11,7 @@
     <string name="active_communities">アクティブなコミュニティ</string>
     <string name="recent_comments">最近のコメント</string>
     <string name="recent_posts">最近の投稿</string>
+    <string name="posts_without_community">コミュニティなしの絵</string>
 
     <!-- Post Detail -->
     <string name="post_detail_title">投稿詳細</string>
