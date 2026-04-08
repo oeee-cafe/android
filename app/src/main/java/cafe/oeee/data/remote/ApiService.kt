@@ -58,12 +58,6 @@ interface ApiService {
         @Query("limit") limit: Int = 18
     ): PostsResponse
 
-    @GET("/api/v1/posts/without-community")
-    suspend fun getPostsWithoutCommunity(
-        @Query("offset") offset: Int = 0,
-        @Query("limit") limit: Int = 18
-    ): PostsResponse
-
     @GET("/api/v1/posts/drafts")
     suspend fun getDraftPosts(): DraftPostsResponse
 

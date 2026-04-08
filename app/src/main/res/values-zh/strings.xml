@@ -11,7 +11,6 @@
     <string name="active_communities">活跃社群</string>
     <string name="recent_comments">最新评论</string>
     <string name="recent_posts">最新帖子</string>
-    <string name="posts_without_community">无社区的作品</string>
 
     <!-- Post Detail -->
     <string name="post_detail_title">帖子详情</string>

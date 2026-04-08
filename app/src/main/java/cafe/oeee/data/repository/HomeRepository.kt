@@ -17,15 +17,6 @@ class HomeRepository {
         }
     }
 
-    suspend fun getPostsWithoutCommunity(offset: Int = 0, limit: Int = 18): Result<PostsResponse> {
-        return try {
-            val response = apiService.getPostsWithoutCommunity(offset, limit)
-            Result.success(response)
-        } catch (e: Exception) {
-            Result.failure(e)
-        }
-    }
-
     suspend fun getActiveCommunities(): Result<ActiveCommunitiesResponse> {
         return try {
             val response = apiService.getActiveCommunities()

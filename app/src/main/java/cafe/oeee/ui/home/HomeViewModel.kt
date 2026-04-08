@@ -14,17 +14,13 @@ import kotlinx.coroutines.launch
 
 data class HomeUiState(
     val posts: List<Post> = emptyList(),
-    val postsWithoutCommunity: List<Post> = emptyList(),
     val communities: List<ActiveCommunity> = emptyList(),
     val comments: List<RecentComment> = emptyList(),
     val isLoading: Boolean = false,
     val isLoadingMore: Boolean = false,
-    val isLoadingMoreWithoutCommunity: Boolean = false,
     val hasMore: Boolean = true,
-    val hasMoreWithoutCommunity: Boolean = true,
     val error: String? = null,
-    val currentOffset: Int = 0,
-    val currentOffsetWithoutCommunity: Int = 0
+    val currentOffset: Int = 0
 )
 
 class HomeViewModel : ViewModel() {
@@ -49,7 +45,6 @@ class HomeViewModel : ViewModel() {
             try {
                 // Fetch all data concurrently
                 val postsResult = repository.getPublicPosts(offset = 0)
-                val postsWithoutCommunityResult = repository.getPostsWithoutCommunity(offset = 0)
                 val communitiesResult = repository.getActiveCommunities()
                 val commentsResult = repository.getLatestComments()
 
@@ -68,19 +63,6 @@ class HomeViewModel : ViewModel() {
                     onFailure = { error ->
                         errorMessage = error.message ?: "Failed to load posts"
                     }
-                )
-
-                postsWithoutCommunityResult.fold(
-                    onSuccess = { postsResponse ->
-                        _uiState.update {
-                            it.copy(
-                                postsWithoutCommunity = postsResponse.posts,
-                                hasMoreWithoutCommunity = postsResponse.pagination.hasMore,
-                                currentOffsetWithoutCommunity = postsResponse.pagination.offset
-                            )
-                        }
-                    },
-                    onFailure = { /* Optional: not critical */ }
                 )
 
                 communitiesResult.fold(
@@ -141,50 +123,17 @@ class HomeViewModel : ViewModel() {
         }
     }
 
-    fun loadMoreWithoutCommunity() {
-        val currentState = _uiState.value
-        if (currentState.isLoadingMoreWithoutCommunity || currentState.isLoading || !currentState.hasMoreWithoutCommunity) {
-            return
-        }
-
-        _uiState.update { it.copy(isLoadingMoreWithoutCommunity = true) }
-
-        viewModelScope.launch {
-            repository.getPostsWithoutCommunity(offset = currentState.currentOffsetWithoutCommunity).fold(
-                onSuccess = { postsResponse ->
-                    _uiState.update {
-                        it.copy(
-                            postsWithoutCommunity = it.postsWithoutCommunity + postsResponse.posts,
-                            hasMoreWithoutCommunity = postsResponse.pagination.hasMore,
-                            currentOffsetWithoutCommunity = postsResponse.pagination.offset,
-                            isLoadingMoreWithoutCommunity = false
-                        )
-                    }
-                },
-                onFailure = { error ->
-                    _uiState.update {
-                        it.copy(
-                            isLoadingMoreWithoutCommunity = false,
-                            error = error.message ?: "Failed to load more posts"
-                        )
-                    }
-                }
-            )
-        }
-    }
-
     fun refresh() {
         if (_uiState.value.isLoading || _uiState.value.isLoadingMore) {
             return
         }
 
-        _uiState.update { it.copy(isLoading = true, error = null, currentOffset = 0, currentOffsetWithoutCommunity = 0) }
+        _uiState.update { it.copy(isLoading = true, error = null, currentOffset = 0) }
 
         viewModelScope.launch {
             try {
                 // Fetch all data concurrently
                 val postsResult = repository.getPublicPosts(offset = 0)
-                val postsWithoutCommunityResult = repository.getPostsWithoutCommunity(offset = 0)
                 val communitiesResult = repository.getActiveCommunities()
                 val commentsResult = repository.getLatestComments()
 
@@ -203,19 +152,6 @@ class HomeViewModel : ViewModel() {
                     onFailure = { error ->
                         errorMessage = error.message ?: "Failed to load posts"
                     }
-                )
-
-                postsWithoutCommunityResult.fold(
-                    onSuccess = { postsResponse ->
-                        _uiState.update {
-                            it.copy(
-                                postsWithoutCommunity = postsResponse.posts,
-                                hasMoreWithoutCommunity = postsResponse.pagination.hasMore,
-                                currentOffsetWithoutCommunity = postsResponse.pagination.offset
-                            )
-                        }
-                    },
-                    onFailure = { /* Optional: not critical */ }
                 )
 
                 communitiesResult.fold(

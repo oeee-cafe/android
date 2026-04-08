@@ -11,7 +11,6 @@
     <string name="active_communities">활동 중인 커뮤니티</string>
     <string name="recent_comments">최근 댓글</string>
     <string name="recent_posts">최근 게시물</string>
-    <string name="posts_without_community">커뮤니티에 속하지 않은 그림들</string>
 
     <!-- Post Detail -->
     <string name="post_detail_title">게시물 상세</string>

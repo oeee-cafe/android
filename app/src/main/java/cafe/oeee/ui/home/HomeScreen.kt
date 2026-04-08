@@ -221,47 +221,6 @@ fun HomeScreen(
                             }
                         }
 
-                        // Posts Without Community Section
-                        if (uiState.postsWithoutCommunity.isNotEmpty()) {
-                            item(span = { androidx.compose.foundation.lazy.grid.GridItemSpan(3) }) {
-                                Text(
-                                    text = stringResource(R.string.posts_without_community),
-                                    style = MaterialTheme.typography.titleLarge,
-                                    fontWeight = FontWeight.Bold,
-                                    modifier = Modifier.padding(horizontal = 8.dp)
-                                )
-                            }
-
-                            items(uiState.postsWithoutCommunity) { post ->
-                                PostGridItem(
-                                    post = post,
-                                    onClick = { onPostClick(post.id) }
-                                )
-                                if (post.id == uiState.postsWithoutCommunity.lastOrNull()?.id && uiState.hasMoreWithoutCommunity) {
-                                    LaunchedEffect(uiState.currentOffsetWithoutCommunity) {
-                                        viewModel.loadMoreWithoutCommunity()
-                                    }
-                                }
-                            }
-
-                            if (uiState.isLoadingMoreWithoutCommunity) {
-                                item(span = { androidx.compose.foundation.lazy.grid.GridItemSpan(3) }) {
-                                    Box(
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                            .padding(16.dp),
-                                        contentAlignment = Alignment.Center
-                                    ) {
-                                        CircularProgressIndicator()
-                                    }
-                                }
-                            }
-
-                            item(span = { androidx.compose.foundation.lazy.grid.GridItemSpan(3) }) {
-                                Spacer(modifier = Modifier.height(12.dp))
-                            }
-                        }
-
                         // Recent Posts Section
                         item(span = { androidx.compose.foundation.lazy.grid.GridItemSpan(3) }) {
                             Text(
