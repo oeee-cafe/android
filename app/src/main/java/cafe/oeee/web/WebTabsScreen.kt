@@ -50,6 +50,7 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.view.WindowCompat
+import cafe.oeee.ui.theme.OeeeCafeTheme
 
 /** The native tab bar, each tab showing its own page of the site. */
 @Composable
@@ -74,34 +75,42 @@ fun WebTabsScreen(
         }
     }
 
-    // The status bar takes the color of the page's top edge, with icons that read on it.
+    // The status bar takes the color of the page's top edge and the tab bar (and the
+    // system's navigation bar under it) the color of its bottom edge, with icons that read on them.
     val statusBarColor = controller.topColor ?: MaterialTheme.colorScheme.background
+    val tabBarColor = controller.bottomColor ?: MaterialTheme.colorScheme.surfaceContainer
+    val tabBarIsLight = tabBarColor.luminance() > 0.5f
     val view = LocalView.current
-    LaunchedEffect(statusBarColor) {
-        WindowCompat.getInsetsController(activity.window, view).isAppearanceLightStatusBars =
-            statusBarColor.luminance() > 0.5f
+    LaunchedEffect(statusBarColor, tabBarIsLight) {
+        WindowCompat.getInsetsController(activity.window, view).apply {
+            isAppearanceLightStatusBars = statusBarColor.luminance() > 0.5f
+            isAppearanceLightNavigationBars = tabBarIsLight
+        }
     }
 
     Scaffold(
         containerColor = statusBarColor,
         bottomBar = {
-            NavigationBar {
-                for (tab in visibleTabs) {
-                    val selected = tab == selectedTab
-                    NavigationBarItem(
-                        selected = selected,
-                        onClick = {
-                            // Selecting the already selected tab takes it back to its top.
-                            if (selected) store.controller(tab).reselect() else onSelectTab(tab)
-                        },
-                        icon = {
-                            val count = badgeCount(tab)
-                            BadgedBox(badge = { if (count > 0) Badge { Text(count.toString()) } }) {
-                                Icon(if (selected) tab.selectedIcon else tab.icon, contentDescription = null)
-                            }
-                        },
-                        label = { Text(stringResource(tab.title)) }
-                    )
+            // Icons and labels in the light or dark scheme, whichever reads on the page's color.
+            OeeeCafeTheme(darkTheme = !tabBarIsLight) {
+                NavigationBar(containerColor = tabBarColor) {
+                    for (tab in visibleTabs) {
+                        val selected = tab == selectedTab
+                        NavigationBarItem(
+                            selected = selected,
+                            onClick = {
+                                // Selecting the already selected tab takes it back to its top.
+                                if (selected) store.controller(tab).reselect() else onSelectTab(tab)
+                            },
+                            icon = {
+                                val count = badgeCount(tab)
+                                BadgedBox(badge = { if (count > 0) Badge { Text(count.toString()) } }) {
+                                    Icon(if (selected) tab.selectedIcon else tab.icon, contentDescription = null)
+                                }
+                            },
+                            label = { Text(stringResource(tab.title)) }
+                        )
+                    }
                 }
             }
         }

@@ -145,10 +145,12 @@ class WebTabController(
     val view = SwipeRefreshLayout(activity)
 
     /**
-     * The color at the top edge of the page shown, for the status bar above it; null until
-     * a page has said.
+     * The colors at the top and bottom edges of the page shown, for the status bar above it
+     * and the tab bar below; null until a page has said.
      */
     var topColor by mutableStateOf<Color?>(null)
+        private set
+    var bottomColor by mutableStateOf<Color?>(null)
         private set
 
     /** Whether the web view has loaded anything (the search tab waits for a search). */
@@ -168,7 +170,7 @@ class WebTabController(
         webView.webViewClient = Client()
         webView.webChromeClient = ChromeClient()
         installLogoutHold()
-        installTopColorReport()
+        installEdgeColorsReport()
 
         view.addView(
             webView,
@@ -252,19 +254,21 @@ class WebTabController(
         }
         if (WebViewFeature.isFeatureSupported(WebViewFeature.DOCUMENT_START_SCRIPT)) {
             WebViewCompat.addDocumentStartJavaScript(webView, LOGOUT_SCRIPT, setOf(origin))
-            WebViewCompat.addDocumentStartJavaScript(webView, TOP_COLOR_SCRIPT, setOf(origin))
+            WebViewCompat.addDocumentStartJavaScript(webView, EDGE_COLORS_SCRIPT, setOf(origin))
             scriptsAtDocumentStart = true
         }
     }
 
-    /** Has the page say what color its top edge is, whenever that may have changed. */
-    private fun installTopColorReport() {
+    /** Has the page say what colors its edges are, whenever that may have changed. */
+    private fun installEdgeColorsReport() {
         if (!WebViewFeature.isFeatureSupported(WebViewFeature.WEB_MESSAGE_LISTENER)) return
         WebViewCompat.addWebMessageListener(
-            webView, TOP_COLOR_OBJECT_NAME, setOf(siteOrigin)
+            webView, EDGE_COLORS_OBJECT_NAME, setOf(siteOrigin)
         ) { _, message, _, isMainFrame, _ ->
             if (!isMainFrame) return@addWebMessageListener
-            parseCssColor(message.data)?.let { topColor = it }
+            val colors = message.data?.split("|") ?: return@addWebMessageListener
+            parseCssColor(colors.getOrNull(0))?.let { topColor = it }
+            parseCssColor(colors.getOrNull(1))?.let { bottomColor = it }
         }
     }
 
@@ -283,7 +287,7 @@ class WebTabController(
             this@WebTabController.view.isRefreshing = false
             if (!scriptsAtDocumentStart && url != null && isSiteUrl(Uri.parse(url))) {
                 view.evaluateJavascript(LOGOUT_SCRIPT, null)
-                view.evaluateJavascript(TOP_COLOR_SCRIPT, null)
+                view.evaluateJavascript(EDGE_COLORS_SCRIPT, null)
             }
             WebSession.cookiesMayHaveChanged()
             onPageLoad()
@@ -320,7 +324,7 @@ class WebTabController(
         private const val TAG = "WebTab"
         private const val USER_AGENT_SUFFIX = "OeeeCafeAndroid"
         private const val LOGOUT_OBJECT_NAME = "oeeeLogout"
-        private const val TOP_COLOR_OBJECT_NAME = "oeeeTopColor"
+        private const val EDGE_COLORS_OBJECT_NAME = "oeeeEdgeColors"
         private val IN_PAGE_SCHEMES = setOf("about", "blob", "data", "javascript")
         private val PAINTER_PATHS = listOf("/draw", "/banners/draw", "/collaborate")
 
@@ -352,33 +356,36 @@ class WebTabController(
         """.trimIndent()
 
         /**
-         * Reports the background color at the page's top edge: on load, after the site swaps
-         * in a page (htmx), and when its light/dark theme changes.
+         * Reports the background colors at the page's top and bottom edges, as
+         * `<top>|<bottom>`: on load, after the site swaps in a page (htmx), and when its
+         * light/dark theme changes.
          */
-        private val TOP_COLOR_SCRIPT = """
+        private val EDGE_COLORS_SCRIPT = """
             (function () {
-              if (window.__oeeeTopColor) return;
-              window.__oeeeTopColor = true;
-              var bridge = window.$TOP_COLOR_OBJECT_NAME;
+              if (window.__oeeeEdgeColors) return;
+              window.__oeeeEdgeColors = true;
+              var bridge = window.$EDGE_COLORS_OBJECT_NAME;
               if (!bridge) return;
               var last = null;
               function opaque(color) {
                 return color && color !== 'transparent' && !/^rgba\(.*,\s*0\)$/.test(color);
               }
-              function report() {
-                var el = document.elementFromPoint(1, 1);
-                var color = null;
-                for (; el; el = el.parentElement) {
+              function colorAt(y) {
+                for (var el = document.elementFromPoint(1, y); el; el = el.parentElement) {
                   var background = getComputedStyle(el).backgroundColor;
-                  if (opaque(background)) { color = background; break; }
+                  if (opaque(background)) return background;
                 }
-                if (!color && document.body) {
+                if (document.body) {
                   var body = getComputedStyle(document.body).backgroundColor;
-                  if (opaque(body)) color = body;
+                  if (opaque(body)) return body;
                 }
-                if (color && color !== last) {
-                  last = color;
-                  bridge.postMessage(color);
+                return '';
+              }
+              function report() {
+                var colors = colorAt(1) + '|' + colorAt(window.innerHeight - 2);
+                if (colors !== last) {
+                  last = colors;
+                  bridge.postMessage(colors);
                 }
               }
               // Theme changes fade in, so look again once they have settled.
