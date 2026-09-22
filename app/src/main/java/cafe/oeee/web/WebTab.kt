@@ -28,7 +28,9 @@ import androidx.compose.material.icons.outlined.Notifications
 import androidx.compose.material.icons.outlined.Search
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import androidx.webkit.WebViewCompat
@@ -132,12 +134,22 @@ class WebTabController(
 ) {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
     private val siteHost: String? = Uri.parse(tab.rootUrl).host
-    private var logoutScriptAtDocumentStart = false
+    private val siteOrigin: String = Uri.parse(tab.rootUrl).let { uri ->
+        "${uri.scheme}://${uri.host}" + if (uri.port != -1) ":${uri.port}" else ""
+    }
+    private var scriptsAtDocumentStart = false
 
     val webView = WebView(activity)
 
     /** The tab's view: the web view, pulled down to reload. */
     val view = SwipeRefreshLayout(activity)
+
+    /**
+     * The color at the top edge of the page shown, for the status bar above it; null until
+     * a page has said.
+     */
+    var topColor by mutableStateOf<Color?>(null)
+        private set
 
     /** Whether the web view has loaded anything (the search tab waits for a search). */
     var hasLoaded = false
@@ -156,6 +168,7 @@ class WebTabController(
         webView.webViewClient = Client()
         webView.webChromeClient = ChromeClient()
         installLogoutHold()
+        installTopColorReport()
 
         view.addView(
             webView,
@@ -223,9 +236,7 @@ class WebTabController(
      */
     private fun installLogoutHold() {
         if (!WebViewFeature.isFeatureSupported(WebViewFeature.WEB_MESSAGE_LISTENER)) return
-        val origin = Uri.parse(tab.rootUrl).let { uri ->
-            "${uri.scheme}://${uri.host}" + if (uri.port != -1) ":${uri.port}" else ""
-        }
+        val origin = siteOrigin
         WebViewCompat.addWebMessageListener(
             webView, LOGOUT_OBJECT_NAME, setOf(origin)
         ) { _, _, _, isMainFrame, replyProxy ->
@@ -241,7 +252,19 @@ class WebTabController(
         }
         if (WebViewFeature.isFeatureSupported(WebViewFeature.DOCUMENT_START_SCRIPT)) {
             WebViewCompat.addDocumentStartJavaScript(webView, LOGOUT_SCRIPT, setOf(origin))
-            logoutScriptAtDocumentStart = true
+            WebViewCompat.addDocumentStartJavaScript(webView, TOP_COLOR_SCRIPT, setOf(origin))
+            scriptsAtDocumentStart = true
+        }
+    }
+
+    /** Has the page say what color its top edge is, whenever that may have changed. */
+    private fun installTopColorReport() {
+        if (!WebViewFeature.isFeatureSupported(WebViewFeature.WEB_MESSAGE_LISTENER)) return
+        WebViewCompat.addWebMessageListener(
+            webView, TOP_COLOR_OBJECT_NAME, setOf(siteOrigin)
+        ) { _, message, _, isMainFrame, _ ->
+            if (!isMainFrame) return@addWebMessageListener
+            parseCssColor(message.data)?.let { topColor = it }
         }
     }
 
@@ -258,8 +281,9 @@ class WebTabController(
 
         override fun onPageFinished(view: WebView, url: String?) {
             this@WebTabController.view.isRefreshing = false
-            if (!logoutScriptAtDocumentStart && url != null && isSiteUrl(Uri.parse(url))) {
+            if (!scriptsAtDocumentStart && url != null && isSiteUrl(Uri.parse(url))) {
                 view.evaluateJavascript(LOGOUT_SCRIPT, null)
+                view.evaluateJavascript(TOP_COLOR_SCRIPT, null)
             }
             WebSession.cookiesMayHaveChanged()
             onPageLoad()
@@ -296,6 +320,7 @@ class WebTabController(
         private const val TAG = "WebTab"
         private const val USER_AGENT_SUFFIX = "OeeeCafeAndroid"
         private const val LOGOUT_OBJECT_NAME = "oeeeLogout"
+        private const val TOP_COLOR_OBJECT_NAME = "oeeeTopColor"
         private val IN_PAGE_SCHEMES = setOf("about", "blob", "data", "javascript")
         private val PAINTER_PATHS = listOf("/draw", "/banners/draw", "/collaborate")
 
@@ -325,5 +350,58 @@ class WebTabController(
               }, true);
             })();
         """.trimIndent()
+
+        /**
+         * Reports the background color at the page's top edge: on load, after the site swaps
+         * in a page (htmx), and when its light/dark theme changes.
+         */
+        private val TOP_COLOR_SCRIPT = """
+            (function () {
+              if (window.__oeeeTopColor) return;
+              window.__oeeeTopColor = true;
+              var bridge = window.$TOP_COLOR_OBJECT_NAME;
+              if (!bridge) return;
+              var last = null;
+              function opaque(color) {
+                return color && color !== 'transparent' && !/^rgba\(.*,\s*0\)$/.test(color);
+              }
+              function report() {
+                var el = document.elementFromPoint(1, 1);
+                var color = null;
+                for (; el; el = el.parentElement) {
+                  var background = getComputedStyle(el).backgroundColor;
+                  if (opaque(background)) { color = background; break; }
+                }
+                if (!color && document.body) {
+                  var body = getComputedStyle(document.body).backgroundColor;
+                  if (opaque(body)) color = body;
+                }
+                if (color && color !== last) {
+                  last = color;
+                  bridge.postMessage(color);
+                }
+              }
+              // Theme changes fade in, so look again once they have settled.
+              function soon() { report(); setTimeout(report, 350); }
+              if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', soon);
+              } else {
+                soon();
+              }
+              window.addEventListener('pageshow', soon);
+              document.addEventListener('htmx:afterSettle', soon);
+              new MutationObserver(soon).observe(document.documentElement, { attributes: true });
+              window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', soon);
+            })();
+        """.trimIndent()
+
+        /** `rgb(r, g, b)` or `rgba(r, g, b, a)`, as `getComputedStyle` gives colors. */
+        internal fun parseCssColor(css: String?): Color? {
+            val match = CSS_COLOR.matchEntire(css?.trim() ?: return null) ?: return null
+            val (r, g, b) = match.destructured
+            return Color(r.toFloat().toInt(), g.toFloat().toInt(), b.toFloat().toInt())
+        }
+
+        private val CSS_COLOR = Regex("""rgba?\(\s*([\d.]+)[,\s]+([\d.]+)[,\s]+([\d.]+).*\)""")
     }
 }

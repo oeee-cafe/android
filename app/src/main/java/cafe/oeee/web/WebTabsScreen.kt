@@ -31,6 +31,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
@@ -40,12 +41,15 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
+import androidx.core.view.WindowCompat
 
 /** The native tab bar, each tab showing its own page of the site. */
 @Composable
@@ -70,7 +74,16 @@ fun WebTabsScreen(
         }
     }
 
+    // The status bar takes the color of the page's top edge, with icons that read on it.
+    val statusBarColor = controller.topColor ?: MaterialTheme.colorScheme.background
+    val view = LocalView.current
+    LaunchedEffect(statusBarColor) {
+        WindowCompat.getInsetsController(activity.window, view).isAppearanceLightStatusBars =
+            statusBarColor.luminance() > 0.5f
+    }
+
     Scaffold(
+        containerColor = statusBarColor,
         bottomBar = {
             NavigationBar {
                 for (tab in visibleTabs) {
