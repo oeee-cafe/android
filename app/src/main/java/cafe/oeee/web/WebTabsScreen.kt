@@ -1,8 +1,8 @@
 package cafe.oeee.web
 
-import android.app.Activity
 import android.view.ViewGroup
 import androidx.activity.compose.BackHandler
+import androidx.activity.compose.LocalActivity
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -41,7 +41,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.luminance
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.stringResource
@@ -63,7 +62,8 @@ fun WebTabsScreen(
     // Read so that a recreated web view is picked up.
     store.generation
     val controller = store.controller(selectedTab)
-    val activity = LocalContext.current as Activity
+    // The screen is only ever shown by MainActivity.
+    val activity = checkNotNull(LocalActivity.current)
 
     // Back goes back in the tab's own history, then to the home tab, then leaves the app.
     BackHandler {
