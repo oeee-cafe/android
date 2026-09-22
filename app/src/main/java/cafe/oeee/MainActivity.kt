@@ -3,6 +3,7 @@ package cafe.oeee
 import android.Manifest
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.content.res.Configuration
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
@@ -162,6 +163,11 @@ class MainActivity : ComponentActivity() {
         if (intent.flags and Intent.FLAG_ACTIVITY_LAUNCHED_FROM_HISTORY != 0) return
         NavigationCoordinator.handleNotificationIntent(intent)
         NavigationCoordinator.handleLinkIntent(intent)
+    }
+
+    override fun onConfigurationChanged(newConfig: Configuration) {
+        super.onConfigurationChanged(newConfig)
+        webTabs.textScaleChanged()
     }
 
     override fun onDestroy() {

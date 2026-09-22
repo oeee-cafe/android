@@ -5,7 +5,9 @@ import android.app.Activity
 import android.content.ActivityNotFoundException
 import android.content.Intent
 import android.net.Uri
+import android.os.Build
 import android.util.Log
+import android.view.HapticFeedbackConstants
 import android.view.ViewGroup
 import android.webkit.RenderProcessGoneDetail
 import android.webkit.ValueCallback
@@ -33,6 +35,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+import androidx.webkit.ScriptHandler
 import androidx.webkit.WebViewCompat
 import androidx.webkit.WebViewFeature
 import cafe.oeee.BuildConfig
@@ -118,6 +121,11 @@ class WebTabStore(private val activity: Activity, private val fileChooser: FileC
         }
     }
 
+    /** The configuration changed, perhaps the system's font size: every tab's pages follow it. */
+    fun textScaleChanged() {
+        for (controller in controllers.values) controller.showTextScale()
+    }
+
     fun tearDown() {
         for (controller in controllers.values) controller.tearDown()
         controllers.clear()
@@ -138,6 +146,8 @@ class WebTabController(
         "${uri.scheme}://${uri.host}" + if (uri.port != -1) ":${uri.port}" else ""
     }
     private var scriptsAtDocumentStart = false
+    private var textScaleScript: ScriptHandler? = null
+    private var textScale: Float? = null
 
     val webView = WebView(activity)
 
@@ -171,6 +181,8 @@ class WebTabController(
         webView.webChromeClient = ChromeClient()
         installLogoutHold()
         installEdgeColorsReport()
+        installHaptics()
+        showTextScale()
 
         view.addView(
             webView,
@@ -272,6 +284,42 @@ class WebTabController(
         }
     }
 
+    /**
+     * Lets the site's controls be felt (`feel()` in theme_head.jinja, oeee-cafe/web): it posts
+     * "light", "medium", "selection", "success", "warning" or "error" to `window.oeeeHaptic`,
+     * the names the iOS app plays with its feedback generators.
+     */
+    private fun installHaptics() {
+        if (!WebViewFeature.isFeatureSupported(WebViewFeature.WEB_MESSAGE_LISTENER)) return
+        WebViewCompat.addWebMessageListener(
+            webView, HAPTIC_OBJECT_NAME, setOf(siteOrigin)
+        ) { _, message, _, isMainFrame, _ ->
+            if (!isMainFrame) return@addWebMessageListener
+            hapticFeedback(message.data)?.let { webView.performHapticFeedback(it) }
+        }
+    }
+
+    /**
+     * Puts the reader's font size on every page from its first paint, as `--oeee-text-scale`,
+     * which the site's type scale follows (ds.css in oeee-cafe/web) -- text grows, pictures,
+     * spacing and the painter's chrome do not. Left to itself the web view would instead zoom
+     * every piece of text on the page by the font scale (its default text zoom), so that is
+     * turned off; unless the page can't be told before it paints, when the zoom stays.
+     */
+    fun showTextScale() {
+        if (!WebViewFeature.isFeatureSupported(WebViewFeature.DOCUMENT_START_SCRIPT)) return
+        val fontScale = activity.resources.configuration.fontScale
+        if (fontScale == textScale) return
+        textScale = fontScale
+        webView.settings.textZoom = 100
+        val source = textScaleSource(fontScale)
+        textScaleScript?.remove()
+        textScaleScript = WebViewCompat.addDocumentStartJavaScript(webView, source, setOf(siteOrigin))
+        if (webView.url?.let { isSiteUrl(Uri.parse(it)) } == true) {
+            webView.evaluateJavascript(source, null)
+        }
+    }
+
     private inner class Client : WebViewClient() {
         override fun shouldOverrideUrlLoading(view: WebView, request: WebResourceRequest): Boolean {
             val uri = request.url
@@ -325,6 +373,7 @@ class WebTabController(
         private const val USER_AGENT_SUFFIX = "OeeeCafeAndroid"
         private const val LOGOUT_OBJECT_NAME = "oeeeLogout"
         private const val EDGE_COLORS_OBJECT_NAME = "oeeeEdgeColors"
+        private const val HAPTIC_OBJECT_NAME = "oeeeHaptic"
         private val IN_PAGE_SCHEMES = setOf("about", "blob", "data", "javascript")
         private val PAINTER_PATHS = listOf("/draw", "/banners/draw", "/collaborate")
 
@@ -401,6 +450,31 @@ class WebTabController(
               window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', soon);
             })();
         """.trimIndent()
+
+        /**
+         * The font scale as the site's `--oeee-text-scale`, kept within what its layouts were
+         * drawn for, as the iOS app keeps Dynamic Type: the largest sizes stop at twice the default.
+         */
+        internal fun textScaleSource(fontScale: Float): String {
+            val scale = fontScale.coerceIn(0.8f, 2f)
+            return "document.documentElement.style.setProperty('--oeee-text-scale', '$scale');"
+        }
+
+        /** The feedback closest to what each of the site's names plays on iOS; null for others. */
+        internal fun hapticFeedback(name: String?): Int? = when (name) {
+            "light" -> HapticFeedbackConstants.KEYBOARD_TAP
+            "medium" -> HapticFeedbackConstants.CONTEXT_CLICK
+            "selection" ->
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) HapticFeedbackConstants.SEGMENT_TICK
+                else HapticFeedbackConstants.CLOCK_TICK
+            "success" ->
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) HapticFeedbackConstants.CONFIRM
+                else HapticFeedbackConstants.CONTEXT_CLICK
+            "warning", "error" ->
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) HapticFeedbackConstants.REJECT
+                else HapticFeedbackConstants.LONG_PRESS
+            else -> null
+        }
 
         /** `rgb(r, g, b)` or `rgba(r, g, b, a)`, as `getComputedStyle` gives colors. */
         internal fun parseCssColor(css: String?): Color? {
