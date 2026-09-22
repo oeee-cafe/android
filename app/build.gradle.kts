@@ -55,7 +55,6 @@ dependencies {
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
-    implementation(libs.androidx.fragment)
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.compose.ui)
     implementation(libs.androidx.compose.ui.graphics)
@@ -63,23 +62,16 @@ dependencies {
     implementation(libs.androidx.compose.material3)
     implementation(libs.androidx.compose.material.icons.extended)
 
+    // Web views
+    implementation(libs.androidx.webkit)
+    implementation(libs.androidx.swiperefreshlayout)
+
     // Networking
     implementation(libs.retrofit)
     implementation(libs.retrofit.moshi)
     implementation(libs.moshi)
     ksp(libs.moshi.codegen)
     implementation(libs.okhttp)
-    implementation(libs.okhttp.logging)
-
-    // Image loading
-    implementation(libs.coil)
-
-    // Navigation
-    implementation(libs.androidx.navigation.compose)
-
-    // ViewModel
-    implementation(libs.androidx.lifecycle.viewmodel.compose)
-    implementation(libs.androidx.lifecycle.runtime.compose)
 
     // Security
     implementation(libs.androidx.security.crypto)

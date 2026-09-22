@@ -7,6 +7,10 @@ import java.net.HttpCookie
 import java.net.URI
 import java.net.URISyntaxException
 
+/**
+ * Where earlier, native versions of the app kept their session. `WebSession` reads it once to
+ * carry that session over to the web views, then empties it.
+ */
 class PersistentCookieStore(context: Context) : CookieStore {
     private val prefs: SharedPreferences = context.getSharedPreferences("cookie_prefs", Context.MODE_PRIVATE)
     private val cookies = mutableMapOf<URI, MutableList<HttpCookie>>()

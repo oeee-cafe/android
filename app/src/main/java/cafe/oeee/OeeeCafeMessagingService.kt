@@ -104,7 +104,8 @@ class OeeeCafeMessagingService : FirebaseMessagingService() {
      */
     private fun showNotification(title: String, body: String, data: Map<String, String>) {
         val intent = Intent(this, MainActivity::class.java).apply {
-            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+            // Opens the page in the running app rather than starting it over.
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
 
             // Add any data from the notification to the intent for deep linking
             data.forEach { (key, value) ->
@@ -112,9 +113,10 @@ class OeeeCafeMessagingService : FirebaseMessagingService() {
             }
         }
 
+        val notificationId = System.currentTimeMillis().toInt()
         val pendingIntent = PendingIntent.getActivity(
             this,
-            0,
+            notificationId,
             intent,
             PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
         )
@@ -135,6 +137,6 @@ class OeeeCafeMessagingService : FirebaseMessagingService() {
             .setNumber(badgeCount)  // Set badge count on notification
 
         val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-        notificationManager.notify(System.currentTimeMillis().toInt(), notificationBuilder.build())
+        notificationManager.notify(notificationId, notificationBuilder.build())
     }
 }
