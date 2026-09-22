@@ -5,79 +5,61 @@ import android.net.Uri
 import android.util.Log
 import android.webkit.CookieManager
 import cafe.oeee.data.remote.ApiClient
-import cafe.oeee.data.remote.PersistentCookieStore
 import cafe.oeee.data.service.AuthService
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
 
 /**
- * Keeps the native side (API calls, push registration, badge counts) following whoever is
- * signed in on the web views. The API client reads the web views' own cookie store; this
- * notices when those cookies change and re-checks who is signed in.
+ * Starts the web views' session: the cookies of one signed in natively, before the app
+ * became a web view, and then who is signed in, for the tab bar the first page is shown under.
  */
 object WebSession {
     private const val TAG = "WebSession"
 
-    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
-    private var checkJob: Job? = null
-    private var lastSignature: String? = null
+    /** Where the native versions of the app kept their cookies (a java.net.CookieStore). */
+    private const val LEGACY_PREFS = "cookie_prefs"
 
     private val cookieManager get() = CookieManager.getInstance()
 
-    /**
-     * Seeds the web views with the cookies of a session signed in natively (before the app
-     * became a web view), then finds out who is signed in.
-     */
     suspend fun start(context: Context) {
         cookieManager.setAcceptCookie(true)
         migrateNativeCookies(context)
-        lastSignature = signature()
         AuthService.checkAuthStatus()
     }
 
-    /** Called as pages load and navigate: signing in or out changes the site's cookies. */
-    fun cookiesMayHaveChanged() {
-        checkJob?.cancel()
-        checkJob = scope.launch {
-            delay(300)
-            val signature = signature()
-            // Only re-check who is signed in when the cookies actually changed.
-            if (signature == lastSignature) return@launch
-            lastSignature = signature
-            cookieManager.flush()
-            Log.d(TAG, "Cookies changed, checking auth status")
-            AuthService.checkAuthStatus()
-        }
-    }
-
-    private fun signature(): String? = cookieManager.getCookie(ApiClient.getBaseUrl())
-
+    /**
+     * Seeds the web views with the native session's cookies, unless they have one of their
+     * own already, and forgets the native ones either way. The native store kept each URI's
+     * cookies as one string, `|COOKIE|` between cookies and `|FIELD|` between a cookie's
+     * name, value, domain, path, max age, secure flag and version.
+     */
     private fun migrateNativeCookies(context: Context) {
-        val store = PersistentCookieStore(context)
-        val cookies = store.getCookies()
-        if (cookies.isEmpty()) return
+        val prefs = context.getSharedPreferences(LEGACY_PREFS, Context.MODE_PRIVATE)
+        val stored = prefs.all.values.filterIsInstance<String>()
+        if (stored.isEmpty()) return
 
-        val baseUrl = ApiClient.getBaseUrl()
-        if (cookieManager.getCookie(baseUrl).isNullOrEmpty()) {
-            val host = Uri.parse(baseUrl).host
-            for (cookie in cookies) {
-                val domain = cookie.domain?.removePrefix(".")
-                if (host == null || domain == null || !(host == domain || host.endsWith(".$domain"))) continue
+        val baseUrl = ApiClient.BASE_URL
+        val host = Uri.parse(baseUrl).host
+        if (host != null && cookieManager.getCookie(baseUrl).isNullOrEmpty()) {
+            var moved = 0
+            for (cookie in stored.flatMap { it.split("|COOKIE|") }) {
+                val fields = cookie.split("|FIELD|")
+                if (fields.size < 7) continue
+                val (name, value, domainField, path, maxAgeField) = fields
+                val domain = domainField.lowercase().removePrefix(".").ifEmpty { null } ?: continue
+                val maxAge = maxAgeField.toLongOrNull() ?: -1L
+                // The store dropped a cookie once it had expired; zero is one told to expire now.
+                if (maxAge == 0L || !(host == domain || host.endsWith(".$domain"))) continue
                 val attributes = buildString {
-                    append("${cookie.name}=${cookie.value}; Path=${cookie.path ?: "/"}")
+                    append("${name.trim()}=$value; Path=${path.ifEmpty { "/" }}")
                     if (domain != host) append("; Domain=$domain")
-                    if (cookie.maxAge > 0) append("; Max-Age=${cookie.maxAge}")
-                    if (cookie.secure) append("; Secure")
+                    if (maxAge > 0) append("; Max-Age=$maxAge")
+                    if (fields[5].toBoolean()) append("; Secure")
                 }
                 cookieManager.setCookie(baseUrl, attributes)
+                moved++
             }
             cookieManager.flush()
-            Log.i(TAG, "Moved ${cookies.size} cookies from the native session to the web views")
+            Log.i(TAG, "Moved $moved cookies from the native session to the web views")
         }
-        store.removeAll()
+        prefs.edit().clear().apply()
     }
 }

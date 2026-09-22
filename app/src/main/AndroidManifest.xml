@@ -76,13 +76,13 @@
     
     <!-- Required: set your sentry.io project identifier (DSN) -->
     <meta-data android:name="io.sentry.dsn" android:value="https://42e7d92292cd4b19516d940090eaa71d@o4504757655764992.ingest.us.sentry.io/4510413283917824" />
-    <!-- Add data like request headers, user ip address and device name, see https://docs.sentry.io/platforms/android/data-management/data-collected/ for more info -->
-    <meta-data android:name="io.sentry.send-default-pii" android:value="true" />
+    <!-- No request headers, IP address or device name: a request to the site carries its session cookie. -->
+    <meta-data android:name="io.sentry.send-default-pii" android:value="false" />
 
     <!-- enable automatic breadcrumbs for user interactions (clicks, swipes, scrolls) -->
     <meta-data android:name="io.sentry.traces.user-interaction.enable" android:value="true" />
-    <!-- enable screenshot for crashes (could contain sensitive/PII data) -->
-    <meta-data android:name="io.sentry.attach-screenshot" android:value="true" />
+    <!-- No screenshots with crashes: the screen is the site, and on it someone's private drawings and messages. -->
+    <meta-data android:name="io.sentry.attach-screenshot" android:value="false" />
     <!-- enable view hierarchy for crashes -->
     <meta-data android:name="io.sentry.attach-view-hierarchy" android:value="true" />
 

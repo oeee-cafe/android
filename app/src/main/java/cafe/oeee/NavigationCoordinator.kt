@@ -13,6 +13,9 @@ object NavigationCoordinator {
     private const val TAG = "NavigationCoordinator"
     private const val LINK_HOST = "oeee.cafe"
 
+    /** What only a notification's intent carries: its page, and the ids every push has. */
+    private val NOTIFICATION_KEYS = listOf("url", "notification_id", "notification_type")
+
     data class PendingNavigation(val tab: WebTab, val path: String)
 
     private val _pendingNavigation = MutableStateFlow<PendingNavigation?>(null)
@@ -23,49 +26,19 @@ object NavigationCoordinator {
         _pendingNavigation.value = PendingNavigation(tab, path)
     }
 
-    private fun segment(value: String): String = Uri.encode(value)
-
-    /** Handles the data of a push notification the app was opened from, if any. */
+    /**
+     * Handles the data of a push notification the app was opened from, if any: the page its
+     * `url` names, a path on the site the server chose for it; or, from a server that did not
+     * say, the notifications page, where every notification can be found anyway.
+     */
     fun handleNotificationIntent(intent: Intent) {
-        val notificationType = intent.getStringExtra("notification_type") ?: return
-        Log.i(TAG, "Handling notification tap: type=$notificationType")
-
-        when (notificationType) {
-            "Comment", "Mention", "CommentReply", "PostReply", "CommunityPost", "Reaction" -> {
-                val postId = intent.getStringExtra("post_id")
-                if (postId != null) {
-                    navigate("/posts/${segment(postId)}", WebTab.HOME)
-                } else {
-                    Log.w(TAG, "Missing post_id for $notificationType")
-                }
-            }
-
-            "Follow", "GuestbookEntry", "GuestbookReply" -> {
-                val actorLoginName = intent.getStringExtra("actor_login_name")
-                if (actorLoginName != null) {
-                    navigate("/@${segment(actorLoginName)}", WebTab.HOME)
-                } else {
-                    Log.w(TAG, "Missing actor_login_name for $notificationType")
-                }
-            }
-
-            // Invitations are listed on the notifications page
-            "community_invite" -> navigate(WebTab.NOTIFICATIONS.path, WebTab.NOTIFICATIONS)
-
-            "invitation_accepted", "invitation_declined" -> {
-                val communitySlug = intent.getStringExtra("community_slug")
-                if (communitySlug != null) {
-                    navigate("/communities/@${segment(communitySlug)}/members", WebTab.COMMUNITIES)
-                } else {
-                    Log.w(TAG, "Missing community_slug for $notificationType")
-                }
-            }
-
-            else -> {
-                Log.w(TAG, "Unknown notification type: $notificationType")
-                navigate(WebTab.NOTIFICATIONS.path, WebTab.NOTIFICATIONS)
-            }
-        }
+        val extras = intent.extras ?: return
+        if (NOTIFICATION_KEYS.none { extras.containsKey(it) }) return
+        // Only a path on the site: a notification is no reason to leave it.
+        val url = intent.getStringExtra("url")?.takeIf { it.startsWith("/") && !it.startsWith("//") }
+        val path = url ?: WebTab.NOTIFICATIONS.path
+        Log.i(TAG, "Handling notification tap")
+        navigate(path, tabFor(Uri.parse(path).path ?: path))
     }
 
     /** Handles a link to the site the app was opened with, if any. */

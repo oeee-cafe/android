@@ -31,4 +31,8 @@
     <string name="saved_file">다운로드에 저장했습니다</string>
     <string name="save_failed">저장하지 못했습니다</string>
     <string name="share_title">공유</string>
+
+    <!-- The system's settings for the app's push notifications -->
+    <string name="notification_channel_name">알림</string>
+    <string name="notification_channel_description">오이카페의 새 소식</string>
 </resources>

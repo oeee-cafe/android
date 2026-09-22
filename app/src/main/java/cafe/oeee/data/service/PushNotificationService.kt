@@ -1,62 +1,23 @@
 package cafe.oeee.data.service
 
-import android.content.Context
-import android.content.SharedPreferences
 import android.util.Log
-import androidx.security.crypto.EncryptedSharedPreferences
-import androidx.security.crypto.MasterKey
+import android.webkit.CookieManager
 import cafe.oeee.data.remote.ApiClient
 import cafe.oeee.data.remote.RegisterDeviceRequest
 import com.google.firebase.messaging.FirebaseMessaging
 import kotlinx.coroutines.tasks.await
 
-/** Registers this device's FCM token for the signed-in user, and unregisters it on signing out. */
-class PushNotificationService private constructor(private val context: Context) {
-    private val apiService get() = ApiClient.apiService
+/**
+ * Registers this device's FCM token for the signed-in user, and tells the site which token
+ * it is: signing out on the site's own page then unregisters it there (POST /logout reads
+ * the `oeee_device` cookie), with no need for the app to catch the page on its way out.
+ */
+object PushNotificationService {
+    private const val TAG = "PushNotificationService"
+    private const val DEVICE_COOKIE = "oeee_device"
 
-    private val prefs: SharedPreferences by lazy {
-        try {
-            createEncryptedPrefs()
-        } catch (e: Exception) {
-            // If encrypted preferences fail (e.g., after reinstall or security state change),
-            // delete the corrupted file and recreate
-            try {
-                context.deleteSharedPreferences(PREFS_NAME)
-                createEncryptedPrefs()
-            } catch (e2: Exception) {
-                // Fall back to regular SharedPreferences if encryption completely fails
-                context.getSharedPreferences("push_prefs_fallback", Context.MODE_PRIVATE)
-            }
-        }
-    }
-
-    companion object {
-        private const val TAG = "PushNotificationService"
-        private const val PREFS_NAME = "push_prefs_encrypted"
-        private const val TOKEN_KEY = "fcm_device_token"
-
-        @Volatile
-        private var INSTANCE: PushNotificationService? = null
-
-        fun getInstance(context: Context): PushNotificationService {
-            return INSTANCE ?: synchronized(this) {
-                INSTANCE ?: PushNotificationService(context.applicationContext).also { INSTANCE = it }
-            }
-        }
-    }
-
-    private fun createEncryptedPrefs(): SharedPreferences {
-        val masterKey = MasterKey.Builder(context)
-            .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)
-            .build()
-        return EncryptedSharedPreferences.create(
-            context,
-            PREFS_NAME,
-            masterKey,
-            EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
-            EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
-        )
-    }
+    /** As long as a session could last; the token is registered again on every sign-in anyway. */
+    private const val DEVICE_COOKIE_MAX_AGE = 400L * 24 * 60 * 60
 
     /**
      * Registers the FCM token with the backend for whoever is signed in. Called after signing in,
@@ -66,29 +27,31 @@ class PushNotificationService private constructor(private val context: Context) 
         if (!AuthService.isAuthenticated.value) return
         try {
             val fcmToken = token ?: FirebaseMessaging.getInstance().token.await()
-            val response = apiService.registerDevice(
+            ApiClient.apiService.registerDevice(
                 RegisterDeviceRequest(deviceToken = fcmToken, platform = "android")
             )
-            Log.d(TAG, "Registered device: ${response.id}")
-            prefs.edit().putString(TOKEN_KEY, fcmToken).apply()
+            setDeviceCookie(fcmToken, DEVICE_COOKIE_MAX_AGE)
+            Log.d(TAG, "Registered device")
         } catch (e: Exception) {
             Log.e(TAG, "Failed to register FCM token", e)
         }
     }
 
-    /** Unregisters this device, while the session that is signing out is still valid. */
-    suspend fun deleteDevice() {
-        val deviceToken = prefs.getString(TOKEN_KEY, null)
-        if (deviceToken.isNullOrEmpty()) {
-            Log.d(TAG, "No device token to delete")
-            return
-        }
-        try {
-            apiService.deleteDevice(deviceToken)
-            Log.d(TAG, "Deleted device")
-        } catch (e: Exception) {
-            Log.e(TAG, "Failed to delete device", e)
-        }
-        prefs.edit().remove(TOKEN_KEY).apply()
+    /** Signed out: the site has deleted the device, so the cookie naming it goes too. */
+    fun forgetDevice() {
+        setDeviceCookie("", 0)
+    }
+
+    /**
+     * Only for the site's own requests, and out of its scripts' reach: the page has no need
+     * to read the token, and one that could would be able to hand it to anyone.
+     */
+    private fun setDeviceCookie(token: String, maxAge: Long) {
+        val cookies = CookieManager.getInstance()
+        cookies.setCookie(
+            ApiClient.BASE_URL,
+            "$DEVICE_COOKIE=$token; Path=/; Max-Age=$maxAge; Secure; HttpOnly; SameSite=Lax"
+        )
+        cookies.flush()
     }
 }

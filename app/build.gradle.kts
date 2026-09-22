@@ -88,9 +88,6 @@ dependencies {
     ksp(libs.moshi.codegen)
     implementation(libs.okhttp)
 
-    // Security
-    implementation(libs.androidx.security.crypto)
-
     // Firebase
     implementation(platform(libs.firebase.bom))
     implementation(libs.firebase.messaging)

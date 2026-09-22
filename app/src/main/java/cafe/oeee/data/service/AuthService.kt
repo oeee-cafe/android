@@ -2,14 +2,14 @@ package cafe.oeee.data.service
 
 import android.util.Log
 import cafe.oeee.data.remote.ApiClient
-import cafe.oeee.data.remote.CurrentUser
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
 /**
- * Who is signed in on the site. Signing in and out happens on the web views; `WebSession`
- * asks for a re-check whenever their cookies change.
+ * Whether someone is signed in on the site. Signing in and out happens on the web views,
+ * and every page with the toolbar says which it is (BridgeMessage.Page.signedIn); the API
+ * is asked only at start, so the tab bar is right before the first page has loaded.
  */
 object AuthService {
     private const val TAG = "AuthService"
@@ -17,19 +17,18 @@ object AuthService {
     private val _isAuthenticated = MutableStateFlow(false)
     val isAuthenticated: StateFlow<Boolean> = _isAuthenticated.asStateFlow()
 
-    private val _currentUser = MutableStateFlow<CurrentUser?>(null)
-    val currentUser: StateFlow<CurrentUser?> = _currentUser.asStateFlow()
-
     suspend fun checkAuthStatus() {
-        try {
-            val user = ApiClient.apiService.getCurrentUser()
-            Log.d(TAG, "Signed in as ${user.loginName}")
-            _currentUser.value = user
-            _isAuthenticated.value = true
+        _isAuthenticated.value = try {
+            ApiClient.apiService.getCurrentUser()
+            true
         } catch (e: Exception) {
             Log.w(TAG, "Auth check failed: ${e.message}")
-            _currentUser.value = null
-            _isAuthenticated.value = false
+            false
         }
+    }
+
+    /** What a page of the site said; it knows better than the API was asked at start. */
+    fun pageSaid(signedIn: Boolean) {
+        _isAuthenticated.value = signedIn
     }
 }

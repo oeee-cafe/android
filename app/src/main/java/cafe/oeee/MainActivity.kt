@@ -8,6 +8,7 @@ import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
+import android.webkit.CookieManager
 import android.webkit.ValueCallback
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -25,9 +26,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.repeatOnLifecycle
 import cafe.oeee.data.remote.ApiClient
 import cafe.oeee.data.service.AuthService
 import cafe.oeee.data.service.PushNotificationService
@@ -38,13 +37,10 @@ import cafe.oeee.web.WebSession
 import cafe.oeee.web.WebTab
 import cafe.oeee.web.WebTabStore
 import cafe.oeee.web.WebTabsScreen
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
     private lateinit var webTabs: WebTabStore
-    private val badges = BadgeCounts()
     private var pendingFileCallback: ValueCallback<Array<Uri>>? = null
 
     private val notificationPermissionLauncher = registerForActivityResult(
@@ -98,22 +94,11 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
 
-        ApiClient.initialize(this)
-        webTabs = WebTabStore(this, fileChooser, storagePermission, savedInstanceState)
-        webTabs.onPageLoad = {
-            if (AuthService.isAuthenticated.value) lifecycleScope.launch { badges.refresh() }
-        }
+        webTabs = WebTabStore(this, fileChooser, storagePermission, savedInstanceState, AuthService::pageSaid)
 
         // Handle a notification or link the app was opened from (cold start). Not again when
         // restored, or when reopened from recents, which hands back the intent it was first started with.
         if (savedInstanceState == null) intent?.let { handleNavigationIntent(it) }
-
-        // Coming back to the app may mean new notifications.
-        lifecycleScope.launch {
-            repeatOnLifecycle(Lifecycle.State.RESUMED) {
-                if (AuthService.isAuthenticated.value) badges.refresh()
-            }
-        }
 
         setContent {
             OeeeCafeTheme {
@@ -121,8 +106,6 @@ class MainActivity : ComponentActivity() {
                 var selectedTab by rememberSaveable { mutableStateOf(WebTab.HOME) }
                 val isAuthenticated by AuthService.isAuthenticated.collectAsState()
                 val visibleTabs = WebTab.visible(isAuthenticated)
-                val unreadCount by badges.unreadNotifications.collectAsState()
-                val invitationCount by badges.invitations.collectAsState()
 
                 LaunchedEffect(Unit) {
                     // Picks up whoever is signed in on the web views before showing any tab.
@@ -136,8 +119,8 @@ class MainActivity : ComponentActivity() {
                             webTabs.authenticationChanged(tabs)
                             if (selectedTab !in tabs) selectedTab = WebTab.HOME
                         }
+                        authenticationChanged(authenticated, wasSignedIn = wasAuthenticated == true)
                         wasAuthenticated = authenticated
-                        authenticationChanged(authenticated)
                     }
                 }
 
@@ -150,7 +133,7 @@ class MainActivity : ComponentActivity() {
                     val tab = navigation.tab.takeIf { it in WebTab.visible(AuthService.isAuthenticated.value) }
                         ?: WebTab.HOME
                     selectedTab = tab
-                    webTabs.controller(tab).load(ApiClient.getBaseUrl() + navigation.path)
+                    webTabs.controller(tab).load(ApiClient.BASE_URL + navigation.path)
                 }
 
                 if (isReady) {
@@ -160,7 +143,7 @@ class MainActivity : ComponentActivity() {
                         selectedTab = selectedTab,
                         onSelectTab = { selectedTab = it },
                         badgeCount = { tab ->
-                            if (tab == WebTab.NOTIFICATIONS) unreadCount + invitationCount else 0L
+                            if (tab == WebTab.NOTIFICATIONS && isAuthenticated) webTabs.unreadCount.toLong() else 0L
                         }
                     )
                 } else {
@@ -195,6 +178,13 @@ class MainActivity : ComponentActivity() {
         webTabs.textScaleChanged()
     }
 
+    // The web views' cookie store writes itself out now and then; the session, and the
+    // device cookie beside it, should not wait for that when the app may be stopped.
+    override fun onStop() {
+        super.onStop()
+        CookieManager.getInstance().flush()
+    }
+
     override fun onDestroy() {
         pendingFileCallback?.onReceiveValue(null)
         pendingFileCallback = null
@@ -202,10 +192,13 @@ class MainActivity : ComponentActivity() {
         super.onDestroy()
     }
 
-    private suspend fun authenticationChanged(isAuthenticated: Boolean) {
+    /**
+     * Registers this device's push token for whoever signed in (asking for permission the
+     * first time). Signing out on the site has unregistered it there already (POST /logout
+     * reads the device cookie), so all that is left is to forget which token it was.
+     */
+    private fun authenticationChanged(isAuthenticated: Boolean, wasSignedIn: Boolean) {
         if (isAuthenticated) {
-            // Registers this device's push token for the signed-in user (asking for
-            // permission the first time).
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
                 checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED
             ) {
@@ -213,47 +206,16 @@ class MainActivity : ComponentActivity() {
             } else {
                 registerForPush()
             }
-            badges.refresh()
-        } else {
-            badges.clear()
+        } else if (wasSignedIn) {
+            PushNotificationService.forgetDevice()
         }
     }
 
     private fun registerForPush() {
-        lifecycleScope.launch {
-            PushNotificationService.getInstance(this@MainActivity).registerFcmToken()
-        }
+        lifecycleScope.launch { PushNotificationService.registerFcmToken() }
     }
 
     companion object {
         private const val TAG = "MainActivity"
-    }
-}
-
-/** Counts shown on the tab bar, read from the API as the signed-in user. */
-class BadgeCounts {
-    private val _unreadNotifications = MutableStateFlow(0L)
-    val unreadNotifications = _unreadNotifications.asStateFlow()
-
-    private val _invitations = MutableStateFlow(0L)
-    val invitations = _invitations.asStateFlow()
-
-    suspend fun refresh() {
-        val api = ApiClient.apiService
-        try {
-            _unreadNotifications.value = api.getUnreadNotificationCount().count
-        } catch (e: Exception) {
-            // Keep the last count
-        }
-        try {
-            _invitations.value = api.getUserInvitations().invitations.size.toLong()
-        } catch (e: Exception) {
-            // Keep the last count
-        }
-    }
-
-    fun clear() {
-        _unreadNotifications.value = 0
-        _invitations.value = 0
     }
 }

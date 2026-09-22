@@ -31,4 +31,8 @@
     <string name="saved_file">ダウンロードに保存しました</string>
     <string name="save_failed">保存できませんでした</string>
     <string name="share_title">共有</string>
+
+    <!-- The system's settings for the app's push notifications -->
+    <string name="notification_channel_name">通知</string>
+    <string name="notification_channel_description">OEEEカフェからのお知らせ</string>
 </resources>

@@ -1,6 +1,5 @@
 package cafe.oeee.data.remote
 
-import android.content.Context
 import okhttp3.Cookie
 import okhttp3.CookieJar
 import okhttp3.HttpUrl
@@ -10,10 +9,10 @@ import retrofit2.converter.moshi.MoshiConverterFactory
 import java.util.concurrent.TimeUnit
 
 /**
- * Sends the web views' cookies with every API call, so the native side (badge counts,
- * push registration) is signed in as whoever is signed in on the site.
+ * Sends the web views' cookies with a request the app makes itself, so it is signed in as
+ * whoever is signed in on the site: the API calls, and a drawing fetched for its menu.
  */
-private class WebViewCookieJar : CookieJar {
+internal class WebViewCookieJar : CookieJar {
     private val cookieManager get() = android.webkit.CookieManager.getInstance()
 
     override fun saveFromResponse(url: HttpUrl, cookies: List<Cookie>) {
@@ -29,21 +28,8 @@ private class WebViewCookieJar : CookieJar {
 }
 
 object ApiClient {
-    private lateinit var applicationContext: Context
-
-    fun initialize(context: Context) {
-        if (!::applicationContext.isInitialized) {
-            applicationContext = context.applicationContext
-        }
-    }
-
-    fun getBaseUrl(): String {
-        return if (::applicationContext.isInitialized) {
-            ApiConfig.getBaseUrl(applicationContext)
-        } else {
-            ApiConfig.DEFAULT_BASE_URL
-        }
-    }
+    /** The site the app shows, and whose API it calls. */
+    const val BASE_URL = "https://oeee.cafe"
 
     private val okHttpClient by lazy {
         OkHttpClient.Builder()
@@ -56,7 +42,7 @@ object ApiClient {
 
     private val retrofit by lazy {
         Retrofit.Builder()
-            .baseUrl(getBaseUrl())
+            .baseUrl(BASE_URL)
             .client(okHttpClient)
             .addConverterFactory(MoshiConverterFactory.create())
             .build()

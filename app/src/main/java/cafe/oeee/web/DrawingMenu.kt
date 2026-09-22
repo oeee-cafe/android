@@ -41,6 +41,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import cafe.oeee.R
+import cafe.oeee.data.remote.WebViewCookieJar
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Dispatchers
@@ -48,7 +49,6 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
 import okhttp3.Request
-import org.json.JSONObject
 import java.util.concurrent.TimeUnit
 
 /**
@@ -57,44 +57,31 @@ import java.util.concurrent.TimeUnit
  * app's DrawingMenu does; the site lets the press through only on drawings.
  */
 object DrawingMenu {
-    const val OBJECT_NAME = "oeeePressed"
-
-    /**
-     * Which drawing a finger is on, said as it lands. The web view names the image a long
-     * press was on but not whether it is a drawing, or marked sensitive, or the post it
-     * links to; and by the time it says, the page can no longer be asked in time.
-     */
-    val PRESS_SCRIPT = """
-        (function () {
-          if (window.__oeeePressed) return;
-          window.__oeeePressed = true;
-          var bridge = window.$OBJECT_NAME;
-          if (!bridge) return;
-          window.addEventListener('touchstart', function (event) {
-            var target = event.target;
-            var image = target && target.closest ? target.closest('img') : null;
-            var drawing = image && image.closest('.post-card-image, .post-stage-frame, .post-stage-replay') &&
-              !image.classList.contains('sensitive') ? image : null;
-            var link = drawing ? drawing.closest('a[href]') : null;
-            bridge.postMessage(drawing ? JSON.stringify({
-              src: drawing.currentSrc || drawing.src,
-              link: link ? link.href : '',
-              width: drawing.naturalWidth || drawing.width,
-              height: drawing.naturalHeight || drawing.height
-            }) : '');
-          }, { capture: true, passive: true });
-        })();
-    """.trimIndent()
-
     private val client by lazy {
         OkHttpClient.Builder()
             .connectTimeout(10, TimeUnit.SECONDS)
             .readTimeout(20, TimeUnit.SECONDS)
+            // Signed in as the page is, as the web view's own request for the drawing was: an
+            // image the site serves only to someone signed in would otherwise not come.
+            .cookieJar(WebViewCookieJar())
             .build()
     }
 
-    /** A pressed drawing: what the page said at once, and the file, which follows. */
-    class Drawing(val src: String, val link: String?, val width: Int, val height: Int, private val referrer: String?) {
+    /**
+     * A pressed drawing: what the page said at once, and the file, which follows -- fetched
+     * as the web view would fetch it, with its user agent and from the page it is on.
+     */
+    class Drawing(
+        val src: String,
+        val link: String?,
+        val width: Int,
+        val height: Int,
+        private val referrer: String?,
+        private val userAgent: String
+    ) {
+        constructor(pressed: BridgeMessage.PressedDrawing, referrer: String?, userAgent: String) :
+            this(pressed.src, pressed.link, pressed.width, pressed.height, referrer, userAgent)
+
         private var loading: Deferred<SiteFile?>? = null
 
         /** Starts fetching the file, once the menu is actually opening. */
@@ -106,6 +93,7 @@ object DrawingMenu {
 
         private fun fetch(): SiteFile? = try {
             val request = Request.Builder().url(src)
+                .header("User-Agent", userAgent)
                 .apply { if (referrer != null) header("Referer", referrer) }
                 .build()
             client.newCall(request).execute().use { response ->
@@ -128,24 +116,6 @@ object DrawingMenu {
         val extension = MimeTypeMap.getFileExtensionFromUrl(src)
         return MimeTypeMap.getSingleton().getMimeTypeFromExtension(extension)
             ?.takeIf { it.startsWith("image/") } ?: "image/png"
-    }
-
-    /** The drawing a finger landed on, from what the page said (PRESS_SCRIPT); null for none. */
-    fun drawing(message: String?, referrer: String?): Drawing? {
-        if (message.isNullOrEmpty()) return null
-        return try {
-            val info = JSONObject(message)
-            val src = info.optString("src").takeIf { it.startsWith("http") } ?: return null
-            Drawing(
-                src = src,
-                link = info.optString("link").takeIf { it.isNotEmpty() },
-                width = info.optInt("width"),
-                height = info.optInt("height"),
-                referrer = referrer
-            )
-        } catch (e: Exception) {
-            null
-        }
     }
 }
 

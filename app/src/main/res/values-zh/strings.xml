@@ -31,4 +31,8 @@
     <string name="saved_file">已保存到下载</string>
     <string name="save_failed">无法保存</string>
     <string name="share_title">分享</string>
+
+    <!-- The system's settings for the app's push notifications -->
+    <string name="notification_channel_name">通知</string>
+    <string name="notification_channel_description">来自黄瓜咖啡馆的消息</string>
 </resources>
