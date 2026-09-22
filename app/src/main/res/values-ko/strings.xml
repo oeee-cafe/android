@@ -8,4 +8,27 @@
     <string name="tab_notifications">알림</string>
     <string name="tab_login">로그인</string>
     <string name="tab_search">검색</string>
+
+    <!-- The site out of reach -->
+    <string name="unreachable_title">오이카페에 연결할 수 없습니다.</string>
+    <string name="unreachable_body">인터넷 연결을 확인한 뒤 다시 시도해 주세요.</string>
+    <string name="retry">다시 시도</string>
+
+    <!-- The site's own dialogs -->
+    <string name="leave_title">이 페이지를 떠날까요?</string>
+    <string name="leave_body">저장하지 않은 내용은 사라집니다.</string>
+    <string name="leave">떠나기</string>
+    <string name="stay">머무르기</string>
+    <string name="ok">확인</string>
+    <string name="cancel">취소</string>
+
+    <!-- A long press on a drawing, and what the site saves or shares -->
+    <string name="drawing_save">이미지 저장</string>
+    <string name="drawing_copy">이미지 복사</string>
+    <string name="drawing_share">공유…</string>
+    <string name="drawing_copy_link">링크 복사</string>
+    <string name="saved_image">사진에 저장했습니다</string>
+    <string name="saved_file">다운로드에 저장했습니다</string>
+    <string name="save_failed">저장하지 못했습니다</string>
+    <string name="share_title">공유</string>
 </resources>

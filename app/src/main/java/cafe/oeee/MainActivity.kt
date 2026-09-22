@@ -33,6 +33,7 @@ import cafe.oeee.data.service.AuthService
 import cafe.oeee.data.service.PushNotificationService
 import cafe.oeee.ui.theme.OeeeCafeTheme
 import cafe.oeee.web.FileChooser
+import cafe.oeee.web.StoragePermission
 import cafe.oeee.web.WebSession
 import cafe.oeee.web.WebTab
 import cafe.oeee.web.WebTabStore
@@ -74,12 +75,31 @@ class MainActivity : ComponentActivity() {
         }
     }
 
+    private var pendingStorageResult: ((Boolean) -> Unit)? = null
+
+    private val storagePermissionLauncher = registerForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { granted ->
+        pendingStorageResult?.invoke(granted)
+        pendingStorageResult = null
+    }
+
+    private val storagePermission = StoragePermission { onResult ->
+        if (checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED) {
+            onResult(true)
+        } else {
+            pendingStorageResult?.invoke(false)
+            pendingStorageResult = onResult
+            storagePermissionLauncher.launch(Manifest.permission.WRITE_EXTERNAL_STORAGE)
+        }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
 
         ApiClient.initialize(this)
-        webTabs = WebTabStore(this, fileChooser)
+        webTabs = WebTabStore(this, fileChooser, storagePermission, savedInstanceState)
         webTabs.onPageLoad = {
             if (AuthService.isAuthenticated.value) lifecycleScope.launch { badges.refresh() }
         }
@@ -163,6 +183,11 @@ class MainActivity : ComponentActivity() {
         if (intent.flags and Intent.FLAG_ACTIVITY_LAUNCHED_FROM_HISTORY != 0) return
         NavigationCoordinator.handleNotificationIntent(intent)
         NavigationCoordinator.handleLinkIntent(intent)
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        webTabs.saveState(outState)
     }
 
     override fun onConfigurationChanged(newConfig: Configuration) {

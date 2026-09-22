@@ -2,21 +2,33 @@ package cafe.oeee.web
 
 import android.annotation.SuppressLint
 import android.app.Activity
+import android.app.DownloadManager
 import android.content.ActivityNotFoundException
+import android.content.ClipData
+import android.content.ClipboardManager
 import android.content.Intent
 import android.net.Uri
+import android.os.Bundle
 import android.os.Build
+import android.os.Environment
+import android.os.Parcel
 import android.util.Log
 import android.view.HapticFeedbackConstants
 import android.view.ViewGroup
+import android.webkit.CookieManager
+import android.webkit.JsResult
 import android.webkit.RenderProcessGoneDetail
+import android.webkit.URLUtil
 import android.webkit.ValueCallback
 import android.webkit.WebChromeClient
 import android.webkit.WebResourceError
 import android.webkit.WebResourceRequest
 import android.webkit.WebView
 import android.webkit.WebViewClient
+import android.widget.Toast
 import androidx.annotation.StringRes
+import androidx.browser.customtabs.CustomTabColorSchemeParams
+import androidx.browser.customtabs.CustomTabsIntent
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.Group
@@ -33,6 +45,7 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import androidx.webkit.ScriptHandler
@@ -47,6 +60,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.suspendCancellableCoroutine
+import kotlin.coroutines.resume
 
 /** A tab of the native tab bar, each showing its own page of the site. */
 enum class WebTab(
@@ -75,9 +90,32 @@ fun interface FileChooser {
     fun show(callback: ValueCallback<Array<Uri>>, params: WebChromeClient.FileChooserParams): Boolean
 }
 
-/** Owns one long-lived web view per tab, so each tab keeps its own history and scroll position. */
-class WebTabStore(private val activity: Activity, private val fileChooser: FileChooser) {
+/** Asks, through the activity, to write to the shared folders (Android 9 and older only). */
+fun interface StoragePermission {
+    fun request(onResult: (Boolean) -> Unit)
+}
+
+/**
+ * Owns one long-lived web view per tab, so each tab keeps its own history and scroll position
+ * -- across the app being stopped and started again by the system, too ([saveState]).
+ */
+class WebTabStore(
+    private val activity: Activity,
+    private val fileChooser: FileChooser,
+    private val storagePermission: StoragePermission,
+    savedState: Bundle?
+) {
     private val controllers = mutableMapOf<WebTab, WebTabController>()
+
+    /** Each tab's saved history, until the tab is first shown and takes it. */
+    private val restored: MutableMap<WebTab, Bundle> = WebTab.entries
+        .mapNotNull { tab -> savedState?.getBundle(stateKey(tab))?.let { tab to it } }
+        .toMap().toMutableMap()
+
+    /** A page that could not be reached is tried again when the network comes back. */
+    private val connectivity = Connectivity(activity) {
+        for (controller in controllers.values) controller.retryIfUnreachable()
+    }.also { it.start() }
 
     /** Bumped when a tab's web view is recreated, so the tab screen shows the new one. */
     var generation by mutableIntStateOf(0)
@@ -94,6 +132,8 @@ class WebTabStore(private val activity: Activity, private val fileChooser: FileC
             tab = tab,
             activity = activity,
             fileChooser = fileChooser,
+            storagePermission = storagePermission,
+            savedState = restored.remove(tab),
             onPageLoad = { onPageLoad?.invoke() },
             onRenderProcessGone = { recreate(tab) }
         )
@@ -126,10 +166,25 @@ class WebTabStore(private val activity: Activity, private val fileChooser: FileC
         for (controller in controllers.values) controller.showTextScale()
     }
 
+    /**
+     * Puts each tab's history in [outState], so that when the system stops the app to free
+     * memory and the reader comes back, every tab is where it was. A tab not yet shown
+     * since the app was started again passes on what it was given.
+     */
+    fun saveState(outState: Bundle) {
+        for ((tab, state) in restored) outState.putBundle(stateKey(tab), state)
+        for ((tab, controller) in controllers) {
+            controller.saveState()?.let { outState.putBundle(stateKey(tab), it) }
+        }
+    }
+
     fun tearDown() {
+        connectivity.stop()
         for (controller in controllers.values) controller.tearDown()
         controllers.clear()
     }
+
+    private fun stateKey(tab: WebTab) = "web_tab_${tab.name}"
 }
 
 @SuppressLint("SetJavaScriptEnabled")
@@ -137,9 +192,11 @@ class WebTabController(
     val tab: WebTab,
     private val activity: Activity,
     private val fileChooser: FileChooser,
+    private val storagePermission: StoragePermission,
+    savedState: Bundle?,
     private val onPageLoad: () -> Unit,
     private val onRenderProcessGone: () -> Unit
-) {
+) : DrawingActions {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
     private val siteHost: String? = Uri.parse(tab.rootUrl).host
     private val siteOrigin: String = Uri.parse(tab.rootUrl).let { uri ->
@@ -148,6 +205,10 @@ class WebTabController(
     private var scriptsAtDocumentStart = false
     private var textScaleScript: ScriptHandler? = null
     private var textScale: Float? = null
+    private val dialogs = SiteDialogs(activity)
+
+    /** The drawing a finger last landed on, if it landed on one (DrawingMenu.PRESS_SCRIPT). */
+    private var pressedDrawing: DrawingMenu.Drawing? = null
 
     val webView = WebView(activity)
 
@@ -167,6 +228,20 @@ class WebTabController(
     var hasLoaded by mutableStateOf(false)
         private set
 
+    /** Whether the page asked for could not be reached (Unreachable.kt shows so over it). */
+    var isUnreachable by mutableStateOf(false)
+        private set
+
+    /** Whether the tab's own history has a page to go back to, which Back does first. */
+    var canGoBack by mutableStateOf(false)
+        private set
+
+    /** The drawing whose menu is open (DrawingSheet); null when none is. */
+    var drawingMenu by mutableStateOf<DrawingMenu.Drawing?>(null)
+
+    /** For work that outlives a composable, such as fetching the drawing its menu shows. */
+    val coroutineScope: CoroutineScope get() = scope
+
     init {
         webView.settings.apply {
             javaScriptEnabled = true
@@ -179,9 +254,17 @@ class WebTabController(
         }
         webView.webViewClient = Client()
         webView.webChromeClient = ChromeClient()
+        webView.setDownloadListener { url, userAgent, contentDisposition, mimeType, _ ->
+            download(url, userAgent, contentDisposition, mimeType)
+        }
+        webView.setOnLongClickListener { openDrawingMenu() }
         installLogoutHold()
         installEdgeColorsReport()
         installHaptics()
+        installDrawingPress()
+        installShare()
+        installDownloads()
+        installPageScripts()
         showTextScale()
 
         view.addView(
@@ -192,10 +275,57 @@ class WebTabController(
         // Pulling down reloads only at the top of a page, and never on a canvas being drawn on.
         view.setOnChildScrollUpCallback { _, _ -> webView.scrollY > 0 || isPainterPage() }
 
-        // Search shows nothing until something is searched for.
-        if (tab != WebTab.SEARCH) {
+        // Where the tab was when the system stopped the app, or else its own page. Search
+        // shows nothing until something is searched for.
+        if (!restore(savedState) && tab != WebTab.SEARCH) {
             load(tab.rootUrl)
         }
+    }
+
+    /** Takes the tab back to the history [saveState] kept; false when there is none. */
+    private fun restore(state: Bundle?): Boolean {
+        if (state == null) return false
+        state.getString(STATE_URL)?.let {
+            load(it)
+            return true
+        }
+        if (webView.restoreState(state) == null) return false
+        hasLoaded = true
+        return true
+    }
+
+    /**
+     * The tab's history, for the system to keep while the app is stopped. The web view's
+     * own state holds every page of it; when that is too large to be kept alongside the
+     * other tabs' -- a bundle the system refuses takes the whole app down -- only the page
+     * shown is.
+     */
+    fun saveState(): Bundle? {
+        if (!hasLoaded) return null
+        val state = Bundle()
+        if (webView.saveState(state) != null && sizeOf(state) <= MAX_STATE_BYTES) return state
+        val url = webView.url ?: return null
+        return Bundle().apply { putString(STATE_URL, url) }
+    }
+
+    private fun sizeOf(bundle: Bundle): Int {
+        val parcel = Parcel.obtain()
+        return try {
+            parcel.writeBundle(bundle)
+            parcel.dataSize()
+        } finally {
+            parcel.recycle()
+        }
+    }
+
+    /** Tries the page that could not be reached again. */
+    fun retry() {
+        isUnreachable = false
+        webView.reload()
+    }
+
+    fun retryIfUnreachable() {
+        if (isUnreachable) retry()
     }
 
     fun load(url: String) {
@@ -236,7 +366,39 @@ class WebTabController(
         return PAINTER_PATHS.any { path.startsWith(it) } || path.endsWith("/replay")
     }
 
+    /**
+     * Another site's page: in the app that claims its links when one is installed, as a
+     * link tapped anywhere else would open, and otherwise over the app in a Custom Tab
+     * rather than off in the browser -- the iOS app's Safari view. Anything else (mail,
+     * the store) goes to whatever handles it.
+     */
     private fun openOutside(uri: Uri) {
+        if (uri.scheme == "http" || uri.scheme == "https") {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                val app = Intent(Intent.ACTION_VIEW, uri)
+                    .addCategory(Intent.CATEGORY_BROWSABLE)
+                    .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_REQUIRE_NON_BROWSER)
+                try {
+                    activity.startActivity(app)
+                    return
+                } catch (e: ActivityNotFoundException) {
+                    // No app claims it: a Custom Tab, below.
+                }
+            }
+            try {
+                val colors = CustomTabColorSchemeParams.Builder()
+                    .apply { topColor?.let { setToolbarColor(it.toArgb()) } }
+                    .build()
+                CustomTabsIntent.Builder()
+                    .setShowTitle(true)
+                    .setDefaultColorSchemeParams(colors)
+                    .build()
+                    .launchUrl(activity, uri)
+                return
+            } catch (e: ActivityNotFoundException) {
+                // No browser at all; the plain intent below says so the same way.
+            }
+        }
         try {
             activity.startActivity(Intent(Intent.ACTION_VIEW, uri))
         } catch (e: ActivityNotFoundException) {
@@ -264,11 +426,18 @@ class WebTabController(
                 }
             }
         }
-        if (WebViewFeature.isFeatureSupported(WebViewFeature.DOCUMENT_START_SCRIPT)) {
-            WebViewCompat.addDocumentStartJavaScript(webView, LOGOUT_SCRIPT, setOf(origin))
-            WebViewCompat.addDocumentStartJavaScript(webView, EDGE_COLORS_SCRIPT, setOf(origin))
-            scriptsAtDocumentStart = true
+    }
+
+    /**
+     * Runs the scripts the bridges need in every page of the site, before its own; or, where
+     * the web view can't, once each page has loaded.
+     */
+    private fun installPageScripts() {
+        if (!WebViewFeature.isFeatureSupported(WebViewFeature.DOCUMENT_START_SCRIPT)) return
+        for (script in PAGE_SCRIPTS) {
+            WebViewCompat.addDocumentStartJavaScript(webView, script, setOf(siteOrigin))
         }
+        scriptsAtDocumentStart = true
     }
 
     /** Has the page say what colors its edges are, whenever that may have changed. */
@@ -320,6 +489,143 @@ class WebTabController(
         }
     }
 
+    /** Hears which drawing a finger lands on, for the menu a long press opens. */
+    private fun installDrawingPress() {
+        if (!WebViewFeature.isFeatureSupported(WebViewFeature.WEB_MESSAGE_LISTENER)) return
+        WebViewCompat.addWebMessageListener(
+            webView, DrawingMenu.OBJECT_NAME, setOf(siteOrigin)
+        ) { _, message, _, isMainFrame, _ ->
+            if (!isMainFrame) return@addWebMessageListener
+            pressedDrawing = DrawingMenu.drawing(message.data, webView.url)
+        }
+    }
+
+    /**
+     * A long press on a drawing opens its menu. The web view's own hit test has to agree
+     * that the press is on an image, so a finger that landed on a drawing and then moved
+     * away to press something else opens nothing.
+     */
+    private fun openDrawingMenu(): Boolean {
+        val drawing = pressedDrawing ?: return false
+        val hit = webView.hitTestResult.type
+        if (hit != WebView.HitTestResult.IMAGE_TYPE && hit != WebView.HitTestResult.SRC_IMAGE_ANCHOR_TYPE) return false
+        pressedDrawing = null
+        webView.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS)
+        drawing.load(scope)
+        drawingMenu = drawing
+        return true
+    }
+
+    private fun installShare() {
+        if (!WebViewFeature.isFeatureSupported(WebViewFeature.WEB_MESSAGE_LISTENER)) return
+        WebViewCompat.addWebMessageListener(
+            webView, SiteBridges.SHARE_OBJECT_NAME, setOf(siteOrigin)
+        ) { _, message, _, _, _ ->
+            val share = SiteBridges.share(message.data) ?: return@addWebMessageListener
+            val send = Intent(Intent.ACTION_SEND).apply {
+                type = "text/plain"
+                putExtra(Intent.EXTRA_TEXT, share.text)
+                if (share.title.isNotEmpty()) putExtra(Intent.EXTRA_TITLE, share.title)
+            }
+            activity.startActivity(Intent.createChooser(send, share.title.ifEmpty { null }))
+        }
+    }
+
+    private fun installDownloads() {
+        if (!WebViewFeature.isFeatureSupported(WebViewFeature.WEB_MESSAGE_LISTENER)) return
+        WebViewCompat.addWebMessageListener(
+            webView, SiteBridges.DOWNLOAD_OBJECT_NAME, setOf(siteOrigin)
+        ) { _, message, _, _, _ ->
+            val file = SiteBridges.download(message.data)
+            if (file == null) {
+                saved(null)
+                return@addWebMessageListener
+            }
+            scope.launch { saved(saveToSharedFolders(file)) }
+        }
+    }
+
+    /**
+     * A file the site links to, rather than makes: to Downloads through the system's download
+     * manager, which shows its progress, signed in as the page is.
+     */
+    private fun download(url: String, userAgent: String?, contentDisposition: String?, mimeType: String?) {
+        val uri = Uri.parse(url)
+        if (uri.scheme != "http" && uri.scheme != "https") return
+        val name = URLUtil.guessFileName(url, contentDisposition, mimeType)
+        val request = DownloadManager.Request(uri)
+            .setTitle(name)
+            .setMimeType(mimeType)
+            .addRequestHeader("User-Agent", userAgent ?: webView.settings.userAgentString)
+            .setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)
+            .apply {
+                CookieManager.getInstance().getCookie(url)?.let { addRequestHeader("Cookie", it) }
+                // Android 9 and older would need the storage permission for this; there the
+                // download manager keeps the file itself, still listed in Downloads.
+                if (!MediaFiles.needsStoragePermission) {
+                    setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, name)
+                }
+            }
+        try {
+            activity.getSystemService(DownloadManager::class.java).enqueue(request)
+        } catch (e: Exception) {
+            Log.w(TAG, "Couldn't download $url", e)
+            saved(null)
+        }
+    }
+
+    /** Says where a file went, or that it didn't, and is felt either way. */
+    private fun saved(file: SiteFile?) {
+        val message = when {
+            file == null -> R.string.save_failed
+            file.isImage -> R.string.saved_image
+            else -> R.string.saved_file
+        }
+        webView.performHapticFeedback(
+            hapticFeedback(if (file == null) "error" else "success") ?: HapticFeedbackConstants.CONTEXT_CLICK
+        )
+        Toast.makeText(activity, message, Toast.LENGTH_SHORT).show()
+    }
+
+    /** [file] once it is in Pictures or Downloads; null if it couldn't be put there. */
+    private suspend fun saveToSharedFolders(file: SiteFile): SiteFile? =
+        file.takeIf { mayWriteSharedFolders() && MediaFiles.save(activity, it) }
+
+    private suspend fun mayWriteSharedFolders(): Boolean {
+        if (!MediaFiles.needsStoragePermission) return true
+        return suspendCancellableCoroutine { continuation ->
+            storagePermission.request { granted -> if (continuation.isActive) continuation.resume(granted) }
+        }
+    }
+
+    override fun save(drawing: DrawingMenu.Drawing) {
+        scope.launch {
+            saved(drawing.file(scope)?.let { saveToSharedFolders(it) })
+        }
+    }
+
+    override fun copy(drawing: DrawingMenu.Drawing) {
+        scope.launch {
+            val file = drawing.file(scope) ?: return@launch saved(null)
+            MediaFiles.copy(activity, file)
+            webView.performHapticFeedback(hapticFeedback("success") ?: HapticFeedbackConstants.CONTEXT_CLICK)
+        }
+    }
+
+    override fun share(drawing: DrawingMenu.Drawing) {
+        scope.launch {
+            val file = drawing.file(scope) ?: return@launch saved(null)
+            MediaFiles.share(activity, file, drawing.link, activity.getString(R.string.share_title))
+        }
+    }
+
+    override fun copyLink(drawing: DrawingMenu.Drawing) {
+        val link = drawing.link ?: return
+        activity.getSystemService(ClipboardManager::class.java)
+            .setPrimaryClip(ClipData.newRawUri(link, Uri.parse(link)))
+        webView.performHapticFeedback(hapticFeedback("success") ?: HapticFeedbackConstants.CONTEXT_CLICK)
+    }
+
     private inner class Client : WebViewClient() {
         override fun shouldOverrideUrlLoading(view: WebView, request: WebResourceRequest): Boolean {
             val uri = request.url
@@ -331,11 +637,16 @@ class WebTabController(
             return false
         }
 
+        override fun onPageStarted(view: WebView, url: String?, favicon: android.graphics.Bitmap?) {
+            isUnreachable = false
+            pressedDrawing = null
+        }
+
         override fun onPageFinished(view: WebView, url: String?) {
             this@WebTabController.view.isRefreshing = false
+            canGoBack = view.canGoBack()
             if (!scriptsAtDocumentStart && url != null && isSiteUrl(Uri.parse(url))) {
-                view.evaluateJavascript(LOGOUT_SCRIPT, null)
-                view.evaluateJavascript(EDGE_COLORS_SCRIPT, null)
+                for (script in PAGE_SCRIPTS) view.evaluateJavascript(script, null)
             }
             WebSession.cookiesMayHaveChanged()
             onPageLoad()
@@ -343,6 +654,7 @@ class WebTabController(
 
         // Pages the site swaps in without a full load (htmx) come through here.
         override fun doUpdateVisitedHistory(view: WebView, url: String?, isReload: Boolean) {
+            canGoBack = view.canGoBack()
             WebSession.cookiesMayHaveChanged()
         }
 
@@ -350,6 +662,8 @@ class WebTabController(
             if (request.isForMainFrame) {
                 this@WebTabController.view.isRefreshing = false
                 Log.w(TAG, "${tab.name}: Failed to load ${request.url} - ${error.description}")
+                // No network, no answer: said in the app's words, over the web view's own page.
+                if (error.errorCode in UNREACHABLE_ERRORS) isUnreachable = true
             }
         }
 
@@ -366,6 +680,15 @@ class WebTabController(
             filePathCallback: ValueCallback<Array<Uri>>,
             fileChooserParams: FileChooserParams
         ): Boolean = fileChooser.show(filePathCallback, fileChooserParams)
+
+        override fun onJsAlert(view: WebView, url: String?, message: String?, result: JsResult): Boolean =
+            dialogs.alert(message, result)
+
+        override fun onJsConfirm(view: WebView, url: String?, message: String?, result: JsResult): Boolean =
+            dialogs.confirm(message, result)
+
+        override fun onJsBeforeUnload(view: WebView, url: String?, message: String?, result: JsResult): Boolean =
+            dialogs.beforeUnload(result)
     }
 
     companion object {
@@ -374,6 +697,15 @@ class WebTabController(
         private const val LOGOUT_OBJECT_NAME = "oeeeLogout"
         private const val EDGE_COLORS_OBJECT_NAME = "oeeeEdgeColors"
         private const val HAPTIC_OBJECT_NAME = "oeeeHaptic"
+        private const val STATE_URL = "url"
+        /** A quarter of what the system will carry for the whole app, per tab. */
+        private const val MAX_STATE_BYTES = 128 * 1024
+        private val UNREACHABLE_ERRORS = setOf(
+            WebViewClient.ERROR_HOST_LOOKUP,
+            WebViewClient.ERROR_CONNECT,
+            WebViewClient.ERROR_TIMEOUT,
+            WebViewClient.ERROR_IO
+        )
         private val IN_PAGE_SCHEMES = setOf("about", "blob", "data", "javascript")
         private val PAINTER_PATHS = listOf("/draw", "/banners/draw", "/collaborate")
 
@@ -474,6 +806,17 @@ class WebTabController(
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) HapticFeedbackConstants.REJECT
                 else HapticFeedbackConstants.LONG_PRESS
             else -> null
+        }
+
+        /** What every page of the site runs for the app's bridges. */
+        private val PAGE_SCRIPTS by lazy {
+            listOf(
+                LOGOUT_SCRIPT,
+                EDGE_COLORS_SCRIPT,
+                DrawingMenu.PRESS_SCRIPT,
+                SiteBridges.SHARE_SCRIPT,
+                SiteBridges.DOWNLOAD_SCRIPT
+            )
         }
 
         /** `rgb(r, g, b)` or `rgba(r, g, b, a)`, as `getComputedStyle` gives colors. */

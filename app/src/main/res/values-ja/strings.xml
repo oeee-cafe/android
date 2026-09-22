@@ -8,4 +8,27 @@
     <string name="tab_notifications">お知らせ</string>
     <string name="tab_login">ログイン</string>
     <string name="tab_search">検索</string>
+
+    <!-- The site out of reach -->
+    <string name="unreachable_title">OEEEカフェに接続できません。</string>
+    <string name="unreachable_body">インターネット接続を確認して、もう一度お試しください。</string>
+    <string name="retry">再試行</string>
+
+    <!-- The site's own dialogs -->
+    <string name="leave_title">このページを離れますか？</string>
+    <string name="leave_body">保存していない内容は失われます。</string>
+    <string name="leave">離れる</string>
+    <string name="stay">とどまる</string>
+    <string name="ok">OK</string>
+    <string name="cancel">キャンセル</string>
+
+    <!-- A long press on a drawing, and what the site saves or shares -->
+    <string name="drawing_save">画像を保存</string>
+    <string name="drawing_copy">画像をコピー</string>
+    <string name="drawing_share">共有…</string>
+    <string name="drawing_copy_link">リンクをコピー</string>
+    <string name="saved_image">ピクチャに保存しました</string>
+    <string name="saved_file">ダウンロードに保存しました</string>
+    <string name="save_failed">保存できませんでした</string>
+    <string name="share_title">共有</string>
 </resources>

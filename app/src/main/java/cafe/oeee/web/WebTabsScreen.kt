@@ -1,5 +1,6 @@
 package cafe.oeee.web
 
+import android.os.Build
 import android.view.ViewGroup
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.LocalActivity
@@ -66,12 +67,25 @@ fun WebTabsScreen(
     val activity = checkNotNull(LocalActivity.current)
 
     // Back goes back in the tab's own history, then to the home tab, then leaves the app.
-    BackHandler {
+    // Leaving is the system's own back, so from Android 13 its predictive animation shows
+    // the home screen as the app goes; before 12 the system's would close the activity
+    // and every tab with it, so there the app steps aside itself.
+    val leavesBySystem = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
+    BackHandler(enabled = controller.canGoBack || selectedTab != WebTab.HOME || !leavesBySystem) {
         when {
             controller.webView.canGoBack() -> controller.webView.goBack()
             selectedTab != WebTab.HOME -> onSelectTab(WebTab.HOME)
             else -> activity.moveTaskToBack(true)
         }
+    }
+
+    controller.drawingMenu?.let { drawing ->
+        DrawingSheet(
+            drawing = drawing,
+            scope = controller.coroutineScope,
+            actions = controller,
+            onDismiss = { controller.drawingMenu = null }
+        )
     }
 
     // The status bar takes the color of the page's top edge and the tab bar (and the
@@ -125,6 +139,9 @@ fun WebTabsScreen(
                 SearchTab(controller)
             } else {
                 WebTabView(controller)
+            }
+            if (controller.isUnreachable) {
+                UnreachableView(ground = controller.topColor, retry = controller::retry)
             }
         }
     }
