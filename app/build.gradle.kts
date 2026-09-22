@@ -16,14 +16,28 @@ android {
         applicationId = "cafe.oeee"
         minSdk = 26
         targetSdk = 36
-        versionCode = 14
+        versionCode = 15
         versionName = "1.3.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
+    // Release builds are signed with the upload key when ~/.gradle/gradle.properties says
+    // where it is (oeeeUploadStoreFile, oeeeUploadStorePassword, oeeeUploadKeyAlias,
+    // oeeeUploadKeyPassword); otherwise they come out unsigned.
+    val uploadStoreFile = providers.gradleProperty("oeeeUploadStoreFile").orNull
+    val uploadSigning = uploadStoreFile?.let {
+        signingConfigs.create("upload") {
+            storeFile = file(it)
+            storePassword = providers.gradleProperty("oeeeUploadStorePassword").get()
+            keyAlias = providers.gradleProperty("oeeeUploadKeyAlias").get()
+            keyPassword = providers.gradleProperty("oeeeUploadKeyPassword").get()
+        }
+    }
+
     buildTypes {
         release {
+            signingConfig = uploadSigning
             isMinifyEnabled = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
@@ -52,6 +66,8 @@ dependencies {
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
+    // Firebase brings in Fragment 1.1, too old for the activity result APIs.
+    implementation(libs.androidx.fragment)
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.compose.ui)
     implementation(libs.androidx.compose.ui.graphics)
