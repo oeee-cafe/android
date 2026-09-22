@@ -7,4 +7,8 @@
     <color name="teal_700">#FF018786</color>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
+    <!-- The window's ground before a page paints, on Android 8 to 11 (themes.xml); from 12 the
+         system's own neutrals stand in (values-v31, values-night-v31). Material's neutral 95 and 10. -->
+    <color name="window_ground_light">#FFF4EFF4</color>
+    <color name="window_ground_dark">#FF1C1B1F</color>
 </resources>
