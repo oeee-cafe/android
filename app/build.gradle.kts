@@ -20,6 +20,15 @@ android {
         versionName = "1.3.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
+        // The site's own Web application OAuth client id, which Credential Manager is
+        // given as its server client id so the ID token it hands back is made for the
+        // site (GoogleSignIn.kt). Set oeeeGoogleServerClientId in
+        // ~/.gradle/gradle.properties; a build without it does not offer signing in with
+        // Google, and the site does not show the button (theme_head.jinja in
+        // oeee-cafe/web).
+        val googleServerClientId = providers.gradleProperty("oeeeGoogleServerClientId").getOrElse("")
+        buildConfigField("String", "GOOGLE_SERVER_CLIENT_ID", "\"$googleServerClientId\"")
     }
 
     // Release builds are signed with the upload key when ~/.gradle/gradle.properties says
@@ -91,6 +100,11 @@ dependencies {
     // Firebase
     implementation(platform(libs.firebase.bom))
     implementation(libs.firebase.messaging)
+
+    // Sign in with Google
+    implementation(libs.androidx.credentials)
+    implementation(libs.androidx.credentials.play.services.auth)
+    implementation(libs.googleid)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

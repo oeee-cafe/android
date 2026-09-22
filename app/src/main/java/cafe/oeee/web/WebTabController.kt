@@ -64,6 +64,12 @@ class WebTabController(
     private val bridge: SiteBridge
 
     /**
+     * Signing in with Google, which Google will not do in a web view; null in a build that
+     * cannot ([GoogleSignIn.isAvailable]), whose pages are not offered it either.
+     */
+    private val googleSignIn: GoogleSignIn?
+
+    /**
      * The colors at the top and bottom edges of the page shown, for the status bar above it
      * and the tab bar below; null until a page has said.
      */
@@ -95,7 +101,10 @@ class WebTabController(
             javaScriptEnabled = true
             domStorageEnabled = true
             mediaPlaybackRequiresUserGesture = false
-            userAgentString = "$userAgentString $USER_AGENT_SUFFIX"
+            userAgentString = buildString {
+                append(userAgentString).append(' ').append(USER_AGENT_SUFFIX)
+                if (GoogleSignIn.isAvailable()) append(' ').append(GoogleSignIn.USER_AGENT_TOKEN)
+            }
         }
         webView.webViewClient = Client()
         webView.webChromeClient = ChromeClient(fileChooser)
@@ -104,6 +113,11 @@ class WebTabController(
         }
         webView.setOnLongClickListener { openDrawingMenu() }
         bridge = SiteBridge(webView, siteOrigin, scripts, this)
+        googleSignIn = if (GoogleSignIn.isAvailable()) {
+            GoogleSignIn(activity, webView, siteOrigin, scripts.googleSignIn, scope)
+        } else {
+            null
+        }
         showTextScale()
 
         view.addView(
@@ -279,8 +293,16 @@ class WebTabController(
     }
 
     private inner class Client : WebViewClient() {
-        override fun shouldOverrideUrlLoading(view: WebView, request: WebResourceRequest): Boolean =
-            navigation.openedOutside(request, topColor)
+        override fun shouldOverrideUrlLoading(view: WebView, request: WebResourceRequest): Boolean {
+            // The site's link to Google's sign-in page, which Google refuses in a web
+            // view: the page stays where it is and Credential Manager signs in instead.
+            val google = googleSignIn
+            if (google != null && GoogleSignIn.isSignInLink(request, navigation)) {
+                google.begin(request.url)
+                return true
+            }
+            return navigation.openedOutside(request, topColor)
+        }
 
         override fun onPageStarted(view: WebView, url: String?, favicon: android.graphics.Bitmap?) {
             isUnreachable = false

@@ -20,6 +20,9 @@ class PageScripts(assets: AssetManager) {
     /** What every page of the site runs for the web platform features the app fills in. */
     val polyfills: List<String> = listOf("share.js", "download.js").map { assets.read(it) }
 
+    /** What a page runs to sign in with Google through the app ([GoogleSignIn]). */
+    val googleSignIn: String = assets.read("google-sign-in.js")
+
     private val textScaleFunction = assets.read("text-scale.js").trim().removeSuffix(";")
 
     /**
