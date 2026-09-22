@@ -27,12 +27,25 @@
             android:label="@string/app_name"
             android:theme="@style/Theme.OeeeCafe"
             android:configChanges="orientation|screenSize|screenLayout|smallestScreenSize|keyboard|keyboardHidden|navigation|density|uiMode"
-            android:windowSoftInputMode="adjustResize">
-            <!-- The tabs' web views live as long as the activity, so it isn't recreated on rotation or resizing. -->
+            android:windowSoftInputMode="adjustResize"
+            android:launchMode="singleTask">
+            <!-- The tabs' web views live as long as the activity, so it isn't recreated on rotation or resizing.
+                 Links opened from other apps come to the one activity instead of starting another in their task. -->
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+
+            <!-- Links to the site open in the app (verified through https://oeee.cafe/.well-known/assetlinks.json) -->
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+
+                <data android:scheme="https" />
+                <data android:host="oeee.cafe" />
             </intent-filter>
         </activity>
 

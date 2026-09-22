@@ -8,9 +8,10 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
-/** Turns a tapped push notification into a page of the site, and the tab to open it in. */
+/** Turns a tapped push notification or a link to the site into a page, and the tab to open it in. */
 object NavigationCoordinator {
     private const val TAG = "NavigationCoordinator"
+    private const val LINK_HOST = "oeee.cafe"
 
     data class PendingNavigation(val tab: WebTab, val path: String)
 
@@ -66,6 +67,26 @@ object NavigationCoordinator {
             }
         }
     }
+
+    /** Handles a link to the site the app was opened with, if any. */
+    fun handleLinkIntent(intent: Intent) {
+        if (intent.action != Intent.ACTION_VIEW) return
+        val uri = intent.data ?: return
+        if (uri.scheme != "https" || uri.host != LINK_HOST) return
+        Log.i(TAG, "Handling link: $uri")
+
+        val path = uri.encodedPath?.takeIf { it.isNotEmpty() } ?: "/"
+        val pathAndMore = path +
+            (uri.encodedQuery?.let { "?$it" } ?: "") +
+            (uri.encodedFragment?.let { "#$it" } ?: "")
+        navigate(pathAndMore, tabFor(path))
+    }
+
+    /** The tab whose own section of the site [path] is in; anything else opens on the home tab. */
+    private fun tabFor(path: String): WebTab =
+        WebTab.entries.firstOrNull { tab ->
+            tab != WebTab.HOME && (path == tab.path || path.startsWith(tab.path + "/"))
+        } ?: WebTab.HOME
 
     fun clearPendingNavigation() {
         _pendingNavigation.value = null

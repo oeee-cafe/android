@@ -35,7 +35,6 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -135,7 +134,6 @@ fun WebTabsScreen(
 @Composable
 private fun SearchTab(controller: WebTabController) {
     var query by rememberSaveable { mutableStateOf("") }
-    var hasSearched by remember(controller) { mutableStateOf(controller.hasLoaded) }
     val keyboard = LocalSoftwareKeyboardController.current
 
     Column(modifier = Modifier.fillMaxSize()) {
@@ -164,7 +162,6 @@ private fun SearchTab(controller: WebTabController) {
             keyboardActions = KeyboardActions(onSearch = {
                 val trimmed = query.trim()
                 if (trimmed.isNotEmpty()) {
-                    hasSearched = true
                     controller.search(trimmed)
                     keyboard?.hide()
                 }
@@ -172,7 +169,8 @@ private fun SearchTab(controller: WebTabController) {
         )
         Box(modifier = Modifier.fillMaxSize()) {
             WebTabView(controller)
-            if (!hasSearched) {
+            // Until something is searched for here, or a link to results is opened.
+            if (!controller.hasLoaded) {
                 Column(
                     modifier = Modifier
                         .fillMaxSize()

@@ -154,7 +154,7 @@ class WebTabController(
         private set
 
     /** Whether the web view has loaded anything (the search tab waits for a search). */
-    var hasLoaded = false
+    var hasLoaded by mutableStateOf(false)
         private set
 
     init {

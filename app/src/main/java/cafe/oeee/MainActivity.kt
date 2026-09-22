@@ -83,8 +83,9 @@ class MainActivity : ComponentActivity() {
             if (AuthService.isAuthenticated.value) lifecycleScope.launch { badges.refresh() }
         }
 
-        // Handle notification deep link (cold start)
-        intent?.let { NavigationCoordinator.handleNotificationIntent(it) }
+        // Handle a notification or link the app was opened from (cold start). Not again when
+        // restored, or when reopened from recents, which hands back the intent it was first started with.
+        if (savedInstanceState == null) intent?.let { handleNavigationIntent(it) }
 
         // Coming back to the app may mean new notifications.
         lifecycleScope.launch {
@@ -124,9 +125,11 @@ class MainActivity : ComponentActivity() {
                     val navigation = pending ?: return@LaunchedEffect
                     if (!isReady) return@LaunchedEffect
                     NavigationCoordinator.clearPendingNavigation()
-                    if (navigation.tab !in WebTab.visible(AuthService.isAuthenticated.value)) return@LaunchedEffect
-                    selectedTab = navigation.tab
-                    webTabs.controller(navigation.tab).load(ApiClient.getBaseUrl() + navigation.path)
+                    // A page in a tab that isn't shown (signed in or out) opens on the home tab.
+                    val tab = navigation.tab.takeIf { it in WebTab.visible(AuthService.isAuthenticated.value) }
+                        ?: WebTab.HOME
+                    selectedTab = tab
+                    webTabs.controller(tab).load(ApiClient.getBaseUrl() + navigation.path)
                 }
 
                 if (isReady) {
@@ -150,9 +153,15 @@ class MainActivity : ComponentActivity() {
 
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
-        // Handle notification deep link (warm/hot start)
+        // Handle a notification or link (warm/hot start)
         setIntent(intent)
+        handleNavigationIntent(intent)
+    }
+
+    private fun handleNavigationIntent(intent: Intent) {
+        if (intent.flags and Intent.FLAG_ACTIVITY_LAUNCHED_FROM_HISTORY != 0) return
         NavigationCoordinator.handleNotificationIntent(intent)
+        NavigationCoordinator.handleLinkIntent(intent)
     }
 
     override fun onDestroy() {
