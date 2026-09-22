@@ -82,6 +82,9 @@ class GoogleSignIn(
             .setNonce(nonce)
             .build()
         val request = GetCredentialRequest.Builder().addCredentialOption(option).build()
+        Log.i(TAG, "Asking Credential Manager to sign in")
+        // Nothing below logs the answer itself: it carries the ID token, and logcat is
+        // readable by anything with the right permission on some devices.
         val answer = try {
             val response = CredentialManager.create(activity).getCredential(activity, request)
             val credential = response.credential
@@ -100,7 +103,15 @@ class GoogleSignIn(
                 GoogleSignInMessages.token(token)
             }
         } catch (e: GetCredentialCancellationException) {
-            // Put away without signing in: the page stays as it was.
+            // Put away without signing in: the page stays as it was, and says nothing,
+            // because nothing went wrong.
+            //
+            // Google reports a sign-in its own sheet refused this way too -- an OAuth
+            // client that does not match this build's package and signing certificate
+            // comes back as a cancellation, not as an error -- so it is logged even
+            // though it is silent on screen. Without this line a misconfigured console
+            // is indistinguishable from a finger on the back gesture.
+            Log.i(TAG, "Credential Manager was dismissed without a token")
             GoogleSignInMessages.CANCELLED
         } catch (e: NoCredentialException) {
             // No Google account on the device to offer. Nothing went wrong and there is
@@ -109,7 +120,14 @@ class GoogleSignIn(
             Log.i(TAG, "No Google account to sign in with")
             GoogleSignInMessages.CANCELLED
         } catch (e: GetCredentialException) {
-            Log.w(TAG, "Google did not sign in - ${e.message}")
+            Log.w(TAG, "Google did not sign in - ${e::class.java.simpleName}: ${e.message}")
+            GoogleSignInMessages.FAILED
+        } catch (e: Throwable) {
+            // Anything else at all. A sign-in that ends without an answer leaves the page
+            // waiting on a reply that never comes, with nothing on screen to say so --
+            // the one outcome worse than saying it went wrong.
+            if (e is kotlinx.coroutines.CancellationException) throw e
+            Log.w(TAG, "Google sign-in ended unexpectedly - ${e::class.java.simpleName}: ${e.message}")
             GoogleSignInMessages.FAILED
         }
         reply.postMessage(answer)
