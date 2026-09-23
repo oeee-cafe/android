@@ -4,7 +4,6 @@ import android.content.Context
 import android.net.Uri
 import android.util.Log
 import android.webkit.CookieManager
-import cafe.oeee.data.remote.ApiClient
 
 /**
  * Starts the web views' session, with the cookies of one signed in natively before the app
@@ -34,7 +33,7 @@ object WebSession {
         val stored = prefs.all.values.filterIsInstance<String>()
         if (stored.isEmpty()) return
 
-        val baseUrl = ApiClient.BASE_URL
+        val baseUrl = Site.BASE_URL
         val host = Uri.parse(baseUrl).host
         if (host != null && cookieManager.getCookie(baseUrl).isNullOrEmpty()) {
             var moved = 0

@@ -6,15 +6,9 @@ import android.app.PendingIntent
 import android.content.Intent
 import android.util.Log
 import androidx.core.app.NotificationCompat
-import cafe.oeee.data.service.AuthService
 import cafe.oeee.data.service.PushNotificationService
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.cancel
-import kotlinx.coroutines.launch
 
 /**
  * Shows the site's push notifications. Tapping one opens the page its `url` names
@@ -27,26 +21,20 @@ class OeeeCafeMessagingService : FirebaseMessagingService() {
         private const val CHANNEL_ID = "oeee_cafe_notifications"
     }
 
-    /** Work that lasts as long as the service does, and no longer. */
-    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
-
     override fun onCreate() {
         super.onCreate()
-        // A token can be refreshed with no activity started, and is only registered for
-        // someone signed in, which is what the last page said (AuthService).
-        AuthService.start(this)
+        // A token can be refreshed with no activity started, and is kept for the next page.
+        PushNotificationService.start(this)
         createNotificationChannel()
     }
 
-    override fun onDestroy() {
-        scope.cancel()
-        super.onDestroy()
-    }
-
-    /** A new token, on install or when FCM refreshes it: registered for whoever is signed in. */
+    /**
+     * A new token, on install or when FCM refreshes it: handed to the page showing if
+     * someone is signed in there, and otherwise to the next page that says someone is.
+     */
     override fun onNewToken(token: String) {
         super.onNewToken(token)
-        scope.launch { PushNotificationService.registerFcmToken(token) }
+        PushNotificationService.tokenArrived(token)
     }
 
     override fun onMessageReceived(remoteMessage: RemoteMessage) {

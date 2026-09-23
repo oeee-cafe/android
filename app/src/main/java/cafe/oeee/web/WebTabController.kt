@@ -26,12 +26,13 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import cafe.oeee.R
-import cafe.oeee.data.remote.ApiClient
+import cafe.oeee.data.service.PushNotificationService
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
+import org.json.JSONObject
 
 /** The app's one web view: its settings, its life, and what its pages say to the app. */
 @SuppressLint("SetJavaScriptEnabled")
@@ -45,8 +46,8 @@ class WebTabController(
     private val onRenderProcessGone: () -> Unit
 ) : DrawingActions, SiteBridge.Listener {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
-    private val siteOrigin: String = SiteBridge.origin(Uri.parse(ApiClient.BASE_URL))
-    private val navigation = Navigation(activity, Uri.parse(ApiClient.BASE_URL).host)
+    private val siteOrigin: String = SiteBridge.origin(Uri.parse(Site.BASE_URL))
+    private val navigation = Navigation(activity, Uri.parse(Site.BASE_URL).host)
     private val dialogs = SiteDialogs(activity) { words }
 
     /** The drawing a finger last landed on, if it landed on one (BridgeMessage.Pressed). */
@@ -152,6 +153,8 @@ class WebTabController(
             null
         }
         showTextScale()
+        // A token that arrives while a signed-in page is showing goes to it at once.
+        scope.launch { PushNotificationService.token.collect { handPushToken() } }
 
         view.addView(
             webView,
@@ -276,6 +279,7 @@ class WebTabController(
                 refreshable = message.refreshable
                 message.signedIn?.let { lastSignedIn = it }
                 onPage(message)
+                handPushToken()
             }
             is BridgeMessage.Unread -> onUnread(message.count)
             is BridgeMessage.Theme -> {
@@ -298,6 +302,21 @@ class WebTabController(
             is BridgeMessage.Share -> shareText(message)
             is BridgeMessage.Download -> scope.launch { downloads.save(Polyfills.file(message)) }
         }
+    }
+
+    /**
+     * Hands the page this device's push token when it says someone is signed in, for it to
+     * register for them (PushNotificationService). Every such page is handed it, so a new
+     * document or a new token is never missed; the page ignores a token it has registered.
+     */
+    private fun handPushToken() {
+        if (lastSignedIn != true) return
+        val token = PushNotificationService.token.value ?: return
+        if (webView.url?.let { SiteBridge.origin(Uri.parse(it)) } != siteOrigin) return
+        webView.evaluateJavascript(
+            "window.oeeeApp && window.oeeeApp.pushToken && window.oeeeApp.pushToken(${JSONObject.quote(token)});",
+            null
+        )
     }
 
     /**

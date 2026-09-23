@@ -26,11 +26,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.lifecycleScope
-import cafe.oeee.data.remote.ApiClient
 import cafe.oeee.data.service.AuthService
 import cafe.oeee.data.service.PushNotificationService
 import cafe.oeee.ui.theme.OeeeCafeTheme
 import cafe.oeee.web.FileChooser
+import cafe.oeee.web.Site
 import cafe.oeee.web.StoragePermission
 import cafe.oeee.web.WebSession
 import cafe.oeee.web.WebTab
@@ -95,6 +95,7 @@ class MainActivity : ComponentActivity() {
 
         // The tab bar starts as the last page left it, until a page says otherwise.
         AuthService.start(this)
+        PushNotificationService.start(this)
         webTabs = WebTabs(this, fileChooser, storagePermission, savedInstanceState, AuthService::pageSaid)
 
         // Handle a notification or link the app was opened from (cold start). Not again when
@@ -117,7 +118,7 @@ class MainActivity : ComponentActivity() {
                     var wasAuthenticated: Boolean? = null
                     AuthService.isAuthenticated.collect { authenticated ->
                         if (wasAuthenticated != null) webTabs.authenticationChanged(authenticated)
-                        authenticationChanged(authenticated, wasSignedIn = wasAuthenticated == true)
+                        authenticationChanged(authenticated)
                         wasAuthenticated = authenticated
                     }
                 }
@@ -129,7 +130,7 @@ class MainActivity : ComponentActivity() {
                     NavigationCoordinator.clearPendingNavigation()
                     // The web view shows it, under whichever tab was picked last
                     // (WebTabController.section).
-                    shown.load(ApiClient.BASE_URL + navigation.path)
+                    shown.load(Site.BASE_URL + navigation.path)
                 }
 
                 if (controller != null) {
@@ -172,8 +173,6 @@ class MainActivity : ComponentActivity() {
         webTabs.textScaleChanged()
     }
 
-    // The web views' cookie store writes itself out now and then; the session, and the
-    // device cookie beside it, should not wait for that when the app may be stopped.
     override fun onResume() {
         super.onResume()
         // Back from a browser, perhaps: the tabs' pages ask the site whether a sign-in
@@ -181,6 +180,8 @@ class MainActivity : ComponentActivity() {
         webTabs.resumed()
     }
 
+    // The web views' cookie store writes itself out now and then; the session should not
+    // wait for that when the app may be stopped.
     override fun onStop() {
         super.onStop()
         CookieManager.getInstance().flush()
@@ -194,26 +195,23 @@ class MainActivity : ComponentActivity() {
     }
 
     /**
-     * Registers this device's push token for whoever signed in (asking for permission the
-     * first time). Signing out on the site has unregistered it there already (POST /logout
-     * reads the device cookie), so all that is left is to forget which token it was.
+     * Gets this device's push token once someone has signed in (asking for permission the
+     * first time), for the pages to register (PushNotificationService). Signing out needs
+     * nothing of the app: the site's sign-out unregisters the device the page registered.
      */
-    private fun authenticationChanged(isAuthenticated: Boolean, wasSignedIn: Boolean) {
-        if (isAuthenticated) {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
-                checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED
-            ) {
-                notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
-            } else {
-                registerForPush()
-            }
-        } else if (wasSignedIn) {
-            PushNotificationService.forgetDevice()
+    private fun authenticationChanged(isAuthenticated: Boolean) {
+        if (!isAuthenticated) return
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
+            checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED
+        ) {
+            notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+        } else {
+            registerForPush()
         }
     }
 
     private fun registerForPush() {
-        lifecycleScope.launch { PushNotificationService.registerFcmToken() }
+        lifecycleScope.launch { PushNotificationService.fetchToken() }
     }
 
     companion object {

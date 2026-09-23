@@ -1,7 +1,6 @@
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
-    alias(libs.plugins.ksp)
     alias(libs.plugins.google.services)
     alias(libs.plugins.sentry)
 }
@@ -90,11 +89,9 @@ dependencies {
     // Other sites, over the app (Custom Tabs)
     implementation(libs.androidx.browser)
 
-    // Networking
-    implementation(libs.retrofit)
-    implementation(libs.retrofit.moshi)
+    // The bridge's messages
     implementation(libs.moshi)
-    ksp(libs.moshi.codegen)
+    // A drawing fetched for its menu
     implementation(libs.okhttp)
 
     // Firebase

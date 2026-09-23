@@ -41,12 +41,14 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import cafe.oeee.R
-import cafe.oeee.data.remote.WebViewCookieJar
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.withContext
+import okhttp3.Cookie
+import okhttp3.CookieJar
+import okhttp3.HttpUrl
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import java.util.concurrent.TimeUnit
@@ -203,4 +205,23 @@ private fun SheetAction(icon: ImageVector, label: String, onClick: () -> Unit) {
         colors = ListItemDefaults.colors(containerColor = Color.Transparent),
         modifier = Modifier.clickable(onClick = onClick)
     )
+}
+
+/**
+ * Sends the web view's cookies with a request the app makes itself, so it is signed in as
+ * whoever is signed in on the site: a drawing fetched for its menu.
+ */
+private class WebViewCookieJar : CookieJar {
+    private val cookieManager get() = android.webkit.CookieManager.getInstance()
+
+    override fun saveFromResponse(url: HttpUrl, cookies: List<Cookie>) {
+        for (cookie in cookies) {
+            cookieManager.setCookie(url.toString(), cookie.toString())
+        }
+    }
+
+    override fun loadForRequest(url: HttpUrl): List<Cookie> {
+        val header = cookieManager.getCookie(url.toString()) ?: return emptyList()
+        return header.split(";").mapNotNull { Cookie.parse(url, it.trim()) }
+    }
 }

@@ -1,57 +1,54 @@
 package cafe.oeee.data.service
 
+import android.content.Context
+import android.content.SharedPreferences
 import android.util.Log
-import android.webkit.CookieManager
-import cafe.oeee.data.remote.ApiClient
-import cafe.oeee.data.remote.RegisterDeviceRequest
 import com.google.firebase.messaging.FirebaseMessaging
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.tasks.await
 
 /**
- * Registers this device's FCM token for the signed-in user, and tells the site which token
- * it is: signing out on the site's own page then unregisters it there (POST /logout reads
- * the `oeee_device` cookie), with no need for the app to catch the page on its way out.
+ * This device's FCM token, which the app gets and the site registers. The app hands it to
+ * every page that says someone is signed in (`window.oeeeApp.pushToken`), and the page
+ * registers it for them from its own session and says which it is, so that signing out on
+ * the site unregisters it there (app_bridge.jinja and devices.rs in oeee-cafe/web). The app
+ * makes no request to the site itself. The token is kept, so a page that loads before FCM
+ * has answered on a later launch still gets one.
  */
 object PushNotificationService {
     private const val TAG = "PushNotificationService"
-    private const val DEVICE_COOKIE = "oeee_device"
+    private const val PREFS = "push"
+    private const val TOKEN = "fcm_token"
 
-    /** As long as a session could last; the token is registered again on every sign-in anyway. */
-    private const val DEVICE_COOKIE_MAX_AGE = 400L * 24 * 60 * 60
+    private val _token = MutableStateFlow<String?>(null)
+    val token: StateFlow<String?> = _token.asStateFlow()
 
-    /**
-     * Registers the FCM token with the backend for whoever is signed in. Called after signing in,
-     * and from FirebaseMessagingService when the token is refreshed.
-     */
-    suspend fun registerFcmToken(token: String? = null) {
-        if (!AuthService.isAuthenticated.value) return
+    private var prefs: SharedPreferences? = null
+
+    /** Picks up the token kept from before, before anything reads [token]. */
+    @Synchronized
+    fun start(context: Context) {
+        if (prefs != null) return
+        val stored = context.applicationContext.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+        prefs = stored
+        if (_token.value == null) _token.value = stored.getString(TOKEN, null)
+    }
+
+    /** Asks FCM for the token, once someone has signed in and may be sent notifications. */
+    suspend fun fetchToken() {
         try {
-            val fcmToken = token ?: FirebaseMessaging.getInstance().token.await()
-            ApiClient.apiService.registerDevice(
-                RegisterDeviceRequest(deviceToken = fcmToken, platform = "android")
-            )
-            setDeviceCookie(fcmToken, DEVICE_COOKIE_MAX_AGE)
-            Log.d(TAG, "Registered device")
+            tokenArrived(FirebaseMessaging.getInstance().token.await())
         } catch (e: Exception) {
-            Log.e(TAG, "Failed to register FCM token", e)
+            Log.e(TAG, "Failed to get the FCM token", e)
         }
     }
 
-    /** Signed out: the site has deleted the device, so the cookie naming it goes too. */
-    fun forgetDevice() {
-        setDeviceCookie("", 0)
-    }
-
-    /**
-     * Only for the site's own requests, and out of its scripts' reach: the page has no need
-     * to read the token, and one that could would be able to hand it to anyone.
-     */
-    private fun setDeviceCookie(token: String, maxAge: Long) {
-        val cookies = CookieManager.getInstance()
-        cookies.setCookie(
-            ApiClient.BASE_URL,
-            "$DEVICE_COOKIE=$token; Path=/; Max-Age=$maxAge; Secure; HttpOnly; SameSite=Lax"
-        )
-        cookies.flush()
+    /** A token from FCM, asked for or refreshed; a page showing is handed it at once. */
+    fun tokenArrived(token: String) {
+        if (_token.value == token) return
+        _token.value = token
+        prefs?.edit()?.putString(TOKEN, token)?.apply()
     }
 }

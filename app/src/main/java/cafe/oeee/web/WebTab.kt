@@ -17,7 +17,6 @@ import androidx.compose.material.icons.outlined.Notifications
 import androidx.compose.material.icons.outlined.Search
 import androidx.compose.ui.graphics.vector.ImageVector
 import cafe.oeee.R
-import cafe.oeee.data.remote.ApiClient
 
 /** A tab of the native tab bar, each showing its own page of the site. */
 enum class WebTab(
@@ -32,7 +31,7 @@ enum class WebTab(
     LOGIN("/login", R.string.tab_login, Icons.Filled.AccountCircle, Icons.Outlined.AccountCircle),
     SEARCH("/search", R.string.tab_search, Icons.Filled.Search, Icons.Outlined.Search);
 
-    val rootUrl: String get() = ApiClient.BASE_URL + path
+    val rootUrl: String get() = Site.BASE_URL + path
 
     companion object {
         fun visible(isAuthenticated: Boolean): List<WebTab> =
