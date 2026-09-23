@@ -117,6 +117,22 @@ class AppContractTest {
             "Google's sign-in, with its nonce, is one",
             examples("signIn").any { it["provider"] == "google" && parse(it) is BridgeMessage.SignIn }
         )
+        // A press on a drawing is a drawing the app offers a menu for, with all the page said.
+        val onDrawing = examples("pressed").filter { it["drawing"] != null }
+        assertTrue("The contract has no press on a drawing", onDrawing.isNotEmpty())
+        for (example in onDrawing) {
+            val said = example["drawing"] as Map<*, *>
+            assertEquals(
+                "$example",
+                BridgeMessage.PressedDrawing(
+                    src = said.string("src")!!,
+                    link = said.string("link")?.ifEmpty { null },
+                    width = said.int("width"),
+                    height = said.int("height")
+                ),
+                (parse(example) as BridgeMessage.Pressed).drawing
+            )
+        }
         assertTrue(
             "A press off a drawing is one, with no drawing",
             examples("pressed").any { it["drawing"] == null && parse(it) == BridgeMessage.Pressed(null) }
