@@ -23,6 +23,9 @@ class PageScripts(assets: AssetManager) {
     /** What a page runs to sign in with Google through the app ([GoogleSignIn]). */
     val googleSignIn: String = assets.read("google-sign-in.js")
 
+    /** What a page runs to sign in through a browser and back ([SignInHandoff]). */
+    val signInHandoff: String = assets.read("sign-in-handoff.js")
+
     private val textScaleFunction = assets.read("text-scale.js").trim().removeSuffix(";")
 
     /**

@@ -180,6 +180,13 @@ class MainActivity : ComponentActivity() {
 
     // The web views' cookie store writes itself out now and then; the session, and the
     // device cookie beside it, should not wait for that when the app may be stopped.
+    override fun onResume() {
+        super.onResume()
+        // Back from a browser, perhaps: the tabs' pages ask the site whether a sign-in
+        // sent out there has finished (WebTabStore.resumed).
+        webTabs.resumed()
+    }
+
     override fun onStop() {
         super.onStop()
         CookieManager.getInstance().flush()

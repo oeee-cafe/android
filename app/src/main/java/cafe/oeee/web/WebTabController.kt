@@ -70,6 +70,13 @@ class WebTabController(
     private val googleSignIn: GoogleSignIn?
 
     /**
+     * Signing in with Apple, which Apple has no Android SDK for: it goes out to a browser
+     * and the answer comes back through a handoff. Null in a web view too old for the
+     * bridge it needs, whose pages are shown no Apple button either.
+     */
+    private val signInHandoff: SignInHandoff?
+
+    /**
      * The colors at the top and bottom edges of the page shown, for the status bar above it
      * and the tab bar below; null until a page has said.
      */
@@ -104,6 +111,7 @@ class WebTabController(
             userAgentString = buildString {
                 append(userAgentString).append(' ').append(USER_AGENT_SUFFIX)
                 if (GoogleSignIn.isAvailable()) append(' ').append(GoogleSignIn.USER_AGENT_TOKEN)
+                if (SignInHandoff.isAvailable()) append(' ').append(SignInHandoff.USER_AGENT_TOKEN)
             }
         }
         webView.webViewClient = Client()
@@ -115,6 +123,13 @@ class WebTabController(
         bridge = SiteBridge(webView, siteOrigin, scripts, this)
         googleSignIn = if (GoogleSignIn.isAvailable()) {
             GoogleSignIn(activity, webView, siteOrigin, scripts.googleSignIn, scope)
+        } else {
+            null
+        }
+        signInHandoff = if (SignInHandoff.isAvailable()) {
+            SignInHandoff(webView, siteOrigin, scripts.signInHandoff) { url ->
+                navigation.openInBrowser(url, topColor)
+            }
         } else {
             null
         }
@@ -180,6 +195,14 @@ class WebTabController(
 
     fun retryIfUnreachable() {
         if (isUnreachable) retry()
+    }
+
+    /**
+     * The tab is in front again. Somebody may have just come back from signing in in a
+     * browser, so the page asks the site now instead of waiting for its next turn.
+     */
+    fun resumed() {
+        signInHandoff?.resume()
     }
 
     fun load(url: String) {
@@ -299,6 +322,13 @@ class WebTabController(
             val google = googleSignIn
             if (google != null && GoogleSignIn.isSignInLink(request, navigation)) {
                 google.begin(request.url)
+                return true
+            }
+            // Apple's, which has no Android sheet to open: out to a browser, and back
+            // through a handoff (SignInHandoff).
+            val handoff = signInHandoff
+            if (handoff != null && SignInHandoff.isAppleSignInLink(request, navigation)) {
+                handoff.begin(request.url, "apple")
                 return true
             }
             return navigation.openedOutside(request, topColor)

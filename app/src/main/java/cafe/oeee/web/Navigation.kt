@@ -29,6 +29,30 @@ class Navigation(private val activity: Activity, private val siteHost: String?) 
     }
 
     /**
+     * A page of the site, opened in a browser rather than in the app: a Custom Tab, never
+     * the app that claims the link, because for oeee.cafe that app is this one. Signing in
+     * through a browser (SignInHandoff) is the only thing that wants this -- the point is
+     * to be somewhere the web view is not. False when there is no browser at all.
+     */
+    fun openInBrowser(uri: Uri, toolbarColor: Color?): Boolean {
+        if (uri.scheme != "https" && uri.scheme != "http") return false
+        return try {
+            val colors = CustomTabColorSchemeParams.Builder()
+                .apply { toolbarColor?.let { setToolbarColor(it.toArgb()) } }
+                .build()
+            CustomTabsIntent.Builder()
+                .setShowTitle(true)
+                .setDefaultColorSchemeParams(colors)
+                .build()
+                .launchUrl(activity, uri)
+            true
+        } catch (e: ActivityNotFoundException) {
+            Log.w(TAG, "No browser to open $uri")
+            false
+        }
+    }
+
+    /**
      * Another site's page: in the app that claims its links when one is installed, as a
      * link tapped anywhere else would open, and otherwise over the app in a Custom Tab
      * rather than off in the browser -- the iOS app's Safari view. Anything else (mail,

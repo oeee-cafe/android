@@ -30,6 +30,15 @@ class WebTabStore(
         .mapNotNull { tab -> savedState?.getBundle(stateKey(tab))?.let { tab to it } }
         .toMap().toMutableMap()
 
+    /**
+     * The app is in front again. A sign-in sent out to a browser (SignInHandoff) may have
+     * finished while it was away, so the pages ask the site at once rather than waiting
+     * for the next turn of their own clock.
+     */
+    fun resumed() {
+        for (controller in controllers.values) controller.resumed()
+    }
+
     /** A page that could not be reached is tried again when the network comes back. */
     private val connectivity = Connectivity(activity) {
         for (controller in controllers.values) controller.retryIfUnreachable()
