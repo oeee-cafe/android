@@ -33,7 +33,6 @@ import cafe.oeee.web.FileChooser
 import cafe.oeee.web.Site
 import cafe.oeee.web.StoragePermission
 import cafe.oeee.web.WebSession
-import cafe.oeee.web.WebTab
 import cafe.oeee.web.WebTabs
 import cafe.oeee.web.WebTabsScreen
 import kotlinx.coroutines.launch
@@ -93,7 +92,6 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
 
-        // The tab bar starts as the last page left it, until a page says otherwise.
         AuthService.start(this)
         PushNotificationService.start(this)
         webTabs = WebTabs(this, fileChooser, storagePermission, savedInstanceState, AuthService::pageSaid)
@@ -104,8 +102,6 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             OeeeCafeTheme {
-                val isAuthenticated by AuthService.isAuthenticated.collectAsState()
-                val visibleTabs = WebTab.visible(isAuthenticated)
                 // Read so that a recreated web view is picked up.
                 webTabs.generation
                 val controller = webTabs.controller
@@ -128,19 +124,11 @@ class MainActivity : ComponentActivity() {
                     val navigation = pending ?: return@LaunchedEffect
                     val shown = controller ?: return@LaunchedEffect
                     NavigationCoordinator.clearPendingNavigation()
-                    // The web view shows it, under whichever tab was picked last
-                    // (WebTabController.section).
                     shown.load(Site.BASE_URL + navigation.path)
                 }
 
                 if (controller != null) {
-                    WebTabsScreen(
-                        controller = controller,
-                        visibleTabs = visibleTabs,
-                        badgeCount = { tab ->
-                            if (tab == WebTab.NOTIFICATIONS && isAuthenticated) webTabs.unreadCount.toLong() else 0L
-                        }
-                    )
+                    WebTabsScreen(controller)
                 } else {
                     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                         CircularProgressIndicator()
@@ -175,7 +163,7 @@ class MainActivity : ComponentActivity() {
 
     override fun onResume() {
         super.onResume()
-        // Back from a browser, perhaps: the tabs' pages ask the site whether a sign-in
+        // Back from a browser, perhaps: the page asks the site whether a sign-in
         // sent out there has finished (WebTabs.resumed).
         webTabs.resumed()
     }

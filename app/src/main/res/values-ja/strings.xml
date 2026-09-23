@@ -2,13 +2,6 @@
 <resources>
     <string name="app_name">OEEEカフェ</string>
 
-    <!-- Tabs -->
-    <string name="tab_home">ホーム</string>
-    <string name="tab_communities">コミュニティ</string>
-    <string name="tab_notifications">お知らせ</string>
-    <string name="tab_login">ログイン</string>
-    <string name="tab_search">検索</string>
-
     <!-- The site out of reach -->
     <string name="unreachable_title">OEEEカフェに接続できません。</string>
     <string name="unreachable_body">インターネット接続を確認して、もう一度お試しください。</string>

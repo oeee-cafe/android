@@ -36,7 +36,7 @@
             android:configChanges="orientation|screenSize|screenLayout|smallestScreenSize|keyboard|keyboardHidden|navigation|density|uiMode|fontScale"
             android:windowSoftInputMode="adjustResize"
             android:launchMode="singleTask">
-            <!-- The tabs' web views live as long as the activity, so it isn't recreated on rotation, resizing
+            <!-- The web view lives as long as the activity, so it isn't recreated on rotation, resizing
                  or a change of font size (the pages follow that themselves, WebTabStore.textScaleChanged).
                  Links opened from other apps come to the one activity instead of starting another in their task. -->
             <intent-filter>

@@ -33,7 +33,7 @@ import cafe.oeee.R
 import cafe.oeee.ui.theme.OeeeCafeTheme
 
 /**
- * Tells the tabs when the device is back on the network after being off it, so a page that
+ * Tells the web view when the device is back on the network after being off it, so a page that
  * could not be reached is tried again by itself, as the iOS app and the desktop app's
  * loader do.
  */

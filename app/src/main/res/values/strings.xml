@@ -9,13 +9,6 @@
   }]
   </string>
 
-    <!-- Tabs -->
-    <string name="tab_home">Home</string>
-    <string name="tab_communities">Community</string>
-    <string name="tab_notifications">Inbox</string>
-    <string name="tab_login">Login</string>
-    <string name="tab_search">Search</string>
-
     <!-- The site out of reach -->
     <string name="unreachable_title">Oeee Cafe can\'t be reached.</string>
     <string name="unreachable_body">Check your internet connection and try again.</string>

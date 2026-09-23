@@ -10,15 +10,9 @@ import androidx.compose.runtime.setValue
 import cafe.oeee.BuildConfig
 
 /**
- * The web view the tabs share, and what the app keeps around it: where it was when the
- * system stopped the app ([saveState]), the number on the bell, and starting it over when
- * its renderer dies.
- *
- * One web view rather than one per tab. A tab of its own for each kept a history and a
- * scroll position per section, and cost a navigation that could disagree with itself: the
- * site's toolbar has these same sections in it, so a section could arrive in the wrong tab
- * and had to be moved to its own. The bar picks what the one web view shows
- * ([WebTabController.section]), and nothing else moves it.
+ * The app's one web view, and what the app keeps around it: where it was when the system
+ * stopped the app ([saveState]), and starting it over when its renderer dies. The site's own
+ * toolbar is the only way around it.
  */
 class WebTabs(
     private val activity: Activity,
@@ -33,13 +27,6 @@ class WebTabs(
 
     /** Bumped when the web view is recreated, so the screen shows the new one. */
     var generation by mutableIntStateOf(0)
-        private set
-
-    /**
-     * The number on the site's bell, as the page last shown said it: every page with the
-     * toolbar says it, so there is nothing to ask the API for.
-     */
-    var unreadCount by mutableIntStateOf(0)
         private set
 
     var controller by mutableStateOf<WebTabController?>(null)
@@ -69,7 +56,6 @@ class WebTabs(
             storagePermission = storagePermission,
             savedState = restored.also { restored = null },
             onPage = { page -> page.signedIn?.let(onSignedIn) },
-            onUnread = { unreadCount = it },
             onRenderProcessGone = { recreate() }
         )
         controller = made
@@ -97,12 +83,11 @@ class WebTabs(
      * After signing in or out, the page showing was rendered for whoever was signed in
      * before -- unless it is the page that said so, which is where signing in ends and
      * which carries the notice that it worked. Reloading that one would throw the notice
-     * away, and it holds the right number for the bell besides.
+     * away for nothing.
      */
     fun authenticationChanged(signedIn: Boolean) {
         val controller = controller ?: return
         if (controller.lastSignedIn == signedIn) return
-        unreadCount = 0
         controller.reload()
     }
 

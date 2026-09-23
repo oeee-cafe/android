@@ -2,7 +2,6 @@ package cafe.oeee
 
 import android.content.Intent
 import android.util.Log
-import cafe.oeee.web.WebTab
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -35,7 +34,7 @@ object NavigationCoordinator {
         if (NOTIFICATION_KEYS.none { extras.containsKey(it) }) return
         // Only a path on the site: a notification is no reason to leave it.
         val url = intent.getStringExtra("url")?.takeIf { it.startsWith("/") && !it.startsWith("//") }
-        val path = url ?: WebTab.NOTIFICATIONS.path
+        val path = url ?: "/notifications"
         Log.i(TAG, "Handling notification tap")
         navigate(path)
     }

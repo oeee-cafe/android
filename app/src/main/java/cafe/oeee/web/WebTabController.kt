@@ -42,7 +42,6 @@ class WebTabController(
     storagePermission: StoragePermission,
     savedState: Bundle?,
     private val onPage: (BridgeMessage.Page) -> Unit,
-    private val onUnread: (Int) -> Unit,
     private val onRenderProcessGone: () -> Unit
 ) : DrawingActions, SiteBridge.Listener {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
@@ -65,14 +64,6 @@ class WebTabController(
         private set
 
     val webView = WebView(activity)
-
-    /**
-     * The tab last picked in the bar, which it draws as the one the reader is in
-     * (WebTabsScreen). Only a tap moves it: a page reached some other way -- the site's own
-     * toolbar, a link, Back -- is read under whichever tab was picked last.
-     */
-    var section by mutableStateOf(WebTab.HOME)
-        private set
 
     /** The view shown: the web view, pulled down to reload. */
     val view = SwipeRefreshLayout(activity)
@@ -167,7 +158,7 @@ class WebTabController(
 
         // Where the reader was when the system stopped the app, or else the site's first page.
         if (!restore(savedState)) {
-            load(WebTab.HOME.rootUrl)
+            load(Site.BASE_URL + "/")
         }
     }
 
@@ -233,34 +224,6 @@ class WebTabController(
         if (hasLoaded) webView.reload()
     }
 
-    /** Shows the site's results for [query] (`/search?q=`). */
-    fun search(query: String) {
-        load(Uri.parse(WebTab.SEARCH.rootUrl).buildUpon().appendQueryParameter("q", query).build().toString())
-    }
-
-    /**
-     * A section picked in the tab bar: its own page, unless that is the page showing --
-     * searched-for results are the search tab's page as much as the empty field is.
-     */
-    fun show(section: WebTab) {
-        if (hasLoaded && webView.url?.let { Uri.parse(it).path } == section.path) return
-        // The bar follows the tap at once rather than waiting out a fetch.
-        this.section = section
-        load(section.rootUrl)
-    }
-
-    /**
-     * Tapping the selected tab again: scroll to the top, or go back to the section's own
-     * page from wherever in it the reader has got to.
-     */
-    fun reselect() {
-        if (webView.scrollY > 0) {
-            webView.evaluateJavascript("window.scrollTo({ top: 0, behavior: 'smooth' })", null)
-        } else if (hasLoaded && webView.url?.let { Uri.parse(it).path } != section.path) {
-            load(section.rootUrl)
-        }
-    }
-
     /** The reader's font size, on every page (SiteBridge.showTextScale). */
     fun showTextScale() {
         bridge.showTextScale(activity.resources.configuration.fontScale)
@@ -281,7 +244,6 @@ class WebTabController(
                 onPage(message)
                 handPushToken()
             }
-            is BridgeMessage.Unread -> onUnread(message.count)
             is BridgeMessage.Theme -> {
                 message.ground?.let {
                     ground = it
@@ -297,6 +259,8 @@ class WebTabController(
             }
             // The painter can be driven now; nothing in this app drives it yet.
             is BridgeMessage.Painter -> Unit
+            // The bell's number is on the page, and this app has nowhere else to show it.
+            is BridgeMessage.Unread -> Unit
             is BridgeMessage.SignIn -> signIn(message)
             is BridgeMessage.Browse -> signInHandoff?.browse(message.url)
             is BridgeMessage.Share -> shareText(message)
