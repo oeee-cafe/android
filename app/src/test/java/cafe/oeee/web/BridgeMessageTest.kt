@@ -14,12 +14,13 @@ class BridgeMessageTest {
     fun page() {
         val message = BridgeMessage.parse(
             """{"v":1,"type":"page","path":"/draw","signedIn":true,"presence":"drawing",""" +
-                """"community":"오이카페","group":null,"painting":true}"""
+                """"community":"오이카페","group":null,"painting":true,"refreshable":false}"""
         )
         assertEquals(
             BridgeMessage.Page(
                 signedIn = true,
-                painting = true
+                painting = true,
+                refreshable = false
             ),
             message
         )
@@ -28,9 +29,10 @@ class BridgeMessageTest {
     @Test
     fun aPageWithoutTheToolbarCannotSayWhoIsSignedIn() {
         val message = BridgeMessage.parse(
-            """{"v":1,"type":"page","path":"/","signedIn":null,"presence":null,"painting":false}"""
+            """{"v":1,"type":"page","path":"/","signedIn":null,"presence":null,"painting":false,"refreshable":true}"""
         ) as BridgeMessage.Page
         assertNull(message.signedIn)
+        assertEquals(true, message.refreshable)
     }
 
     @Test

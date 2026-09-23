@@ -85,6 +85,7 @@ dependencies {
 
     // Web views
     implementation(libs.androidx.webkit)
+    implementation(libs.androidx.swiperefreshlayout)
     // Other sites, over the app (Custom Tabs)
     implementation(libs.androidx.browser)
 
