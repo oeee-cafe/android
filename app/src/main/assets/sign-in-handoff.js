@@ -17,6 +17,12 @@
   // The handoff under way: its id, its secret, and where it is going afterwards.
   var pending = null;
   var asking = null;
+  // Whether an ask is in flight. Two at once can spend the handoff between
+  // them: one gets the sign-in and the other gets "there is no such handoff",
+  // and whichever lands second decides what the page does -- which once left
+  // a successful sign-in on the floor, because the failure arrived first and
+  // cleared `pending` out from under it.
+  var inFlight = false;
 
   // How often to ask whether the browser has finished, and how long to keep asking. The
   // site forgets a handoff after fifteen minutes, so there is nothing to find after that.
@@ -59,13 +65,25 @@
 
   // Asks the site whether the browser has finished, and acts on what it says.
   function ask(confirmed) {
-    if (!pending) return;
+    if (!pending || inFlight) return;
+    inFlight = true;
     var fields = { id: pending.id, secret: pending.secret };
     if (confirmed) fields.confirm = "1";
     post("/auth/handoff/claim", fields)
       .then(function (answer) {
-        if (!answer || !pending) return;
+        inFlight = false;
+        if (!answer) {
+          // The site could not answer. Nothing has been decided, so keep
+          // asking rather than giving up on a sign-in that may have taken.
+          return;
+        }
+        if (!pending) return;
         if (answer.status === "waiting") return;
+        if (answer.status === "failed") {
+          // Something went wrong there, and the handoff is still good: the
+          // next ask tries again.
+          return;
+        }
         if (answer.status === "confirm") {
           // Linking the browser's account to the one signed in here. The site words the
           // question, because it is the one that knows the reader's language; the app
@@ -89,6 +107,7 @@
       })
       .catch(function () {
         // A request that did not land says nothing either way; the next one will.
+        inFlight = false;
       });
   }
 
