@@ -139,17 +139,15 @@ class GoogleSignIn(
         /** What the page posts the nonce to, and hears the answer on. */
         const val OBJECT_NAME = "oeeeGoogleSignIn"
 
-        /**
-         * Said in the user agent, so the site shows its button (theme_head.jinja in
-         * oeee-cafe/web). An app that cannot do this does not say it, and the site offers
-         * nothing that would only fail.
-         */
-        const val USER_AGENT_TOKEN = "SignInWithGoogle"
-
-        /**
+                /**
          * Whether this build can sign in with Google at all: one built without the site's
          * client id cannot, and neither can a web view too old for the two halves of the
          * bridge this needs.
+         */
+        /**
+         * Whether this build and this web view can do it at all: a web view without the
+         * two halves of the bridge cannot, and Android System WebView updates apart from
+         * the app, so the same build can differ from one device to the next.
          */
         fun isAvailable(): Boolean =
             BuildConfig.GOOGLE_SERVER_CLIENT_ID.isNotEmpty() &&

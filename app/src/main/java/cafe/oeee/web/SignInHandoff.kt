@@ -91,12 +91,10 @@ class SignInHandoff(
         const val OBJECT_NAME = "oeeeHandoff"
 
         /**
-         * Said in the user agent, so the site shows Apple's button (theme_head.jinja in
-         * oeee-cafe/web). A web view without the two halves of the bridge this needs does
-         * not say it, and is shown no button.
+         * Whether this build and this web view can do it at all: a web view without the
+         * two halves of the bridge cannot, and Android System WebView updates apart from
+         * the app, so the same build can differ from one device to the next.
          */
-        const val USER_AGENT_TOKEN = "SignInWithApple"
-
         fun isAvailable(): Boolean =
             WebViewFeature.isFeatureSupported(WebViewFeature.WEB_MESSAGE_LISTENER) &&
                 WebViewFeature.isFeatureSupported(WebViewFeature.DOCUMENT_START_SCRIPT)

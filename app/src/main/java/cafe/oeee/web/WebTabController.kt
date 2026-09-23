@@ -108,11 +108,7 @@ class WebTabController(
             javaScriptEnabled = true
             domStorageEnabled = true
             mediaPlaybackRequiresUserGesture = false
-            userAgentString = buildString {
-                append(userAgentString).append(' ').append(USER_AGENT_SUFFIX)
-                if (GoogleSignIn.isAvailable()) append(' ').append(GoogleSignIn.USER_AGENT_TOKEN)
-                if (SignInHandoff.isAvailable()) append(' ').append(SignInHandoff.USER_AGENT_TOKEN)
-            }
+            userAgentString = "$userAgentString $USER_AGENT_SUFFIX"
         }
         webView.webViewClient = Client()
         webView.webChromeClient = ChromeClient(fileChooser)
