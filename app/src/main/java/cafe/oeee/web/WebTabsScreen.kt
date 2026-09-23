@@ -4,8 +4,6 @@ import android.os.Build
 import android.view.ViewGroup
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.LocalActivity
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.consumeWindowInsets
@@ -13,7 +11,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
@@ -38,7 +35,6 @@ import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.luminance
@@ -51,30 +47,24 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.view.WindowCompat
 import cafe.oeee.ui.theme.OeeeCafeTheme
 
-/** The native tab bar, each tab showing its own page of the site. */
+/** The native tab bar, picking what the one web view shows. */
 @Composable
-fun WebTabsScreen(
-    store: WebTabStore,
-    visibleTabs: List<WebTab>,
-    selectedTab: WebTab,
-    onSelectTab: (WebTab) -> Unit,
-    badgeCount: (WebTab) -> Long
-) {
-    // Read so that a recreated web view is picked up.
-    store.generation
-    val controller = store.controller(selectedTab)
+fun WebTabsScreen(controller: WebTabController, visibleTabs: List<WebTab>, badgeCount: (WebTab) -> Long) {
+    // The section of the page showing, or home for a page whose section has no tab of
+    // theirs -- the sign-in page, once they are signed in.
+    val selectedTab = if (controller.section in visibleTabs) controller.section else WebTab.HOME
     // The screen is only ever shown by MainActivity.
     val activity = checkNotNull(LocalActivity.current)
 
-    // Back goes back in the tab's own history, then to the home tab, then leaves the app.
+    // Back goes back through the pages read, then to the home page, then leaves the app.
     // Leaving is the system's own back, so from Android 13 its predictive animation shows
     // the home screen as the app goes; before 12 the system's would close the activity
-    // and every tab with it, so there the app steps aside itself.
+    // and the web view with it, so there the app steps aside itself.
     val leavesBySystem = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
     BackHandler(enabled = controller.canGoBack || selectedTab != WebTab.HOME || !leavesBySystem) {
         when {
             controller.webView.canGoBack() -> controller.webView.goBack()
-            selectedTab != WebTab.HOME -> onSelectTab(WebTab.HOME)
+            selectedTab != WebTab.HOME -> controller.show(WebTab.HOME)
             else -> activity.moveTaskToBack(true)
         }
     }
@@ -113,7 +103,7 @@ fun WebTabsScreen(
                             selected = selected,
                             onClick = {
                                 // Selecting the already selected tab takes it back to its top.
-                                if (selected) store.controller(tab).reselect() else onSelectTab(tab)
+                                if (selected) controller.reselect() else controller.show(tab)
                             },
                             icon = {
                                 val count = badgeCount(tab)
@@ -184,38 +174,16 @@ private fun SearchTab(controller: WebTabController) {
                 }
             })
         )
-        Box(modifier = Modifier.fillMaxSize()) {
-            WebTabView(controller)
-            // Until something is searched for here, or a link to results is opened.
-            if (!controller.hasLoaded) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .background(MaterialTheme.colorScheme.background),
-                    verticalArrangement = Arrangement.Center,
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    Icon(
-                        Icons.Filled.Search,
-                        contentDescription = null,
-                        modifier = Modifier.size(48.dp),
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                    Text(
-                        stringResource(WebTab.SEARCH.title),
-                        modifier = Modifier.padding(top = 8.dp),
-                        style = MaterialTheme.typography.titleMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-            }
-        }
+        // What is under the field before anything is searched for is the site's own search
+        // page, which leaves its form out where a field like this one is above it
+        // (search.jinja in oeee-cafe/web).
+        WebTabView(controller)
     }
 }
 
 /**
- * Shows a tab's web view. The web view outlives this view (it keeps the tab's history while
- * another tab is shown), so it is moved in from wherever it was last shown.
+ * Shows the web view. It outlives this view -- it is the same one in every tab, and keeps
+ * the history -- so it is moved in from wherever it was last shown.
  */
 @Composable
 private fun WebTabView(controller: WebTabController) {

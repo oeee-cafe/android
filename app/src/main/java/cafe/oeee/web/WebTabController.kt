@@ -25,16 +25,16 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.Color
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import cafe.oeee.R
+import cafe.oeee.data.remote.ApiClient
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 
-/** One tab's web view: its settings, its life, and what its pages say to the app. */
+/** The app's one web view: its settings, its life, and what its pages say to the app. */
 @SuppressLint("SetJavaScriptEnabled")
 class WebTabController(
-    val tab: WebTab,
     private val activity: Activity,
     scripts: PageScripts,
     fileChooser: FileChooser,
@@ -45,8 +45,8 @@ class WebTabController(
     private val onRenderProcessGone: () -> Unit
 ) : DrawingActions, SiteBridge.Listener {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
-    private val siteOrigin: String = SiteBridge.origin(Uri.parse(tab.rootUrl))
-    private val navigation = Navigation(activity, Uri.parse(tab.rootUrl).host)
+    private val siteOrigin: String = SiteBridge.origin(Uri.parse(ApiClient.BASE_URL))
+    private val navigation = Navigation(activity, Uri.parse(ApiClient.BASE_URL).host)
     private val dialogs = SiteDialogs(activity)
 
     /** The drawing a finger last landed on, if it landed on one (BridgeMessage.Pressed). */
@@ -57,15 +57,24 @@ class WebTabController(
 
     /**
      * Who the page shown last said is signed in, or null on a page that could not tell.
-     * A tab already showing the new answer needs no reloading after a sign-in -- it is
-     * the page that said so (WebTabStore.authenticationChanged).
+     * A page already showing the new answer needs no reloading after a sign-in -- it is
+     * the page that said so (WebTabs.authenticationChanged).
      */
     var lastSignedIn: Boolean? = null
         private set
 
     val webView = WebView(activity)
 
-    /** The tab's view: the web view, pulled down to reload. */
+    /**
+     * The section the page showing belongs to, which is the tab the bar draws as the one
+     * the reader is in (WebTabsScreen). The site says where every page is (SiteBridge), so
+     * the bar follows the page rather than the two being told separately -- the site's own
+     * toolbar has these sections in it as well, and the two ways in could disagree.
+     */
+    var section by mutableStateOf(WebTab.HOME)
+        private set
+
+    /** The view shown: the web view, pulled down to reload. */
     val view = SwipeRefreshLayout(activity)
 
     private val downloads = Downloads(activity, webView, storagePermission)
@@ -93,7 +102,7 @@ class WebTabController(
     var bottomColor by mutableStateOf<Color?>(null)
         private set
 
-    /** Whether the web view has loaded anything (the search tab waits for a search). */
+    /** Whether the web view has loaded anything yet. */
     var hasLoaded by mutableStateOf(false)
         private set
 
@@ -101,7 +110,7 @@ class WebTabController(
     var isUnreachable by mutableStateOf(false)
         private set
 
-    /** Whether the tab's own history has a page to go back to, which Back does first. */
+    /** Whether there is a page to go back to, which Back does first. */
     var canGoBack by mutableStateOf(false)
         private set
 
@@ -148,14 +157,13 @@ class WebTabController(
         // not be: a canvas being drawn on, or a replay playing.
         view.setOnChildScrollUpCallback { _, _ -> webView.scrollY > 0 || !refreshable }
 
-        // Where the tab was when the system stopped the app, or else its own page. Search
-        // shows nothing until something is searched for.
-        if (!restore(savedState) && tab != WebTab.SEARCH) {
-            load(tab.rootUrl)
+        // Where the reader was when the system stopped the app, or else the site's first page.
+        if (!restore(savedState)) {
+            load(WebTab.HOME.rootUrl)
         }
     }
 
-    /** Takes the tab back to the history [saveState] kept; false when there is none. */
+    /** Takes the web view back to the history [saveState] kept; false when there is none. */
     private fun restore(state: Bundle?): Boolean {
         if (state == null) return false
         state.getString(STATE_URL)?.let {
@@ -168,10 +176,9 @@ class WebTabController(
     }
 
     /**
-     * The tab's history, for the system to keep while the app is stopped. The web view's
-     * own state holds every page of it; when that is too large to be kept alongside the
-     * other tabs' -- a bundle the system refuses takes the whole app down -- only the page
-     * shown is.
+     * The history, for the system to keep while the app is stopped. The web view's own
+     * state holds every page of it; when that is too large to keep -- a bundle the system
+     * refuses takes the whole app down -- only the page shown is.
      */
     fun saveState(): Bundle? {
         if (!hasLoaded) return null
@@ -202,7 +209,7 @@ class WebTabController(
     }
 
     /**
-     * The tab is in front again. Somebody may have just come back from signing in in a
+     * The app is in front again. Somebody may have just come back from signing in in a
      * browser, so the page asks the site now instead of waiting for its next turn.
      */
     fun resumed() {
@@ -220,19 +227,34 @@ class WebTabController(
 
     /** Shows the site's results for [query] (`/search?q=`). */
     fun search(query: String) {
-        load(Uri.parse(tab.rootUrl).buildUpon().appendQueryParameter("q", query).build().toString())
+        load(Uri.parse(WebTab.SEARCH.rootUrl).buildUpon().appendQueryParameter("q", query).build().toString())
     }
 
-    /** Tapping the selected tab again: scroll to the top, or go back to the tab's own page. */
+    /**
+     * A section picked in the tab bar: its own page, unless that is the page showing --
+     * searched-for results are the search tab's page as much as the empty field is.
+     */
+    fun show(section: WebTab) {
+        if (hasLoaded && webView.url?.let { Uri.parse(it).path } == section.path) return
+        // The bar follows the tap at once rather than waiting out a fetch; where the page
+        // says it is, when it arrives, is what stands ([onMessage]).
+        this.section = section
+        load(section.rootUrl)
+    }
+
+    /**
+     * Tapping the selected tab again: scroll to the top, or go back to the section's own
+     * page from wherever in it the reader has got to.
+     */
     fun reselect() {
         if (webView.scrollY > 0) {
             webView.evaluateJavascript("window.scrollTo({ top: 0, behavior: 'smooth' })", null)
-        } else if (hasLoaded && webView.url?.let { Uri.parse(it).path } != tab.path) {
-            load(tab.rootUrl)
+        } else if (hasLoaded && webView.url?.let { Uri.parse(it).path } != section.path) {
+            load(section.rootUrl)
         }
     }
 
-    /** The reader's font size, on every page of the tab (SiteBridge.showTextScale). */
+    /** The reader's font size, on every page (SiteBridge.showTextScale). */
     fun showTextScale() {
         bridge.showTextScale(activity.resources.configuration.fontScale)
     }
@@ -249,6 +271,10 @@ class WebTabController(
             is BridgeMessage.Page -> {
                 refreshable = message.refreshable
                 message.signedIn?.let { lastSignedIn = it }
+                // Wherever the page came from -- a tab, the site's own toolbar, a link in
+                // what somebody wrote, Back -- the bar draws the section it is in, and a
+                // page that is nobody's section leaves the bar where it was.
+                message.path?.let { path -> WebTab.showing(path)?.let { section = it } }
                 onPage(message)
             }
             is BridgeMessage.Unread -> onUnread(message.count)
@@ -360,14 +386,14 @@ class WebTabController(
         override fun onReceivedError(view: WebView, request: WebResourceRequest, error: WebResourceError) {
             if (request.isForMainFrame) {
                 this@WebTabController.view.isRefreshing = false
-                Log.w(TAG, "${tab.name}: Failed to load ${request.url} - ${error.description}")
+                Log.w(TAG, "Failed to load ${request.url} - ${error.description}")
                 // No network, no answer: said in the app's words, over the web view's own page.
                 if (error.errorCode in UNREACHABLE_ERRORS) isUnreachable = true
             }
         }
 
         override fun onRenderProcessGone(view: WebView, detail: RenderProcessGoneDetail): Boolean {
-            Log.w(TAG, "${tab.name}: Web content process gone, starting the tab over")
+            Log.w(TAG, "Web content process gone, starting the site over")
             onRenderProcessGone()
             return true
         }
@@ -395,7 +421,7 @@ class WebTabController(
         /** What the site looks for to know it is in this app (`data-app="android"`). */
         const val USER_AGENT_SUFFIX = "OeeeCafeAndroid"
         const val STATE_URL = "url"
-        /** A quarter of what the system will carry for the whole app, per tab. */
+        /** A quarter of what the system will carry for the whole app. */
         const val MAX_STATE_BYTES = 128 * 1024
         val UNREACHABLE_ERRORS = setOf(
             WebViewClient.ERROR_HOST_LOOKUP,

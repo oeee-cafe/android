@@ -1,14 +1,13 @@
 package cafe.oeee
 
 import android.content.Intent
-import android.net.Uri
 import android.util.Log
 import cafe.oeee.web.WebTab
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
-/** Turns a tapped push notification or a link to the site into a page, and the tab to open it in. */
+/** Turns a tapped push notification or a link to the site into a page to open. */
 object NavigationCoordinator {
     private const val TAG = "NavigationCoordinator"
     private const val LINK_HOST = "oeee.cafe"
@@ -16,14 +15,14 @@ object NavigationCoordinator {
     /** What only a notification's intent carries: its page, and the ids every push has. */
     private val NOTIFICATION_KEYS = listOf("url", "notification_id", "notification_type")
 
-    data class PendingNavigation(val tab: WebTab, val path: String)
+    data class PendingNavigation(val path: String)
 
     private val _pendingNavigation = MutableStateFlow<PendingNavigation?>(null)
     val pendingNavigation: StateFlow<PendingNavigation?> = _pendingNavigation.asStateFlow()
 
-    private fun navigate(path: String, tab: WebTab) {
-        Log.d(TAG, "Navigating to $path in ${tab.name}")
-        _pendingNavigation.value = PendingNavigation(tab, path)
+    private fun navigate(path: String) {
+        Log.d(TAG, "Navigating to $path")
+        _pendingNavigation.value = PendingNavigation(path)
     }
 
     /**
@@ -38,7 +37,7 @@ object NavigationCoordinator {
         val url = intent.getStringExtra("url")?.takeIf { it.startsWith("/") && !it.startsWith("//") }
         val path = url ?: WebTab.NOTIFICATIONS.path
         Log.i(TAG, "Handling notification tap")
-        navigate(path, tabFor(Uri.parse(path).path ?: path))
+        navigate(path)
     }
 
     /** Handles a link to the site the app was opened with, if any. */
@@ -52,14 +51,8 @@ object NavigationCoordinator {
         val pathAndMore = path +
             (uri.encodedQuery?.let { "?$it" } ?: "") +
             (uri.encodedFragment?.let { "#$it" } ?: "")
-        navigate(pathAndMore, tabFor(path))
+        navigate(pathAndMore)
     }
-
-    /** The tab whose own section of the site [path] is in; anything else opens on the home tab. */
-    private fun tabFor(path: String): WebTab =
-        WebTab.entries.firstOrNull { tab ->
-            tab != WebTab.HOME && (path == tab.path || path.startsWith(tab.path + "/"))
-        } ?: WebTab.HOME
 
     fun clearPendingNavigation() {
         _pendingNavigation.value = null

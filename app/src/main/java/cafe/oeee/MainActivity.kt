@@ -22,7 +22,6 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -35,12 +34,12 @@ import cafe.oeee.web.FileChooser
 import cafe.oeee.web.StoragePermission
 import cafe.oeee.web.WebSession
 import cafe.oeee.web.WebTab
-import cafe.oeee.web.WebTabStore
+import cafe.oeee.web.WebTabs
 import cafe.oeee.web.WebTabsScreen
 import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
-    private lateinit var webTabs: WebTabStore
+    private lateinit var webTabs: WebTabs
     private var pendingFileCallback: ValueCallback<Array<Uri>>? = null
 
     private val notificationPermissionLauncher = registerForActivityResult(
@@ -94,7 +93,7 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
 
-        webTabs = WebTabStore(this, fileChooser, storagePermission, savedInstanceState, AuthService::pageSaid)
+        webTabs = WebTabs(this, fileChooser, storagePermission, savedInstanceState, AuthService::pageSaid)
 
         // Handle a notification or link the app was opened from (cold start). Not again when
         // restored, or when reopened from recents, which hands back the intent it was first started with.
@@ -102,46 +101,39 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             OeeeCafeTheme {
-                var isReady by remember { mutableStateOf(false) }
-                var selectedTab by rememberSaveable { mutableStateOf(WebTab.HOME) }
                 val isAuthenticated by AuthService.isAuthenticated.collectAsState()
                 val visibleTabs = WebTab.visible(isAuthenticated)
+                // Read so that a recreated web view is picked up.
+                webTabs.generation
+                val controller = webTabs.controller
 
                 LaunchedEffect(Unit) {
-                    // Picks up whoever is signed in on the web views before showing any tab.
+                    // Picks up whoever is signed in on the web views before anything is fetched.
                     WebSession.start(this@MainActivity)
-                    isReady = true
+                    webTabs.start()
 
                     var wasAuthenticated: Boolean? = null
                     AuthService.isAuthenticated.collect { authenticated ->
-                        if (wasAuthenticated != null) {
-                            val tabs = WebTab.visible(authenticated)
-                            webTabs.authenticationChanged(tabs, authenticated)
-                            if (selectedTab !in tabs) selectedTab = WebTab.HOME
-                        }
+                        if (wasAuthenticated != null) webTabs.authenticationChanged(authenticated)
                         authenticationChanged(authenticated, wasSignedIn = wasAuthenticated == true)
                         wasAuthenticated = authenticated
                     }
                 }
 
                 val pending by NavigationCoordinator.pendingNavigation.collectAsState()
-                LaunchedEffect(isReady, pending) {
+                LaunchedEffect(controller, pending) {
                     val navigation = pending ?: return@LaunchedEffect
-                    if (!isReady) return@LaunchedEffect
+                    val shown = controller ?: return@LaunchedEffect
                     NavigationCoordinator.clearPendingNavigation()
-                    // A page in a tab that isn't shown (signed in or out) opens on the home tab.
-                    val tab = navigation.tab.takeIf { it in WebTab.visible(AuthService.isAuthenticated.value) }
-                        ?: WebTab.HOME
-                    selectedTab = tab
-                    webTabs.controller(tab).load(ApiClient.BASE_URL + navigation.path)
+                    // The web view shows it, and the bar draws whichever section it turns
+                    // out to be in (WebTabController.section).
+                    shown.load(ApiClient.BASE_URL + navigation.path)
                 }
 
-                if (isReady) {
+                if (controller != null) {
                     WebTabsScreen(
-                        store = webTabs,
+                        controller = controller,
                         visibleTabs = visibleTabs,
-                        selectedTab = selectedTab,
-                        onSelectTab = { selectedTab = it },
                         badgeCount = { tab ->
                             if (tab == WebTab.NOTIFICATIONS && isAuthenticated) webTabs.unreadCount.toLong() else 0L
                         }
@@ -183,7 +175,7 @@ class MainActivity : ComponentActivity() {
     override fun onResume() {
         super.onResume()
         // Back from a browser, perhaps: the tabs' pages ask the site whether a sign-in
-        // sent out there has finished (WebTabStore.resumed).
+        // sent out there has finished (WebTabs.resumed).
         webTabs.resumed()
     }
 
