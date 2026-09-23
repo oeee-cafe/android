@@ -11,6 +11,7 @@ import android.os.Parcel
 import android.util.Log
 import android.view.HapticFeedbackConstants
 import android.view.ViewGroup
+import android.widget.FrameLayout
 import android.webkit.JsResult
 import android.webkit.RenderProcessGoneDetail
 import android.webkit.ValueCallback
@@ -24,7 +25,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
-import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import cafe.oeee.R
 import cafe.oeee.data.service.PushNotificationService
 import kotlinx.coroutines.CoroutineScope
@@ -52,9 +52,6 @@ class WebTabController(
     /** The drawing a finger last landed on, if it landed on one (BridgeMessage.Pressed). */
     private var pressedDrawing: DrawingMenu.Drawing? = null
 
-    /** Whether the page shown may be reloaded by pulling it down (BridgeMessage.Page.refreshable). */
-    private var refreshable = true
-
     /**
      * Who the page shown last said is signed in, or null on a page that could not tell.
      * A page already showing the new answer needs no reloading after a sign-in -- it is
@@ -65,8 +62,13 @@ class WebTabController(
 
     val webView = WebView(activity)
 
-    /** The view shown: the web view, pulled down to reload. */
-    val view = SwipeRefreshLayout(activity)
+    /**
+     * The view shown: the web view, in a frame of its own so that it can be moved from one
+     * screen to another whole. Pulling a page down to reload it is the page's own
+     * (app_refresh.jinja in oeee-cafe/web), which keeps the site's toolbar still while the
+     * content comes down, and knows which pages may not be reloaded.
+     */
+    val view = FrameLayout(activity)
 
     private val downloads = Downloads(activity, webView, storagePermission) { words }
     private val bridge: SiteBridge
@@ -151,10 +153,6 @@ class WebTabController(
             webView,
             ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT)
         )
-        view.setOnRefreshListener { webView.reload() }
-        // Pulling down reloads only at the top of a page, and never one that says it may
-        // not be: a canvas being drawn on, or a replay playing.
-        view.setOnChildScrollUpCallback { _, _ -> webView.scrollY > 0 || !refreshable }
 
         // Where the reader was when the system stopped the app, or else the site's first page.
         if (!restore(savedState)) {
@@ -239,7 +237,6 @@ class WebTabController(
     override fun onMessage(message: BridgeMessage) {
         when (message) {
             is BridgeMessage.Page -> {
-                refreshable = message.refreshable
                 message.signedIn?.let { lastSignedIn = it }
                 onPage(message)
                 handPushToken()
@@ -365,12 +362,9 @@ class WebTabController(
         override fun onPageStarted(view: WebView, url: String?, favicon: android.graphics.Bitmap?) {
             isUnreachable = false
             pressedDrawing = null
-            // [refreshable] is left as the last page said until the new one says: a moment in
-            // which a painter could be pulled down is worse than one in which a feed can't be.
         }
 
         override fun onPageFinished(view: WebView, url: String?) {
-            this@WebTabController.view.isRefreshing = false
             canGoBack = view.canGoBack()
         }
 
@@ -381,7 +375,6 @@ class WebTabController(
 
         override fun onReceivedError(view: WebView, request: WebResourceRequest, error: WebResourceError) {
             if (request.isForMainFrame) {
-                this@WebTabController.view.isRefreshing = false
                 Log.w(TAG, "Failed to load ${request.url} - ${error.description}")
                 // No network, no answer: said in the app's words, over the web view's own page.
                 if (error.errorCode in UNREACHABLE_ERRORS) isUnreachable = true

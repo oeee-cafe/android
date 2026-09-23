@@ -20,9 +20,7 @@ sealed interface BridgeMessage {
         /** Null on a page without the toolbar, which cannot tell. */
         val signedIn: Boolean?,
         /** Whether leaving would lose a drawing in progress. */
-        val painting: Boolean,
-        /** Whether pulling down may reload the page; neither a painter nor a replay may be. */
-        val refreshable: Boolean
+        val painting: Boolean
     ) : BridgeMessage
 
     /** The number on the site's bell: unread notifications and invitations waiting, together. */
@@ -117,8 +115,7 @@ sealed interface BridgeMessage {
             return when (message["type"]) {
                 "page" -> Page(
                     signedIn = message["signedIn"] as? Boolean,
-                    painting = message["painting"] as? Boolean ?: false,
-                    refreshable = message["refreshable"] as? Boolean ?: true
+                    painting = message["painting"] as? Boolean ?: false
                 )
                 "unread" -> Unread(((message["count"] as? Number)?.toInt() ?: 0).coerceAtLeast(0))
                 "theme" -> Theme(
