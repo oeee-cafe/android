@@ -325,7 +325,7 @@ class WebTabController(
         }
         Log.w(TAG, "No sheet to sign in with ${message.provider}")
         webView.evaluateJavascript(
-            "window.oeeeSignIn && window.oeeeSignIn.answer(${GoogleSignInMessages.FAILED});",
+            "window.oeeeApp && window.oeeeApp.signIn && window.oeeeApp.signIn.answer(${GoogleSignInMessages.FAILED});",
             null
         )
     }

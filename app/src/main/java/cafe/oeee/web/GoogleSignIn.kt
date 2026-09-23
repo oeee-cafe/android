@@ -26,7 +26,7 @@ import org.json.JSONObject
  * (`disallowed_useragent`), so the tab stops the link ([isSignInLink]) and asks Credential
  * Manager here instead.
  *
- * The page does the rest (`window.oeeeSignIn.native`, app_sign_in.jinja in oeee-cafe/web):
+ * The page does the rest (`window.oeeeApp.signIn.native`, app_sign_in.jinja in oeee-cafe/web):
  * it asks the site for this sign-in's state and nonce, hands the nonce over on the bridge
  * (BridgeMessage.SignIn), and posts the ID token this answers with to `/auth/google`. So
  * everything the site is asked carries the page's cookie and origin, and the app never
@@ -47,7 +47,7 @@ class GoogleSignIn(
         val next = url.getQueryParameter("next")
         val argument = if (next == null) "null" else JSONObject.quote(next)
         webView.evaluateJavascript(
-            "window.oeeeSignIn && window.oeeeSignIn.native(\"google\", $argument);",
+            "window.oeeeApp && window.oeeeApp.signIn && window.oeeeApp.signIn.native(\"google\", $argument);",
             null
         )
     }
@@ -69,7 +69,7 @@ class GoogleSignIn(
             Log.w(TAG, "The page that asked to sign in is gone; not answering")
             return
         }
-        webView.evaluateJavascript("window.oeeeSignIn && window.oeeeSignIn.answer($told);", null)
+        webView.evaluateJavascript("window.oeeeApp && window.oeeeApp.signIn && window.oeeeApp.signIn.answer($told);", null)
     }
 
     /** What Credential Manager said, as the page is to be told it (GoogleSignInMessages). */

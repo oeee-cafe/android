@@ -6,7 +6,7 @@ import org.junit.Test
 
 /**
  * What the app answers a page that asked it to sign in with Google, as
- * `window.oeeeSignIn.answer` takes it (app_sign_in.jinja). The answer is written into the
+ * `window.oeeeApp.signIn.answer` takes it (app_sign_in.jinja). The answer is written into the
  * script the app evaluates, so it has to be JSON whatever the token holds -- a JWT is dots
  * and base64url, but nothing here should depend on that.
  */

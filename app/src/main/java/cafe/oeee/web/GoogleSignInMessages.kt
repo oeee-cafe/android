@@ -5,7 +5,7 @@ import com.squareup.moshi.Moshi
 
 /**
  * What the app answers a page that asked it to sign in with Google ([GoogleSignIn]), as the
- * object `window.oeeeSignIn.answer` takes (app_sign_in.jinja in oeee-cafe/web): an ID token,
+ * object `window.oeeeApp.signIn.answer` takes (app_sign_in.jinja in oeee-cafe/web): an ID token,
  * a sign-in put away, or one Google would not make. Each is JSON, which the app writes into
  * the call it evaluates, so it is a literal the page reads whatever the token holds.
  *

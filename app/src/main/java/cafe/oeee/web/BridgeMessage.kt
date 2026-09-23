@@ -69,13 +69,13 @@ sealed interface BridgeMessage {
     /** As a finger lands, the drawing it landed on; null when it is not on one. */
     data class Pressed(val drawing: PressedDrawing?) : BridgeMessage
 
-    /** The painter's state; "ready" once `window.oeeePainter` can be driven. */
+    /** The painter's state; "ready" once `window.oeeeApp.painter` can be driven. */
     data class Painter(val state: String) : BridgeMessage
 
     /**
      * A sign-in the page is carrying, after the app stopped its link (app_sign_in.jinja): make
      * an ID token for [nonce] with the platform's own sheet, and answer with
-     * `window.oeeeSignIn.answer`.
+     * `window.oeeeApp.signIn.answer`.
      */
     data class SignIn(val provider: String, val nonce: String) : BridgeMessage
 

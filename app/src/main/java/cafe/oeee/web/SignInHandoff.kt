@@ -13,7 +13,7 @@ import org.json.JSONObject
  * the app's own, where the answer comes back without the web view's session. So the site
  * hands the sign-in out and takes it back: the page starts a handoff, asks the app to open a
  * browser at the URL it is given (BridgeMessage.Browse), and asks the site until the browser
- * has finished (`window.oeeeSignIn.browser`, app_sign_in.jinja and src/handoff.rs in
+ * has finished (`window.oeeeApp.signIn.browser`, app_sign_in.jinja and src/handoff.rs in
  * oeee-cafe/web).
  *
  * The app's whole part is opening a browser. It never holds the session and never sees the
@@ -33,7 +33,7 @@ class SignInHandoff(
     fun begin(url: Uri, provider: String) {
         val next = url.getQueryParameter("next")
         webView.evaluateJavascript(
-            "window.oeeeSignIn && window.oeeeSignIn.browser(" +
+            "window.oeeeApp && window.oeeeApp.signIn && window.oeeeApp.signIn.browser(" +
                 "${JSONObject.quote(provider)}, ${if (next == null) "null" else JSONObject.quote(next)});",
             null
         )
@@ -41,7 +41,7 @@ class SignInHandoff(
 
     /** Back in front, probably from the browser: the page asks the site again at once. */
     fun resume() {
-        webView.evaluateJavascript("window.oeeeSignIn && window.oeeeSignIn.resume();", null)
+        webView.evaluateJavascript("window.oeeeApp && window.oeeeApp.signIn && window.oeeeApp.signIn.resume();", null)
     }
 
     /** The page's `browse`: the site's own URL, opened in a browser, or the page told it was not. */
@@ -49,7 +49,7 @@ class SignInHandoff(
         val uri = siteUrl(url)
         if (uri == null || !openInBrowser(uri)) {
             Log.w(TAG, if (uri == null) "Not opening a browser at somewhere other than the site" else "No browser to sign in with")
-            webView.evaluateJavascript("window.oeeeSignIn && window.oeeeSignIn.unopened();", null)
+            webView.evaluateJavascript("window.oeeeApp && window.oeeeApp.signIn && window.oeeeApp.signIn.unopened();", null)
         }
     }
 
