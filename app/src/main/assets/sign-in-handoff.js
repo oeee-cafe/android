@@ -98,7 +98,8 @@
         if (answer.status === "ready") {
           var next = answer.next || "/";
           stop();
-          location.href = next;
+          // Replaced, not pushed: /login is not left behind the page it lands on.
+          location.replace(next);
           return;
         }
         // "unknown", or anything a later site says that this does not know: the sign-in
