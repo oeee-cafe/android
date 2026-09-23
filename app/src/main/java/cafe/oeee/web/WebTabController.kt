@@ -414,8 +414,12 @@ class WebTabController(
 
     private companion object {
         const val TAG = "WebTab"
-        /** What the site looks for to know it is in this app (`data-app="android"`). */
-        const val USER_AGENT_SUFFIX = "OeeeCafeAndroid"
+        /**
+         * What the site looks for to know it is in this app: `OeeeCafe/<app>`, from which it
+         * marks the root `data-app="android"` and `data-form="handheld"` (theme_head.jinja in
+         * oeee-cafe/web). No `store/` after it: this build sells nothing.
+         */
+        const val USER_AGENT_SUFFIX = "OeeeCafe/android"
         const val STATE_URL = "url"
         /** A quarter of what the system will carry for the whole app. */
         const val MAX_STATE_BYTES = 128 * 1024
