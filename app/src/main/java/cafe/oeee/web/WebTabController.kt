@@ -66,17 +66,17 @@ class WebTabController(
     private val bridge: SiteBridge
 
     /**
-     * Signing in with Google, which Google will not do in a web view; null in a build that
-     * cannot ([GoogleSignIn.isAvailable]), whose link is then left to go where it goes.
+     * Signing in with Google, which Google will not do in a web view. The page asks for it
+     * over the bridge, so a web view too old for the bridge is never asked: the page's post
+     * finds no one listening and it leaves the link to go where it goes.
      */
-    private val googleSignIn: GoogleSignIn?
+    private val googleSignIn: GoogleSignIn
 
     /**
      * Signing in with Apple, which Apple has no Android SDK for: it goes out to a browser
-     * and the answer comes back through a handoff. Null in a web view too old for the
-     * bridge it needs, whose link is then left to go where it goes.
+     * and the answer comes back through a handoff. Asked for over the bridge, as Google is.
      */
-    private val signInHandoff: SignInHandoff?
+    private val signInHandoff: SignInHandoff
 
     /**
      * The site's ground and the grid ruled on it (--ds-ground and --ds-grid), for what the
@@ -127,16 +127,8 @@ class WebTabController(
         }
         webView.setOnLongClickListener { openDrawingMenu() }
         bridge = SiteBridge(webView, siteOrigin, this)
-        googleSignIn = if (GoogleSignIn.isAvailable()) {
-            GoogleSignIn(activity, webView, siteOrigin, scope)
-        } else {
-            null
-        }
-        signInHandoff = if (SignInHandoff.isAvailable()) {
-            SignInHandoff(webView) { url -> navigation.openInBrowser(url, ground) }
-        } else {
-            null
-        }
+        googleSignIn = GoogleSignIn(activity, webView, siteOrigin, scope)
+        signInHandoff = SignInHandoff(webView) { url -> navigation.openInBrowser(url, ground) }
         showTextScale()
         // A token that arrives while a signed-in page is showing goes to it at once.
         scope.launch { PushNotificationService.token.collect { handPushToken() } }
@@ -206,7 +198,7 @@ class WebTabController(
      * browser, so the page asks the site now instead of waiting for its next turn.
      */
     fun resumed() {
-        signInHandoff?.resume()
+        signInHandoff.resume()
     }
 
     fun load(url: String) {
@@ -247,8 +239,8 @@ class WebTabController(
             is BridgeMessage.Pressed -> pressedDrawing = message.drawing?.let {
                 DrawingMenu.Drawing(it, referrer = webView.url, userAgent = webView.settings.userAgentString)
             }
-            is BridgeMessage.SignIn -> signIn(message)
-            is BridgeMessage.Browse -> signInHandoff?.browse(message.url)
+            is BridgeMessage.SignIn -> googleSignIn.signIn(message.nonce)
+            is BridgeMessage.Browse -> signInHandoff.browse(message.url)
             is BridgeMessage.Share -> shareText(message)
             is BridgeMessage.Download -> scope.launch { downloads.save(Polyfills.file(message)) }
         }
@@ -264,22 +256,6 @@ class WebTabController(
         val token = PushNotificationService.token.value ?: return
         if (webView.url?.let { SiteBridge.origin(Uri.parse(it)) } != siteOrigin) return
         webView.evaluateJavascript(PageScripts.pushToken(token), null)
-    }
-
-    /**
-     * The page asks for the platform's own sheet for a sign-in the app stopped the link to.
-     * Only Google has one here; Apple's goes through a browser ([SignInHandoff]), and the page
-     * is only ever sent that way for it. Any other is answered as one that could not sign in,
-     * so the page is not left waiting on a sheet that is never coming.
-     */
-    private fun signIn(message: BridgeMessage.SignIn) {
-        val google = googleSignIn
-        if (message.provider == "google" && google != null) {
-            google.signIn(message.nonce)
-            return
-        }
-        Log.w(TAG, "No sheet to sign in with ${message.provider}")
-        webView.evaluateJavascript(PageScripts.signInAnswer(GoogleSignInMessages.FAILED), null)
     }
 
     /** `navigator.share`, as the system's share sheet (app_polyfills.jinja). */

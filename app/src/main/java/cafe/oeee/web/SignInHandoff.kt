@@ -45,10 +45,7 @@ class SignInHandoff(
     private fun siteUrl(url: String): Uri? =
         Uri.parse(url).takeIf { it.scheme == "https" && it.host == Uri.parse(webView.url ?: "").host }
 
-    companion object {
-        private const val TAG = "SignInHandoff"
-
-        /** Whether this web view can do it at all: one without the bridge cannot. */
-        fun isAvailable(): Boolean = SiteBridge.isAvailable()
+    private companion object {
+        const val TAG = "SignInHandoff"
     }
 }

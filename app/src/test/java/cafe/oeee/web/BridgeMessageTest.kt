@@ -105,14 +105,18 @@ class BridgeMessageTest {
     @Test
     fun signIn() {
         assertEquals(
-            BridgeMessage.SignIn(provider = "google", nonce = "n0nc3"),
+            BridgeMessage.SignIn(nonce = "n0nc3"),
             BridgeMessage.parse("""{"v":1,"type":"signIn","provider":"google","nonce":"n0nc3"}""")
         )
-        // Nothing to sign in for: no nonce, or no provider to ask.
-        assertNull(BridgeMessage.parse("""{"v":1,"type":"signIn","provider":"google"}"""))
+        // The page sends this app Google and nothing else, so which it names is not read.
+        assertEquals(
+            BridgeMessage.SignIn(nonce = "n0nc3"),
+            BridgeMessage.parse("""{"v":1,"type":"signIn","nonce":"n0nc3"}""")
+        )
+        // Nothing to make a token for: Steam's, which has no nonce, or one that is not a nonce.
+        assertNull(BridgeMessage.parse("""{"v":1,"type":"signIn","provider":"steam"}"""))
         assertNull(BridgeMessage.parse("""{"v":1,"type":"signIn","provider":"google","nonce":""}"""))
         assertNull(BridgeMessage.parse("""{"v":1,"type":"signIn","provider":"google","nonce":42}"""))
-        assertNull(BridgeMessage.parse("""{"v":1,"type":"signIn","nonce":"n0nc3"}"""))
     }
 
     @Test

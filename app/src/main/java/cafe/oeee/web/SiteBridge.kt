@@ -34,9 +34,13 @@ class SiteBridge(
         listen()
     }
 
-    /** Hears the bridge on the web view, where it can; a web view too old to has none of it. */
+    /**
+     * Hears the bridge on the web view, where it can. Android System WebView updates apart
+     * from the app, so the same build can differ from one device to the next; one too old
+     * has no bridge at all, and the page, finding no one to post to, asks nothing of the app.
+     */
     private fun listen() {
-        if (!isAvailable()) return
+        if (!WebViewFeature.isFeatureSupported(WebViewFeature.WEB_MESSAGE_LISTENER)) return
         WebViewCompat.addWebMessageListener(webView, BRIDGE_OBJECT_NAME, setOf(siteOrigin)) {
                 _: WebView, message: WebMessageCompat, sourceOrigin: Uri, isMainFrame: Boolean, _: JavaScriptReplyProxy ->
             if (!isMainFrame || origin(sourceOrigin) != siteOrigin) {
@@ -72,13 +76,6 @@ class SiteBridge(
     companion object {
         private const val TAG = "SiteBridge"
         const val BRIDGE_OBJECT_NAME = "oeeeBridge"
-
-        /**
-         * Whether this web view can hear the bridge at all. Android System WebView updates
-         * apart from the app, so the same build can differ from one device to the next, and
-         * whatever the page would ask over the bridge is not started without it.
-         */
-        fun isAvailable(): Boolean = WebViewFeature.isFeatureSupported(WebViewFeature.WEB_MESSAGE_LISTENER)
 
         /** `scheme://host[:port]`, as a web message listener's allowed origins are written. */
         fun origin(uri: Uri): String =

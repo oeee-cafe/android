@@ -60,15 +60,17 @@ sealed interface BridgeMessage {
     data class Pressed(val drawing: PressedDrawing?) : BridgeMessage
 
     /**
-     * A sign-in the page is carrying, after the app stopped its link (app_sign_in.jinja): make
-     * an ID token for [nonce] with the platform's own sheet, and answer with
-     * `window.oeeeApp.signIn.answer`.
+     * A sign-in the page is carrying (app_sign_in.jinja): make an ID token for [nonce] with
+     * the platform's own sheet, and answer with `window.oeeeApp.signIn.answer`. The page
+     * chooses which way each app signs in with each provider, and the only one it sends
+     * this one here is Google, so the provider it names is not read. A sign-in with no nonce
+     * -- Steam's, which is only ever sent to the Steam build -- is none of this app's.
      */
-    data class SignIn(val provider: String, val nonce: String) : BridgeMessage
+    data class SignIn(val nonce: String) : BridgeMessage
 
     /**
      * The same, handed to the system's browser: open [url], which the page says is the site's
-     * own. The app checks that for itself before opening anything.
+     * own. The app checks that for itself before opening anything (SignInHandoff).
      */
     data class Browse(val url: String) : BridgeMessage
 
@@ -130,11 +132,7 @@ sealed interface BridgeMessage {
                 )
                 "haptic" -> message.string("name")?.let { Haptic(it) }
                 "pressed" -> Pressed((message["drawing"] as? Map<*, *>)?.let(::pressedDrawing))
-                "signIn" -> {
-                    val provider = message.word("provider") ?: return null
-                    val nonce = message.word("nonce") ?: return null
-                    SignIn(provider, nonce)
-                }
+                "signIn" -> message.word("nonce")?.let { SignIn(it) }
                 "browse" -> message.word("url")?.let { Browse(it) }
                 // Something to share is some text; a title alone is the page's to fill in.
                 "share" -> message.word("text")?.let { Share(message.string("title") ?: "", it) }

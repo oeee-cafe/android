@@ -23,9 +23,9 @@ android {
         // The site's own Web application OAuth client id, which Credential Manager is
         // given as its server client id so the ID token it hands back is made for the
         // site (GoogleSignIn.kt). Set oeeeGoogleServerClientId in
-        // ~/.gradle/gradle.properties; a build without it does not offer signing in with
-        // Google, and the site does not show the button (theme_head.jinja in
-        // oeee-cafe/web).
+        // ~/.gradle/gradle.properties. The site offers signing in with Google in every
+        // build (app_sign_in.jinja in oeee-cafe/web); one built without this answers it as
+        // a sign-in Google would not make.
         val googleServerClientId = providers.gradleProperty("oeeeGoogleServerClientId").getOrElse("")
         buildConfigField("String", "GOOGLE_SERVER_CLIENT_ID", "\"$googleServerClientId\"")
     }

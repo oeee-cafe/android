@@ -37,8 +37,17 @@ class GoogleSignIn(
     private val siteOrigin: String,
     private val scope: CoroutineScope
 ) {
-    /** The page's `signIn`: Google's own sheet, with the page's nonce. */
+    /**
+     * The page's `signIn`: Google's own sheet, with the page's nonce. A build without the
+     * site's client id has no sheet to show, and says so the way a sign-in Google refused
+     * does, so the page is not left waiting on one that is never coming.
+     */
     fun signIn(nonce: String) {
+        if (BuildConfig.GOOGLE_SERVER_CLIENT_ID.isEmpty()) {
+            Log.w(TAG, "Built without oeeeGoogleServerClientId; cannot sign in with Google")
+            answer(GoogleSignInMessages.FAILED)
+            return
+        }
         scope.launch { answer(ask(nonce)) }
     }
 
@@ -113,15 +122,7 @@ class GoogleSignIn(
         }
     }
 
-    companion object {
-        private const val TAG = "GoogleSignIn"
-
-        /**
-         * Whether this build can sign in with Google at all: one built without the site's
-         * client id cannot, and neither can a web view too old for the bridge the page asks
-         * over (SiteBridge.isAvailable).
-         */
-        fun isAvailable(): Boolean =
-            BuildConfig.GOOGLE_SERVER_CLIENT_ID.isNotEmpty() && SiteBridge.isAvailable()
+    private companion object {
+        const val TAG = "GoogleSignIn"
     }
 }
