@@ -3,7 +3,6 @@ package cafe.oeee.web
 import android.app.Activity
 import android.net.Uri
 import android.util.Log
-import android.webkit.WebResourceRequest
 import android.webkit.WebView
 import androidx.credentials.CredentialManager
 import androidx.credentials.CustomCredential
@@ -16,19 +15,15 @@ import com.google.android.libraries.identity.googleid.GetSignInWithGoogleOption
 import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
-import org.json.JSONObject
 
 /**
  * Sign in with Google, natively, for the site in a web view.
  *
- * The site's "Sign in with Google" is a link to `/auth/google`, which in a browser goes to
- * Google's page and back. Google refuses those pages inside an embedded web view
- * (`disallowed_useragent`), so the tab stops the link ([isSignInLink]) and asks Credential
- * Manager here instead.
- *
- * The page does the rest (`window.oeeeApp.signIn.native`, app_sign_in.jinja in oeee-cafe/web):
- * it asks the site for this sign-in's state and nonce, hands the nonce over on the bridge
- * (BridgeMessage.SignIn), and posts the ID token this answers with to `/auth/google`. So
+ * The site's "Sign in with Google" goes to Google's page in a browser, which Google refuses
+ * inside an embedded web view (`disallowed_useragent`). In this app the page takes the press
+ * itself (app_sign_in.jinja in oeee-cafe/web): it asks the site for this sign-in's state and
+ * nonce, hands the nonce over on the bridge (BridgeMessage.SignIn), and posts the ID token this
+ * answers with, from Credential Manager, to the site. So
  * everything the site is asked carries the page's cookie and origin, and the app never
  * holds the session itself.
  *
@@ -42,16 +37,6 @@ class GoogleSignIn(
     private val siteOrigin: String,
     private val scope: CoroutineScope
 ) {
-    /** Stops the link and starts the sign-in the page will carry, going on to `next`. */
-    fun begin(url: Uri) {
-        val next = url.getQueryParameter("next")
-        val argument = if (next == null) "null" else JSONObject.quote(next)
-        webView.evaluateJavascript(
-            "window.oeeeApp && window.oeeeApp.signIn && window.oeeeApp.signIn.native(\"google\", $argument);",
-            null
-        )
-    }
-
     /** The page's `signIn`: Google's own sheet, with the page's nonce. */
     fun signIn(nonce: String) {
         scope.launch { answer(ask(nonce)) }
@@ -138,12 +123,5 @@ class GoogleSignIn(
          */
         fun isAvailable(): Boolean =
             BuildConfig.GOOGLE_SERVER_CLIENT_ID.isNotEmpty() && SiteBridge.isAvailable()
-
-        /** Whether [request] is the site's link to sign in with Google. */
-        fun isSignInLink(request: WebResourceRequest, navigation: Navigation): Boolean =
-            request.isForMainFrame &&
-                request.method.equals("GET", ignoreCase = true) &&
-                navigation.isSiteUrl(request.url) &&
-                request.url.path == "/auth/google"
     }
 }

@@ -29,15 +29,13 @@ sealed interface BridgeMessage {
     data class Unread(val count: Int) : BridgeMessage
 
     /**
-     * The site's theme, and the colours at the page's two edges, for the bars drawn against them;
-     * and the design system's ground and the grid ruled on it every 14px, for what the app draws
-     * where the page does not reach.
+     * The design system's ground -- what the page has at both its edges, so the bars are drawn
+     * in it -- and the grid ruled on it every 14px, for what the app draws where the page does
+     * not reach.
      */
     data class Theme(
-        val top: Color?,
-        val bottom: Color?,
-        val ground: Color? = null,
-        val grid: Color? = null
+        val ground: Color?,
+        val grid: Color?
     ) : BridgeMessage
 
     /**
@@ -124,8 +122,6 @@ sealed interface BridgeMessage {
                 )
                 "unread" -> Unread(((message["count"] as? Number)?.toInt() ?: 0).coerceAtLeast(0))
                 "theme" -> Theme(
-                    top = parseCssColor(message.string("top")),
-                    bottom = parseCssColor(message.string("bottom")),
                     ground = parseCssColor(message.string("ground")),
                     grid = parseCssColor(message.string("grid"))
                 )

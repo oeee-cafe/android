@@ -44,35 +44,28 @@ class BridgeMessageTest {
     @Test
     fun theme() {
         assertEquals(
-            BridgeMessage.Theme(
-                top = Color(34, 34, 63),
-                bottom = Color(255, 255, 255)
-            ),
-            BridgeMessage.parse(
-                """{"v":1,"type":"theme","choice":"system",""" +
-                    """"top":"rgb(34, 34, 63)","bottom":"rgba(255, 255, 255, 0.9)"}"""
-            )
+            BridgeMessage.Theme(ground = Color(23, 23, 43), grid = Color(34, 34, 63)),
+            BridgeMessage.parse("""{"v":1,"type":"theme","choice":"dark","ground":"#17172b","grid":"#22223f"}""")
         )
-        val unknown = BridgeMessage.parse("""{"v":1,"type":"theme","choice":"dark","top":null,"bottom":"red"}""")
-        assertEquals(BridgeMessage.Theme(top = null, bottom = null), unknown)
-        // A page where nothing has a colour says so, rather than sending transparent black.
-        val bare = BridgeMessage.parse("""{"v":1,"type":"theme","choice":"system","top":null,"bottom":null}""")
-        assertEquals(BridgeMessage.Theme(top = null, bottom = null), bare)
+        // A colour this app cannot read is none, and the app's own is drawn.
+        assertEquals(
+            BridgeMessage.Theme(ground = null, grid = null),
+            BridgeMessage.parse("""{"v":1,"type":"theme","choice":"dark","ground":"red","grid":null}""")
+        )
     }
 
     @Test
     fun themeGroundAndGrid() {
         // The design system's tokens read back as they were written, which is hex.
         val message = BridgeMessage.parse(
-            """{"v":1,"type":"theme","choice":"light","top":"rgb(204, 204, 255)",""" +
-                """"bottom":"rgb(204, 204, 255)","ground":"#ccccff","grid":" #bbf "}"""
+            """{"v":1,"type":"theme","choice":"light","ground":"#ccccff","grid":" #bbf "}"""
         ) as BridgeMessage.Theme
         assertEquals(Color(204, 204, 255), message.ground)
         assertEquals(Color(187, 187, 255), message.grid)
         // A page without the design system's stylesheet has neither, and a build of the site
         // from before them says nothing at all.
         val none = BridgeMessage.parse(
-            """{"v":1,"type":"theme","choice":"dark","top":null,"bottom":null,"ground":null,"grid":""}"""
+            """{"v":1,"type":"theme","choice":"dark","ground":null,"grid":""}"""
         ) as BridgeMessage.Theme
         assertNull(none.ground)
         assertNull(none.grid)

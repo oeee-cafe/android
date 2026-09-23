@@ -93,15 +93,6 @@ class WebTabController(
     private val signInHandoff: SignInHandoff?
 
     /**
-     * The colors at the top and bottom edges of the page shown, for the status bar above it
-     * and the tab bar below; null until a page has said.
-     */
-    var topColor by mutableStateOf<Color?>(null)
-        private set
-    var bottomColor by mutableStateOf<Color?>(null)
-        private set
-
-    /**
      * The site's ground and the grid ruled on it (--ds-ground and --ds-grid), for what the
      * app draws where the page does not reach; null until a page has said, and then the last
      * that said, since a page without the design system says nothing about it.
@@ -156,7 +147,7 @@ class WebTabController(
             null
         }
         signInHandoff = if (SignInHandoff.isAvailable()) {
-            SignInHandoff(webView) { url -> navigation.openInBrowser(url, topColor) }
+            SignInHandoff(webView) { url -> navigation.openInBrowser(url, ground) }
         } else {
             null
         }
@@ -288,8 +279,6 @@ class WebTabController(
             }
             is BridgeMessage.Unread -> onUnread(message.count)
             is BridgeMessage.Theme -> {
-                message.top?.let { topColor = it }
-                message.bottom?.let { bottomColor = it }
                 message.ground?.let {
                     ground = it
                     // What shows before a page paints, in place of the web view's white.
@@ -384,21 +373,10 @@ class WebTabController(
 
     private inner class Client : WebViewClient() {
         override fun shouldOverrideUrlLoading(view: WebView, request: WebResourceRequest): Boolean {
-            // The site's link to Google's sign-in page, which Google refuses in a web
-            // view: the page stays where it is and Credential Manager signs in instead.
-            val google = googleSignIn
-            if (google != null && GoogleSignIn.isSignInLink(request, navigation)) {
-                google.begin(request.url)
-                return true
-            }
-            // Apple's, which has no Android sheet to open: out to a browser, and back
-            // through a handoff (SignInHandoff).
-            val handoff = signInHandoff
-            if (handoff != null && SignInHandoff.isAppleSignInLink(request, navigation)) {
-                handoff.begin(request.url, "apple")
-                return true
-            }
-            return navigation.openedOutside(request, topColor)
+            // The site's sign-in buttons never get here: the page takes the press itself
+            // and asks for Credential Manager or a browser on the bridge (app_sign_in.jinja
+            // in oeee-cafe/web).
+            return navigation.openedOutside(request, ground)
         }
 
         override fun onPageStarted(view: WebView, url: String?, favicon: android.graphics.Bitmap?) {

@@ -79,10 +79,10 @@ fun WebTabsScreen(controller: WebTabController, visibleTabs: List<WebTab>, badge
         )
     }
 
-    // The status bar takes the color of the page's top edge and the tab bar (and the
-    // system's navigation bar under it) the color of its bottom edge, with icons that read on them.
-    val statusBarColor = controller.topColor ?: MaterialTheme.colorScheme.background
-    val tabBarColor = controller.bottomColor ?: MaterialTheme.colorScheme.surfaceContainer
+    // The status bar and the tab bar (and the system's navigation bar under it) take the
+    // site's ground, which is what the page has at both its edges, with icons that read on it.
+    val statusBarColor = controller.ground ?: MaterialTheme.colorScheme.background
+    val tabBarColor = controller.ground ?: MaterialTheme.colorScheme.surfaceContainer
     val tabBarIsLight = tabBarColor.luminance() > 0.5f
     val view = LocalView.current
     LaunchedEffect(statusBarColor, tabBarIsLight) {
@@ -133,7 +133,7 @@ fun WebTabsScreen(controller: WebTabController, visibleTabs: List<WebTab>, badge
             }
             if (controller.isUnreachable) {
                 UnreachableView(
-                    ground = controller.ground ?: controller.topColor,
+                    ground = controller.ground,
                     grid = controller.grid,
                     retry = controller::retry
                 )
