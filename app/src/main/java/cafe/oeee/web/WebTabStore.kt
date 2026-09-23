@@ -91,14 +91,24 @@ class WebTabStore(
      * Drops the tabs that are no longer shown and reloads the rest, which say the new
      * count on the bell as they come back.
      */
-    fun authenticationChanged(visibleTabs: List<WebTab>) {
-        unreadCount = 0
+    fun authenticationChanged(visibleTabs: List<WebTab>, signedIn: Boolean) {
         for (tab in controllers.keys.toList()) {
             if (tab !in visibleTabs) controllers.remove(tab)?.tearDown()
         }
+        // Not the tab that said so. Signing in ends on a page rendered for whoever just
+        // signed in, and that page is what reports it -- reloading it throws away what it
+        // was rendered to say, which is the notice telling them it worked. It also still
+        // holds the right number for the bell, so the count stands rather than being
+        // cleared and waited for.
+        var keptOne = false
         for (controller in controllers.values) {
+            if (controller.lastSignedIn == signedIn) {
+                keptOne = true
+                continue
+            }
             controller.reload()
         }
+        if (!keptOne) unreadCount = 0
     }
 
     /** The configuration changed, perhaps the system's font size: every tab's pages follow it. */

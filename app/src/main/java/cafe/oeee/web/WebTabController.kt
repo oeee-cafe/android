@@ -55,6 +55,14 @@ class WebTabController(
     /** Whether the page shown may be reloaded by pulling it down (BridgeMessage.Page.refreshable). */
     private var refreshable = true
 
+    /**
+     * Who the page shown last said is signed in, or null on a page that could not tell.
+     * A tab already showing the new answer needs no reloading after a sign-in -- it is
+     * the page that said so (WebTabStore.authenticationChanged).
+     */
+    var lastSignedIn: Boolean? = null
+        private set
+
     val webView = WebView(activity)
 
     /** The tab's view: the web view, pulled down to reload. */
@@ -240,6 +248,7 @@ class WebTabController(
         when (message) {
             is BridgeMessage.Page -> {
                 refreshable = message.refreshable
+                message.signedIn?.let { lastSignedIn = it }
                 onPage(message)
             }
             is BridgeMessage.Unread -> onUnread(message.count)

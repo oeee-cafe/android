@@ -116,7 +116,7 @@ class MainActivity : ComponentActivity() {
                     AuthService.isAuthenticated.collect { authenticated ->
                         if (wasAuthenticated != null) {
                             val tabs = WebTab.visible(authenticated)
-                            webTabs.authenticationChanged(tabs)
+                            webTabs.authenticationChanged(tabs, authenticated)
                             if (selectedTab !in tabs) selectedTab = WebTab.HOME
                         }
                         authenticationChanged(authenticated, wasSignedIn = wasAuthenticated == true)
