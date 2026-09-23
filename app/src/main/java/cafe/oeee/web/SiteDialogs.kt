@@ -29,8 +29,11 @@ class SiteDialogs(private val activity: Activity, private val words: () -> Bridg
     /** Whether there is a window to show a dialog in; the page's question is answered no otherwise. */
     private val canShow: Boolean get() = !activity.isFinishing && !activity.isDestroyed
 
-    /** The page would lose something if left: Stay is the safe answer, so it is the one kept. */
-    fun beforeUnload(result: JsResult): Boolean {
+    /**
+     * The page would lose something if left: Stay is the safe answer, so it is the one kept.
+     * [onLeave] follows a Leave, which only the app hears.
+     */
+    fun beforeUnload(result: JsResult, onLeave: () -> Unit = {}): Boolean {
         if (!canShow) {
             result.confirm()
             return true
@@ -38,7 +41,10 @@ class SiteDialogs(private val activity: Activity, private val words: () -> Bridg
         builder()
             .setTitle(word({ it.leaveTitle }, R.string.leave_title))
             .setMessage(word({ it.leaveBody }, R.string.leave_body))
-            .setPositiveButton(word({ it.leave }, R.string.leave)) { _, _ -> result.confirm() }
+            .setPositiveButton(word({ it.leave }, R.string.leave)) { _, _ ->
+                result.confirm()
+                onLeave()
+            }
             .setNegativeButton(word({ it.stay }, R.string.stay)) { _, _ -> result.cancel() }
             .setOnCancelListener { result.cancel() }
             .show()

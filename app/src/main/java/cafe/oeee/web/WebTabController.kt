@@ -405,8 +405,15 @@ class WebTabController(
         // The site asks its questions in its own dialog (confirm_dialog.jinja in
         // oeee-cafe/web) and calls neither alert() nor confirm(); only a page's asking
         // before it is left, which no page can draw, is the app's.
+        //
+        // The page puts its loading bar (loading_bar.jinja) up at the press for every other
+        // load, but not for one it asks about, since a bar up before a Stay would hang
+        // there and only the app hears the answer. So a Leave puts it up here; the page
+        // stays painted until the next one arrives.
         override fun onJsBeforeUnload(view: WebView, url: String?, message: String?, result: JsResult): Boolean =
-            dialogs.beforeUnload(result)
+            dialogs.beforeUnload(result) {
+                view.evaluateJavascript("window.oeeeLoadingBar && window.oeeeLoadingBar.start(null);", null)
+            }
     }
 
     private companion object {
