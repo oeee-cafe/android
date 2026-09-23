@@ -55,6 +55,23 @@
                 <data android:scheme="https" />
                 <data android:host="oeee.cafe" />
             </intent-filter>
+
+            <!-- Coming back from a sign-in done in a browser (SignInHandoff). The site
+                 sends the browser here once the provider has answered, and the only
+                 thing it is for is bringing this activity forward: singleTask hands it
+                 to onNewIntent, onResume follows, and the page asks the site at once
+                 (WebTabStore.resumed). Nothing is loaded from it, because
+                 NavigationCoordinator navigates for https links to the site and for
+                 nothing else. Only oeee-cafe://handoff/, not the whole scheme. -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+
+                <data android:scheme="oeee-cafe" />
+                <data android:host="handoff" />
+            </intent-filter>
         </activity>
 
         <!-- Firebase Cloud Messaging Service -->
