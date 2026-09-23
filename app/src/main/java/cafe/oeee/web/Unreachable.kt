@@ -21,6 +21,9 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.res.stringResource
@@ -75,17 +78,18 @@ class Connectivity(context: Context, private val onRestored: () -> Unit) {
 
 /**
  * A tab whose page could not be reached: said in words, with a way to try again, over the
- * web view's own error page. On the page's ground when there is one, so it reads as the
- * site's rather than as a different app.
+ * web view's own error page. On the site's ground and its grid once a page has said what
+ * they are (BridgeMessage.Theme), so it reads as the site's rather than as a different app.
  */
 @Composable
-fun UnreachableView(ground: Color?, retry: () -> Unit) {
+fun UnreachableView(ground: Color?, grid: Color?, retry: () -> Unit) {
     val background = ground ?: MaterialTheme.colorScheme.background
     OeeeCafeTheme(darkTheme = background.luminance() < 0.5f) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .background(background)
+                .grid(grid)
                 .padding(32.dp),
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
@@ -118,3 +122,23 @@ fun UnreachableView(ground: Color?, retry: () -> Unit) {
         }
     }
 }
+
+/**
+ * The lines the site rules on its ground (ds.css in oeee-cafe/web): one CSS pixel wide, at
+ * the top and left of every 14px square. A CSS pixel in the web view is a dp here.
+ */
+private fun Modifier.grid(color: Color?): Modifier =
+    if (color == null) this else drawBehind {
+        val step = 14.dp.toPx()
+        val line = 1.dp.toPx()
+        var y = 0f
+        while (y < size.height) {
+            drawRect(color, topLeft = Offset(0f, y), size = Size(size.width, line))
+            y += step
+        }
+        var x = 0f
+        while (x < size.width) {
+            drawRect(color, topLeft = Offset(x, 0f), size = Size(line, size.height))
+            x += step
+        }
+    }

@@ -137,6 +137,8 @@ fun DrawingSheet(
     drawing: DrawingMenu.Drawing,
     scope: CoroutineScope,
     actions: DrawingActions,
+    /** The page's words for the actions (BridgeMessage.Words); null before any has said. */
+    words: BridgeMessage.Words?,
     onDismiss: () -> Unit
 ) {
     val state = rememberModalBottomSheetState(skipPartiallyExpanded = true)
@@ -179,11 +181,15 @@ fun DrawingSheet(
                     }
                 }
             }
-            SheetAction(Icons.Filled.Download, stringResource(R.string.drawing_save), then(actions::save))
-            SheetAction(Icons.Filled.ContentCopy, stringResource(R.string.drawing_copy), then(actions::copy))
-            SheetAction(Icons.Filled.Share, stringResource(R.string.drawing_share), then(actions::share))
+            val save = words?.saveImage ?: stringResource(R.string.drawing_save)
+            val copy = words?.copyImage ?: stringResource(R.string.drawing_copy)
+            val share = words?.share ?: stringResource(R.string.drawing_share)
+            SheetAction(Icons.Filled.Download, save, then(actions::save))
+            SheetAction(Icons.Filled.ContentCopy, copy, then(actions::copy))
+            SheetAction(Icons.Filled.Share, share, then(actions::share))
             if (drawing.link != null) {
-                SheetAction(Icons.Filled.Link, stringResource(R.string.drawing_copy_link), then(actions::copyLink))
+                val copyLink = words?.copyLink ?: stringResource(R.string.drawing_copy_link)
+                SheetAction(Icons.Filled.Link, copyLink, then(actions::copyLink))
             }
         }
     }

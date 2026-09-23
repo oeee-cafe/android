@@ -21,7 +21,9 @@ import kotlin.coroutines.resume
 class Downloads(
     private val activity: Activity,
     private val webView: WebView,
-    private val storagePermission: StoragePermission
+    private val storagePermission: StoragePermission,
+    /** What the page shown says, for saying where a file went in its language (SiteDialogs.word). */
+    private val words: () -> BridgeMessage.Words?
 ) {
     /**
      * A file the site links to, rather than makes: to Downloads through the system's download
@@ -59,10 +61,11 @@ class Downloads(
 
     /** Says where a file went, or that it didn't, and is felt either way. */
     fun saved(file: SiteFile?) {
+        val words = words()
         val message = when {
-            file == null -> R.string.save_failed
-            file.isImage -> R.string.saved_image
-            else -> R.string.saved_file
+            file == null -> activity.word(words, { it.saveFailed }, R.string.save_failed)
+            file.isImage -> activity.word(words, { it.savedImage }, R.string.saved_image)
+            else -> activity.word(words, { it.savedFile }, R.string.saved_file)
         }
         feel(if (file == null) "error" else "success")
         Toast.makeText(activity, message, Toast.LENGTH_SHORT).show()

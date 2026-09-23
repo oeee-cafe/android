@@ -23,6 +23,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.toArgb
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import cafe.oeee.R
 import cafe.oeee.data.remote.ApiClient
@@ -36,7 +37,6 @@ import kotlinx.coroutines.launch
 @SuppressLint("SetJavaScriptEnabled")
 class WebTabController(
     private val activity: Activity,
-    scripts: PageScripts,
     fileChooser: FileChooser,
     storagePermission: StoragePermission,
     savedState: Bundle?,
@@ -47,7 +47,7 @@ class WebTabController(
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
     private val siteOrigin: String = SiteBridge.origin(Uri.parse(ApiClient.BASE_URL))
     private val navigation = Navigation(activity, Uri.parse(ApiClient.BASE_URL).host)
-    private val dialogs = SiteDialogs(activity)
+    private val dialogs = SiteDialogs(activity) { words }
 
     /** The drawing a finger last landed on, if it landed on one (BridgeMessage.Pressed). */
     private var pressedDrawing: DrawingMenu.Drawing? = null
@@ -77,19 +77,19 @@ class WebTabController(
     /** The view shown: the web view, pulled down to reload. */
     val view = SwipeRefreshLayout(activity)
 
-    private val downloads = Downloads(activity, webView, storagePermission)
+    private val downloads = Downloads(activity, webView, storagePermission) { words }
     private val bridge: SiteBridge
 
     /**
      * Signing in with Google, which Google will not do in a web view; null in a build that
-     * cannot ([GoogleSignIn.isAvailable]), whose pages are not offered it either.
+     * cannot ([GoogleSignIn.isAvailable]), whose link is then left to go where it goes.
      */
     private val googleSignIn: GoogleSignIn?
 
     /**
      * Signing in with Apple, which Apple has no Android SDK for: it goes out to a browser
      * and the answer comes back through a handoff. Null in a web view too old for the
-     * bridge it needs, whose pages are shown no Apple button either.
+     * bridge it needs, whose link is then left to go where it goes.
      */
     private val signInHandoff: SignInHandoff?
 
@@ -100,6 +100,23 @@ class WebTabController(
     var topColor by mutableStateOf<Color?>(null)
         private set
     var bottomColor by mutableStateOf<Color?>(null)
+        private set
+
+    /**
+     * The site's ground and the grid ruled on it (--ds-ground and --ds-grid), for what the
+     * app draws where the page does not reach; null until a page has said, and then the last
+     * that said, since a page without the design system says nothing about it.
+     */
+    var ground by mutableStateOf<Color?>(null)
+        private set
+    var grid by mutableStateOf<Color?>(null)
+        private set
+
+    /**
+     * What the app says over the page, in the page's language (BridgeMessage.Words); null
+     * until a page has said, when the app's own English stands in (SiteDialogs.word).
+     */
+    var words by mutableStateOf<BridgeMessage.Words?>(null)
         private set
 
     /** Whether the web view has loaded anything yet. */
@@ -133,16 +150,14 @@ class WebTabController(
             downloads.download(url, userAgent, contentDisposition, mimeType)
         }
         webView.setOnLongClickListener { openDrawingMenu() }
-        bridge = SiteBridge(webView, siteOrigin, scripts, this)
+        bridge = SiteBridge(webView, siteOrigin, this)
         googleSignIn = if (GoogleSignIn.isAvailable()) {
-            GoogleSignIn(activity, webView, siteOrigin, scripts.googleSignIn, scope)
+            GoogleSignIn(activity, webView, siteOrigin, scope)
         } else {
             null
         }
         signInHandoff = if (SignInHandoff.isAvailable()) {
-            SignInHandoff(webView, siteOrigin, scripts.signInHandoff) { url ->
-                navigation.openInBrowser(url, topColor)
-            }
+            SignInHandoff(webView) { url -> navigation.openInBrowser(url, topColor) }
         } else {
             null
         }
@@ -281,27 +296,54 @@ class WebTabController(
             is BridgeMessage.Theme -> {
                 message.top?.let { topColor = it }
                 message.bottom?.let { bottomColor = it }
+                message.ground?.let {
+                    ground = it
+                    // What shows before a page paints, in place of the web view's white.
+                    webView.setBackgroundColor(it.toArgb())
+                }
+                message.grid?.let { grid = it }
             }
+            is BridgeMessage.Words -> words = message
             is BridgeMessage.Haptic -> hapticFeedback(message.name)?.let { webView.performHapticFeedback(it) }
             is BridgeMessage.Pressed -> pressedDrawing = message.drawing?.let {
                 DrawingMenu.Drawing(it, referrer = webView.url, userAgent = webView.settings.userAgentString)
             }
             // The painter can be driven now; nothing in this app drives it yet.
             is BridgeMessage.Painter -> Unit
+            is BridgeMessage.SignIn -> signIn(message)
+            is BridgeMessage.Browse -> signInHandoff?.browse(message.url)
+            is BridgeMessage.Share -> shareText(message)
+            is BridgeMessage.Download -> scope.launch { downloads.save(Polyfills.file(message)) }
         }
     }
 
-    override fun onShare(share: Polyfills.Share) {
+    /**
+     * The page asks for the platform's own sheet for a sign-in the app stopped the link to.
+     * Only Google has one here; Apple's goes through a browser ([SignInHandoff]), and the page
+     * is only ever sent that way for it. Any other is answered as one that could not sign in,
+     * so the page is not left waiting on a sheet that is never coming.
+     */
+    private fun signIn(message: BridgeMessage.SignIn) {
+        val google = googleSignIn
+        if (message.provider == "google" && google != null) {
+            google.signIn(message.nonce)
+            return
+        }
+        Log.w(TAG, "No sheet to sign in with ${message.provider}")
+        webView.evaluateJavascript(
+            "window.oeeeSignIn && window.oeeeSignIn.answer(${GoogleSignInMessages.FAILED});",
+            null
+        )
+    }
+
+    /** `navigator.share`, as the system's share sheet (app_polyfills.jinja). */
+    private fun shareText(share: BridgeMessage.Share) {
         val send = Intent(Intent.ACTION_SEND).apply {
             type = "text/plain"
             putExtra(Intent.EXTRA_TEXT, share.text)
             if (share.title.isNotEmpty()) putExtra(Intent.EXTRA_TITLE, share.title)
         }
         activity.startActivity(Intent.createChooser(send, share.title.ifEmpty { null }))
-    }
-
-    override fun onDownload(file: SiteFile?) {
-        scope.launch { downloads.save(file) }
     }
 
     /**
@@ -375,7 +417,6 @@ class WebTabController(
         override fun onPageFinished(view: WebView, url: String?) {
             this@WebTabController.view.isRefreshing = false
             canGoBack = view.canGoBack()
-            bridge.pageFinished(url)
         }
 
         // Pages the site swaps in without a full load (htmx) come through here.

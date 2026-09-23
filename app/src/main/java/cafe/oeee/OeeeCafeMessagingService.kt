@@ -6,6 +6,7 @@ import android.app.PendingIntent
 import android.content.Intent
 import android.util.Log
 import androidx.core.app.NotificationCompat
+import cafe.oeee.data.service.AuthService
 import cafe.oeee.data.service.PushNotificationService
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
@@ -31,6 +32,9 @@ class OeeeCafeMessagingService : FirebaseMessagingService() {
 
     override fun onCreate() {
         super.onCreate()
+        // A token can be refreshed with no activity started, and is only registered for
+        // someone signed in, which is what the last page said (AuthService).
+        AuthService.start(this)
         createNotificationChannel()
     }
 

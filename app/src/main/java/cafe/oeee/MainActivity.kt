@@ -93,6 +93,8 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
 
+        // The tab bar starts as the last page left it, until a page says otherwise.
+        AuthService.start(this)
         webTabs = WebTabs(this, fileChooser, storagePermission, savedInstanceState, AuthService::pageSaid)
 
         // Handle a notification or link the app was opened from (cold start). Not again when
@@ -108,7 +110,7 @@ class MainActivity : ComponentActivity() {
                 val controller = webTabs.controller
 
                 LaunchedEffect(Unit) {
-                    // Picks up whoever is signed in on the web views before anything is fetched.
+                    // Moves a native session's cookies onto the web views before anything is fetched.
                     WebSession.start(this@MainActivity)
                     webTabs.start()
 

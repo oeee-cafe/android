@@ -74,6 +74,7 @@ fun WebTabsScreen(controller: WebTabController, visibleTabs: List<WebTab>, badge
             drawing = drawing,
             scope = controller.coroutineScope,
             actions = controller,
+            words = controller.words,
             onDismiss = { controller.drawingMenu = null }
         )
     }
@@ -131,7 +132,11 @@ fun WebTabsScreen(controller: WebTabController, visibleTabs: List<WebTab>, badge
                 WebTabView(controller)
             }
             if (controller.isUnreachable) {
-                UnreachableView(ground = controller.topColor, retry = controller::retry)
+                UnreachableView(
+                    ground = controller.ground ?: controller.topColor,
+                    grid = controller.grid,
+                    retry = controller::retry
+                )
             }
         }
     }

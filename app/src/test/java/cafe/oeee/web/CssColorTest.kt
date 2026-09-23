@@ -5,7 +5,10 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Test
 
-/** Colours as `getComputedStyle` gives them, which is how the site reports its edges. */
+/**
+ * Colours as `getComputedStyle` gives them, which is how the site reports its edges, and as
+ * the design system's tokens read back, which is hex.
+ */
 class CssColorTest {
     @Test
     fun rgb() {
@@ -30,11 +33,23 @@ class CssColorTest {
     }
 
     @Test
+    fun hex() {
+        assertEquals(Color(204, 204, 255), parseCssColor("#ccccff"))
+        assertEquals(Color(23, 23, 43), parseCssColor(" #17172B "))
+        assertEquals(Color(187, 187, 255), parseCssColor("#bbf"))
+        // The alpha is left out, as rgba's is.
+        assertEquals(Color(187, 187, 255), parseCssColor("#bbf8"))
+        assertEquals(Color(34, 34, 63), parseCssColor("#22223f80"))
+    }
+
+    @Test
     fun anythingElseIsNoColour() {
         assertNull(parseCssColor(null))
         assertNull(parseCssColor(""))
         assertNull(parseCssColor("transparent"))
-        assertNull(parseCssColor("#ffffff"))
+        assertNull(parseCssColor("#fffff"))
+        assertNull(parseCssColor("#gggggg"))
+        assertNull(parseCssColor("ccccff"))
         assertNull(parseCssColor("red"))
         assertNull(parseCssColor("rgb(1, 2)"))
     }

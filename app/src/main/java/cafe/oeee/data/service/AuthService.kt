@@ -1,34 +1,39 @@
 package cafe.oeee.data.service
 
-import android.util.Log
-import cafe.oeee.data.remote.ApiClient
+import android.content.Context
+import android.content.SharedPreferences
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
 /**
  * Whether someone is signed in on the site. Signing in and out happens on the web views,
- * and every page with the toolbar says which it is (BridgeMessage.Page.signedIn); the API
- * is asked only at start, so the tab bar is right before the first page has loaded.
+ * and every page with the toolbar says which it is (BridgeMessage.Page.signedIn), so nothing
+ * is asked of the API. What the last page said is kept, so the tab bar starts the next launch
+ * the way it was left rather than signed out until the first page has loaded; that page
+ * corrects it if the session has ended since.
  */
 object AuthService {
-    private const val TAG = "AuthService"
+    private const val PREFS = "auth"
+    private const val SIGNED_IN = "signed_in"
 
     private val _isAuthenticated = MutableStateFlow(false)
     val isAuthenticated: StateFlow<Boolean> = _isAuthenticated.asStateFlow()
 
-    suspend fun checkAuthStatus() {
-        _isAuthenticated.value = try {
-            ApiClient.apiService.getCurrentUser()
-            true
-        } catch (e: Exception) {
-            Log.w(TAG, "Auth check failed: ${e.message}")
-            false
-        }
+    private var prefs: SharedPreferences? = null
+
+    /** Picks up what the last page said, before anything reads [isAuthenticated]. */
+    fun start(context: Context) {
+        if (prefs != null) return
+        val stored = context.applicationContext.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+        prefs = stored
+        _isAuthenticated.value = stored.getBoolean(SIGNED_IN, false)
     }
 
-    /** What a page of the site said; it knows better than the API was asked at start. */
+    /** What a page of the site said. */
     fun pageSaid(signedIn: Boolean) {
+        if (_isAuthenticated.value == signedIn) return
         _isAuthenticated.value = signedIn
+        prefs?.edit()?.putBoolean(SIGNED_IN, signedIn)?.apply()
     }
 }

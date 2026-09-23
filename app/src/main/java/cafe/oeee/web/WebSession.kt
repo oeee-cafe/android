@@ -5,11 +5,10 @@ import android.net.Uri
 import android.util.Log
 import android.webkit.CookieManager
 import cafe.oeee.data.remote.ApiClient
-import cafe.oeee.data.service.AuthService
 
 /**
- * Starts the web views' session: the cookies of one signed in natively, before the app
- * became a web view, and then who is signed in, for the tab bar the first page is shown under.
+ * Starts the web views' session, with the cookies of one signed in natively before the app
+ * became a web view. Who is signed in is the pages' to say (AuthService).
  */
 object WebSession {
     private const val TAG = "WebSession"
@@ -19,10 +18,9 @@ object WebSession {
 
     private val cookieManager get() = CookieManager.getInstance()
 
-    suspend fun start(context: Context) {
+    fun start(context: Context) {
         cookieManager.setAcceptCookie(true)
         migrateNativeCookies(context)
-        AuthService.checkAuthStatus()
     }
 
     /**

@@ -28,9 +28,6 @@ class WebTabs(
     /** A page said whether someone is signed in (BridgeMessage.Page.signedIn). */
     private val onSignedIn: (Boolean) -> Unit
 ) {
-    /** Read once, rather than from the assets again every time the web view is made. */
-    private val scripts = PageScripts(activity.assets)
-
     /** The saved history, until the web view is made and takes it. */
     private var restored: Bundle? = savedState?.getBundle(STATE_KEY)
 
@@ -68,7 +65,6 @@ class WebTabs(
     private fun create(): WebTabController {
         val made = WebTabController(
             activity = activity,
-            scripts = scripts,
             fileChooser = fileChooser,
             storagePermission = storagePermission,
             savedState = restored.also { restored = null },

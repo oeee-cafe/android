@@ -11,10 +11,6 @@ import androidx.credentials.GetCredentialRequest
 import androidx.credentials.exceptions.GetCredentialCancellationException
 import androidx.credentials.exceptions.GetCredentialException
 import androidx.credentials.exceptions.NoCredentialException
-import androidx.webkit.JavaScriptReplyProxy
-import androidx.webkit.WebMessageCompat
-import androidx.webkit.WebViewCompat
-import androidx.webkit.WebViewFeature
 import cafe.oeee.BuildConfig
 import com.google.android.libraries.identity.googleid.GetSignInWithGoogleOption
 import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
@@ -30,10 +26,11 @@ import org.json.JSONObject
  * (`disallowed_useragent`), so the tab stops the link ([isSignInLink]) and asks Credential
  * Manager here instead.
  *
- * The page does the rest (assets/google-sign-in.js): it asks the site for this sign-in's
- * state and nonce, hands the nonce over through [OBJECT_NAME], and posts the ID token this
- * answers with to `/auth/google`. So everything the site is asked carries the page's cookie
- * and origin, and the app never holds the session itself.
+ * The page does the rest (`window.oeeeSignIn.native`, app_sign_in.jinja in oeee-cafe/web):
+ * it asks the site for this sign-in's state and nonce, hands the nonce over on the bridge
+ * (BridgeMessage.SignIn), and posts the ID token this answers with to `/auth/google`. So
+ * everything the site is asked carries the page's cookie and origin, and the app never
+ * holds the session itself.
  *
  * Credential Manager is given the site's own Web application OAuth client id as its server
  * client id, so the token comes back made for the site, which is the audience the site
@@ -42,42 +39,41 @@ import org.json.JSONObject
 class GoogleSignIn(
     private val activity: Activity,
     private val webView: WebView,
-    siteOrigin: String,
-    script: String,
+    private val siteOrigin: String,
     private val scope: CoroutineScope
 ) {
-    init {
-        // The page's half, in every page of the site before its own scripts run.
-        WebViewCompat.addDocumentStartJavaScript(webView, script, setOf(siteOrigin))
-        WebViewCompat.addWebMessageListener(webView, OBJECT_NAME, setOf(siteOrigin)) {
-                _: WebView, message: WebMessageCompat, sourceOrigin: Uri, isMainFrame: Boolean,
-                reply: JavaScriptReplyProxy ->
-            if (!isMainFrame || SiteBridge.origin(sourceOrigin) != siteOrigin) {
-                Log.w(TAG, "Ignored $OBJECT_NAME from ${if (isMainFrame) sourceOrigin else "a frame"}")
-                return@addWebMessageListener
-            }
-            val nonce = GoogleSignInMessages.nonce(message.data)
-            if (nonce == null) {
-                Log.w(TAG, "A sign-in was asked for without a nonce")
-                reply.postMessage(GoogleSignInMessages.CANCELLED)
-                return@addWebMessageListener
-            }
-            scope.launch { ask(nonce, reply) }
-        }
-    }
-
     /** Stops the link and starts the sign-in the page will carry, going on to `next`. */
     fun begin(url: Uri) {
         val next = url.getQueryParameter("next")
         val argument = if (next == null) "null" else JSONObject.quote(next)
         webView.evaluateJavascript(
-            "window.oeeeGoogleAuth && window.oeeeGoogleAuth.begin($argument);",
+            "window.oeeeSignIn && window.oeeeSignIn.native(\"google\", $argument);",
             null
         )
     }
 
-    /** Google's own sheet, with the page's nonce; the answer goes straight back to it. */
-    private suspend fun ask(nonce: String, reply: JavaScriptReplyProxy) {
+    /** The page's `signIn`: Google's own sheet, with the page's nonce. */
+    fun signIn(nonce: String) {
+        scope.launch { answer(ask(nonce)) }
+    }
+
+    /**
+     * The page is told how it went, as JSON it takes as an object literal. The token is in
+     * the script, so the script is never logged either, and it is only ever evaluated in a
+     * page of the site: the sheet can be up for a while, and the web view is not bound to
+     * still be where it was when it asked.
+     */
+    private fun answer(told: String) {
+        val here = webView.url?.let { SiteBridge.origin(Uri.parse(it)) }
+        if (here != siteOrigin) {
+            Log.w(TAG, "The page that asked to sign in is gone; not answering")
+            return
+        }
+        webView.evaluateJavascript("window.oeeeSignIn && window.oeeeSignIn.answer($told);", null)
+    }
+
+    /** What Credential Manager said, as the page is to be told it (GoogleSignInMessages). */
+    private suspend fun ask(nonce: String): String {
         val option = GetSignInWithGoogleOption.Builder(BuildConfig.GOOGLE_SERVER_CLIENT_ID)
             .setNonce(nonce)
             .build()
@@ -85,7 +81,7 @@ class GoogleSignIn(
         Log.i(TAG, "Asking Credential Manager to sign in")
         // Nothing below logs the answer itself: it carries the ID token, and logcat is
         // readable by anything with the right permission on some devices.
-        val answer = try {
+        return try {
             val response = CredentialManager.create(activity).getCredential(activity, request)
             val credential = response.credential
             val token = if (
@@ -130,29 +126,18 @@ class GoogleSignIn(
             Log.w(TAG, "Google sign-in ended unexpectedly - ${e::class.java.simpleName}: ${e.message}")
             GoogleSignInMessages.FAILED
         }
-        reply.postMessage(answer)
     }
 
     companion object {
         private const val TAG = "GoogleSignIn"
 
-        /** What the page posts the nonce to, and hears the answer on. */
-        const val OBJECT_NAME = "oeeeGoogleSignIn"
-
-                /**
-         * Whether this build can sign in with Google at all: one built without the site's
-         * client id cannot, and neither can a web view too old for the two halves of the
-         * bridge this needs.
-         */
         /**
-         * Whether this build and this web view can do it at all: a web view without the
-         * two halves of the bridge cannot, and Android System WebView updates apart from
-         * the app, so the same build can differ from one device to the next.
+         * Whether this build can sign in with Google at all: one built without the site's
+         * client id cannot, and neither can a web view too old for the bridge the page asks
+         * over (SiteBridge.isAvailable).
          */
         fun isAvailable(): Boolean =
-            BuildConfig.GOOGLE_SERVER_CLIENT_ID.isNotEmpty() &&
-                WebViewFeature.isFeatureSupported(WebViewFeature.WEB_MESSAGE_LISTENER) &&
-                WebViewFeature.isFeatureSupported(WebViewFeature.DOCUMENT_START_SCRIPT)
+            BuildConfig.GOOGLE_SERVER_CLIENT_ID.isNotEmpty() && SiteBridge.isAvailable()
 
         /** Whether [request] is the site's link to sign in with Google. */
         fun isSignInLink(request: WebResourceRequest, navigation: Navigation): Boolean =

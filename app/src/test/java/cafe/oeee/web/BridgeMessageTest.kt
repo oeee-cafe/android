@@ -61,6 +61,130 @@ class BridgeMessageTest {
         )
         val unknown = BridgeMessage.parse("""{"v":1,"type":"theme","choice":"dark","dark":true,"top":null,"bottom":"red"}""")
         assertEquals(BridgeMessage.Theme(choice = "dark", dark = true, top = null, bottom = null), unknown)
+        // A page where nothing has a colour says so, rather than sending transparent black.
+        val bare = BridgeMessage.parse("""{"v":1,"type":"theme","choice":"system","dark":false,"top":null,"bottom":null}""")
+        assertEquals(BridgeMessage.Theme(choice = "system", dark = false, top = null, bottom = null), bare)
+    }
+
+    @Test
+    fun themeGroundAndGrid() {
+        // The design system's tokens read back as they were written, which is hex.
+        val message = BridgeMessage.parse(
+            """{"v":1,"type":"theme","choice":"light","dark":false,"top":"rgb(204, 204, 255)",""" +
+                """"bottom":"rgb(204, 204, 255)","ground":"#ccccff","grid":" #bbf "}"""
+        ) as BridgeMessage.Theme
+        assertEquals(Color(204, 204, 255), message.ground)
+        assertEquals(Color(187, 187, 255), message.grid)
+        // A page without the design system's stylesheet has neither, and a build of the site
+        // from before them says nothing at all.
+        val none = BridgeMessage.parse(
+            """{"v":1,"type":"theme","choice":"dark","dark":true,"top":null,"bottom":null,"ground":null,"grid":""}"""
+        ) as BridgeMessage.Theme
+        assertNull(none.ground)
+        assertNull(none.grid)
+        val older = BridgeMessage.parse("""{"v":1,"type":"theme","choice":"dark","dark":true}""") as BridgeMessage.Theme
+        assertNull(older.ground)
+    }
+
+    @Test
+    fun words() {
+        val message = BridgeMessage.parse(
+            """{"v":1,"type":"words","leaveTitle":"이 페이지를 떠날까요?","leaveBody":"저장하지 않은 내용은 사라집니다.",""" +
+                """"leave":"떠나기","stay":"머무르기","ok":"확인","cancel":"취소","saveImage":"이미지 저장",""" +
+                """"copyImage":"이미지 복사","share":"공유…","copyLink":"링크 복사","savedImage":"사진에 저장했습니다",""" +
+                """"savedFile":"다운로드에 저장했습니다","saveFailed":"저장하지 못했습니다",""" +
+                """"steamSignInFailed":"Steam으로 로그인하지 못했습니다."}"""
+        )
+        assertEquals(
+            BridgeMessage.Words(
+                leaveTitle = "이 페이지를 떠날까요?",
+                leaveBody = "저장하지 않은 내용은 사라집니다.",
+                leave = "떠나기",
+                stay = "머무르기",
+                ok = "확인",
+                cancel = "취소",
+                saveImage = "이미지 저장",
+                copyImage = "이미지 복사",
+                share = "공유…",
+                copyLink = "링크 복사",
+                savedImage = "사진에 저장했습니다",
+                savedFile = "다운로드에 저장했습니다",
+                saveFailed = "저장하지 못했습니다"
+            ),
+            message
+        )
+    }
+
+    @Test
+    fun wordsThePageLeftOutAreTheAppsOwn() {
+        val message = BridgeMessage.parse("""{"v":1,"type":"words","leave":"Leave","stay":"","ok":null}""") as BridgeMessage.Words
+        assertEquals("Leave", message.leave)
+        assertNull(message.stay)
+        assertNull(message.ok)
+        assertNull(message.saveImage)
+    }
+
+    @Test
+    fun signIn() {
+        assertEquals(
+            BridgeMessage.SignIn(provider = "google", nonce = "n0nc3"),
+            BridgeMessage.parse("""{"v":1,"type":"signIn","provider":"google","nonce":"n0nc3"}""")
+        )
+        // Nothing to sign in for: no nonce, or no provider to ask.
+        assertNull(BridgeMessage.parse("""{"v":1,"type":"signIn","provider":"google"}"""))
+        assertNull(BridgeMessage.parse("""{"v":1,"type":"signIn","provider":"google","nonce":""}"""))
+        assertNull(BridgeMessage.parse("""{"v":1,"type":"signIn","provider":"google","nonce":42}"""))
+        assertNull(BridgeMessage.parse("""{"v":1,"type":"signIn","nonce":"n0nc3"}"""))
+    }
+
+    @Test
+    fun browse() {
+        assertEquals(
+            BridgeMessage.Browse("https://oeee.cafe/auth/handoff/abc"),
+            BridgeMessage.parse("""{"v":1,"type":"browse","url":"https://oeee.cafe/auth/handoff/abc"}""")
+        )
+        assertNull(BridgeMessage.parse("""{"v":1,"type":"browse","url":""}"""))
+        assertNull(BridgeMessage.parse("""{"v":1,"type":"browse"}"""))
+    }
+
+    @Test
+    fun share() {
+        assertEquals(
+            BridgeMessage.Share(title = "A drawing", text = "Look\nhttps://oeee.cafe/@reader/9c881320"),
+            BridgeMessage.parse(
+                """{"v":1,"type":"share","title":"A drawing","text":"Look\nhttps://oeee.cafe/@reader/9c881320"}"""
+            )
+        )
+        assertEquals(
+            BridgeMessage.Share(title = "", text = "https://oeee.cafe/"),
+            BridgeMessage.parse("""{"v":1,"type":"share","text":"https://oeee.cafe/"}""")
+        )
+        // Nothing to share.
+        assertNull(BridgeMessage.parse("""{"v":1,"type":"share","title":"A drawing","text":""}"""))
+    }
+
+    @Test
+    fun download() {
+        assertEquals(
+            BridgeMessage.Download(name = "drawing.png", data = "data:image/png;base64,iVBORw0KGgo="),
+            BridgeMessage.parse(
+                """{"v":1,"type":"download","name":"drawing.png","data":"data:image/png;base64,iVBORw0KGgo="}"""
+            )
+        )
+        // A file with no name still has its data URL to say what it is.
+        assertEquals(
+            BridgeMessage.Download(name = "", data = "data:text/plain,hi"),
+            BridgeMessage.parse("""{"v":1,"type":"download","data":"data:text/plain,hi"}""")
+        )
+        assertNull(BridgeMessage.parse("""{"v":1,"type":"download","name":"drawing.png"}"""))
+        // As app_polyfills.jinja sends it: the file's own type as `mime`, which the app does
+        // not need, because the data URL says the same thing.
+        assertEquals(
+            BridgeMessage.Download(name = "drawing.png", data = "data:image/png;base64,iVBORw0KGgo="),
+            BridgeMessage.parse(
+                """{"name":"drawing.png","mime":"image/png","data":"data:image/png;base64,iVBORw0KGgo=","v":1,"type":"download"}"""
+            )
+        )
     }
 
     @Test

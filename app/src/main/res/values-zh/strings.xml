@@ -14,22 +14,7 @@
     <string name="unreachable_body">请检查网络连接后重试。</string>
     <string name="retry">重试</string>
 
-    <!-- The site's own dialogs -->
-    <string name="leave_title">要离开此页面吗？</string>
-    <string name="leave_body">未保存的内容将会丢失。</string>
-    <string name="leave">离开</string>
-    <string name="stay">留下</string>
-    <string name="ok">确定</string>
-    <string name="cancel">取消</string>
-
-    <!-- A long press on a drawing, and what the site saves or shares -->
-    <string name="drawing_save">保存图片</string>
-    <string name="drawing_copy">复制图片</string>
-    <string name="drawing_share">分享…</string>
-    <string name="drawing_copy_link">复制链接</string>
-    <string name="saved_image">已保存到图片</string>
-    <string name="saved_file">已保存到下载</string>
-    <string name="save_failed">无法保存</string>
+    <!-- Sharing a drawing: the title of the system's share sheet -->
     <string name="share_title">分享</string>
 
     <!-- The system's settings for the app's push notifications -->
