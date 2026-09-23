@@ -14,19 +14,16 @@ import com.squareup.moshi.Moshi
 sealed interface BridgeMessage {
     /**
      * The page shown, sent on every page and again whenever any of it changes. Only what this
-     * app acts on is read; the site says more, for the other apps.
+     * app acts on is read; the site says more, for the other apps. So does it send types this
+     * app has no use for -- the bell's number, the painter being ready, a store's -- which
+     * are left to the unknown ones.
      */
     data class Page(
         /** Null on a page without the toolbar, which cannot tell. */
         val signedIn: Boolean?,
-        /** Whether leaving would lose a drawing in progress. */
-        val painting: Boolean,
         /** Whether pulling down may reload the page; neither a painter nor a replay may be. */
         val refreshable: Boolean
     ) : BridgeMessage
-
-    /** The number on the site's bell: unread notifications and invitations waiting, together. */
-    data class Unread(val count: Int) : BridgeMessage
 
     /**
      * The design system's ground -- what the page has at both its edges, so the bars are drawn
@@ -61,9 +58,6 @@ sealed interface BridgeMessage {
 
     /** As a finger lands, the drawing it landed on; null when it is not on one. */
     data class Pressed(val drawing: PressedDrawing?) : BridgeMessage
-
-    /** The painter's state; "ready" once `window.oeeeApp.painter` can be driven. */
-    data class Painter(val state: String) : BridgeMessage
 
     /**
      * A sign-in the page is carrying, after the app stopped its link (app_sign_in.jinja): make
@@ -115,10 +109,8 @@ sealed interface BridgeMessage {
             return when (message["type"]) {
                 "page" -> Page(
                     signedIn = message["signedIn"] as? Boolean,
-                    painting = message["painting"] as? Boolean ?: false,
                     refreshable = message["refreshable"] as? Boolean ?: true
                 )
-                "unread" -> Unread(((message["count"] as? Number)?.toInt() ?: 0).coerceAtLeast(0))
                 "theme" -> Theme(
                     ground = parseCssColor(message.string("ground")),
                     grid = parseCssColor(message.string("grid"))
@@ -138,7 +130,6 @@ sealed interface BridgeMessage {
                 )
                 "haptic" -> message.string("name")?.let { Haptic(it) }
                 "pressed" -> Pressed((message["drawing"] as? Map<*, *>)?.let(::pressedDrawing))
-                "painter" -> message.string("state")?.let { Painter(it) }
                 "signIn" -> {
                     val provider = message.word("provider") ?: return null
                     val nonce = message.word("nonce") ?: return null

@@ -118,12 +118,7 @@ class MainActivity : ComponentActivity() {
                     CookieManager.getInstance().setAcceptCookie(true)
                     webTabs.start()
 
-                    var wasAuthenticated: Boolean? = null
-                    AuthService.isAuthenticated.collect { authenticated ->
-                        if (wasAuthenticated != null) webTabs.authenticationChanged(authenticated)
-                        authenticationChanged(authenticated)
-                        wasAuthenticated = authenticated
-                    }
+                    AuthService.isAuthenticated.collect { authenticationChanged(it) }
                 }
 
                 val pending by NavigationCoordinator.pendingNavigation.collectAsState()

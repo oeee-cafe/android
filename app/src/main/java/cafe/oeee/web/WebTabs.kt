@@ -78,18 +78,6 @@ class WebTabs(
         controller?.resumed()
     }
 
-    /**
-     * After signing in or out, the page showing was rendered for whoever was signed in
-     * before -- unless it is the page that said so, which is where signing in ends and
-     * which carries the notice that it worked. Reloading that one would throw the notice
-     * away for nothing.
-     */
-    fun authenticationChanged(signedIn: Boolean) {
-        val controller = controller ?: return
-        if (controller.lastSignedIn == signedIn) return
-        controller.reload()
-    }
-
     /** The configuration changed, perhaps the system's font size: the pages follow it. */
     fun textScaleChanged() {
         controller?.showTextScale()

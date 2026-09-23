@@ -19,7 +19,6 @@ class BridgeMessageTest {
         assertEquals(
             BridgeMessage.Page(
                 signedIn = true,
-                painting = true,
                 refreshable = false
             ),
             message
@@ -33,12 +32,6 @@ class BridgeMessageTest {
         ) as BridgeMessage.Page
         assertNull(message.signedIn)
         assertEquals(true, message.refreshable)
-    }
-
-    @Test
-    fun unread() {
-        assertEquals(BridgeMessage.Unread(12), BridgeMessage.parse("""{"v":1,"type":"unread","count":12}"""))
-        assertEquals(BridgeMessage.Unread(0), BridgeMessage.parse("""{"v":1,"type":"unread","count":-3}"""))
     }
 
     @Test
@@ -214,15 +207,18 @@ class BridgeMessageTest {
     }
 
     @Test
-    fun painter() {
-        assertEquals(BridgeMessage.Painter("ready"), BridgeMessage.parse("""{"v":1,"type":"painter","state":"ready"}"""))
+    fun whatTheSiteSaysForOtherAppsIsNothing() {
+        // The bell's number and the painter being ready are for apps that do something with
+        // them; this one has nowhere to show the one and nothing that drives the other.
+        assertNull(BridgeMessage.parse("""{"v":1,"type":"unread","count":12}"""))
+        assertNull(BridgeMessage.parse("""{"v":1,"type":"painter","state":"ready"}"""))
     }
 
     @Test
     fun unknownFieldsAreIgnored() {
         assertEquals(
-            BridgeMessage.Unread(1),
-            BridgeMessage.parse("""{"v":1,"type":"unread","count":1,"invitations":1,"extra":{"a":[1,2]}}""")
+            BridgeMessage.Haptic("light"),
+            BridgeMessage.parse("""{"v":1,"type":"haptic","name":"light","strength":1,"extra":{"a":[1,2]}}""")
         )
     }
 
@@ -237,7 +233,7 @@ class BridgeMessageTest {
         assertNull(BridgeMessage.parse("""{"v":1,"type":"someday"}"""))
         assertNull(BridgeMessage.parse("""{"v":1}"""))
         // A later version of the contract may mean something else by the same names.
-        assertNull(BridgeMessage.parse("""{"v":2,"type":"unread","count":1}"""))
-        assertNull(BridgeMessage.parse("""{"type":"unread","count":1}"""))
+        assertNull(BridgeMessage.parse("""{"v":2,"type":"haptic","name":"light"}"""))
+        assertNull(BridgeMessage.parse("""{"type":"haptic","name":"light"}"""))
     }
 }

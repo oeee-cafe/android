@@ -54,13 +54,8 @@ class WebTabController(
     /** Whether the page shown may be reloaded by pulling it down (BridgeMessage.Page.refreshable). */
     private var refreshable = true
 
-    /**
-     * Who the page shown last said is signed in, or null on a page that could not tell.
-     * A page already showing the new answer needs no reloading after a sign-in -- it is
-     * the page that said so (WebTabs.authenticationChanged).
-     */
-    var lastSignedIn: Boolean? = null
-        private set
+    /** Who the page shown last said is signed in, or null until one could tell. */
+    private var lastSignedIn: Boolean? = null
 
     val webView = WebView(activity)
 
@@ -219,10 +214,6 @@ class WebTabController(
         webView.loadUrl(url)
     }
 
-    fun reload() {
-        if (hasLoaded) webView.reload()
-    }
-
     /** The reader's font size, on every page (SiteBridge.showTextScale). */
     fun showTextScale() {
         bridge.showTextScale(activity.resources.configuration.fontScale)
@@ -256,10 +247,6 @@ class WebTabController(
             is BridgeMessage.Pressed -> pressedDrawing = message.drawing?.let {
                 DrawingMenu.Drawing(it, referrer = webView.url, userAgent = webView.settings.userAgentString)
             }
-            // The painter can be driven now; nothing in this app drives it yet.
-            is BridgeMessage.Painter -> Unit
-            // The bell's number is on the page, and this app has nowhere else to show it.
-            is BridgeMessage.Unread -> Unit
             is BridgeMessage.SignIn -> signIn(message)
             is BridgeMessage.Browse -> signInHandoff?.browse(message.url)
             is BridgeMessage.Share -> shareText(message)
