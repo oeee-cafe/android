@@ -34,7 +34,6 @@ import cafe.oeee.ui.theme.OeeeCafeTheme
 import cafe.oeee.web.FileChooser
 import cafe.oeee.web.Site
 import cafe.oeee.web.StoragePermission
-import cafe.oeee.web.WebSession
 import cafe.oeee.web.WebTabs
 import cafe.oeee.web.WebTabsScreen
 import kotlinx.coroutines.launch
@@ -115,8 +114,8 @@ class MainActivity : ComponentActivity() {
                 val controller = webTabs.controller
 
                 LaunchedEffect(Unit) {
-                    // Moves a native session's cookies onto the web views before anything is fetched.
-                    WebSession.start(this@MainActivity)
+                    // The web views keep the site's session in their cookies, from the first fetch.
+                    CookieManager.getInstance().setAcceptCookie(true)
                     webTabs.start()
 
                     var wasAuthenticated: Boolean? = null

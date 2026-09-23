@@ -44,8 +44,7 @@ class WebTabs(
 
     /**
      * Makes the web view, and shows the site's first page. Asked for rather than done on
-     * its own, so that whoever is signed in on the web views has been picked up before
-     * anything is fetched (WebSession).
+     * its own, so that the web views take cookies before anything is fetched (MainActivity).
      */
     fun start(): WebTabController = controller ?: create()
 
