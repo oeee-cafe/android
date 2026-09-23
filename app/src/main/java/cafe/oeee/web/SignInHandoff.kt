@@ -29,7 +29,7 @@ class SignInHandoff(
 ) {
     /** Back in front, probably from the browser: the page asks the site again at once. */
     fun resume() {
-        webView.evaluateJavascript("window.oeeeApp && window.oeeeApp.signIn && window.oeeeApp.signIn.resume();", null)
+        webView.evaluateJavascript(PageScripts.SIGN_IN_RESUME, null)
     }
 
     /** The page's `browse`: the site's own URL, opened in a browser, or the page told it was not. */
@@ -37,7 +37,7 @@ class SignInHandoff(
         val uri = siteUrl(url)
         if (uri == null || !openInBrowser(uri)) {
             Log.w(TAG, if (uri == null) "Not opening a browser at somewhere other than the site" else "No browser to sign in with")
-            webView.evaluateJavascript("window.oeeeApp && window.oeeeApp.signIn && window.oeeeApp.signIn.unopened();", null)
+            webView.evaluateJavascript(PageScripts.SIGN_IN_UNOPENED, null)
         }
     }
 

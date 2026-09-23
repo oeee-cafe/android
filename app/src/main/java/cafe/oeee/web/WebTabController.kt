@@ -32,7 +32,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
-import org.json.JSONObject
 
 /** The app's one web view: its settings, its life, and what its pages say to the app. */
 @SuppressLint("SetJavaScriptEnabled")
@@ -124,7 +123,7 @@ class WebTabController(
             javaScriptEnabled = true
             domStorageEnabled = true
             mediaPlaybackRequiresUserGesture = false
-            userAgentString = "$userAgentString $USER_AGENT_SUFFIX"
+            userAgentString = "$userAgentString ${Site.USER_AGENT_SUFFIX}"
         }
         webView.webViewClient = Client()
         webView.webChromeClient = ChromeClient(fileChooser)
@@ -277,10 +276,7 @@ class WebTabController(
         if (lastSignedIn != true) return
         val token = PushNotificationService.token.value ?: return
         if (webView.url?.let { SiteBridge.origin(Uri.parse(it)) } != siteOrigin) return
-        webView.evaluateJavascript(
-            "window.oeeeApp && window.oeeeApp.pushToken && window.oeeeApp.pushToken(${JSONObject.quote(token)});",
-            null
-        )
+        webView.evaluateJavascript(PageScripts.pushToken(token), null)
     }
 
     /**
@@ -296,10 +292,7 @@ class WebTabController(
             return
         }
         Log.w(TAG, "No sheet to sign in with ${message.provider}")
-        webView.evaluateJavascript(
-            "window.oeeeApp && window.oeeeApp.signIn && window.oeeeApp.signIn.answer(${GoogleSignInMessages.FAILED});",
-            null
-        )
+        webView.evaluateJavascript(PageScripts.signInAnswer(GoogleSignInMessages.FAILED), null)
     }
 
     /** `navigator.share`, as the system's share sheet (app_polyfills.jinja). */
@@ -406,24 +399,20 @@ class WebTabController(
         // oeee-cafe/web) and calls neither alert() nor confirm(); only a page's asking
         // before it is left, which no page can draw, is the app's.
         //
-        // The page puts its loading bar (loading_bar.jinja) up at the press for every other
-        // load, but not for one it asks about, since a bar up before a Stay would hang
-        // there and only the app hears the answer. So a Leave puts it up here; the page
-        // stays painted until the next one arrives.
+        // The page puts its loading bar up at the press for every other load, but not for
+        // one it asks about, since a bar up before a Stay would hang there and only the app
+        // hears the answer. So a Leave tells the page it is being left, as every app does
+        // (oeeeApp.leaving, app_bridge.jinja), and the bar goes up; the page stays painted
+        // until the next one arrives. The load is already the web view's to carry on with,
+        // so the promise the call returns is not waited for.
         override fun onJsBeforeUnload(view: WebView, url: String?, message: String?, result: JsResult): Boolean =
             dialogs.beforeUnload(result) {
-                view.evaluateJavascript("window.oeeeLoadingBar && window.oeeeLoadingBar.start(null);", null)
+                view.evaluateJavascript(PageScripts.LEAVING, null)
             }
     }
 
     private companion object {
         const val TAG = "WebTab"
-        /**
-         * What the site looks for to know it is in this app: `OeeeCafe/<app>`, from which it
-         * marks the root `data-app="android"` and `data-form="handheld"` (theme_head.jinja in
-         * oeee-cafe/web). No `store/` after it: this build sells nothing.
-         */
-        const val USER_AGENT_SUFFIX = "OeeeCafe/android"
         const val STATE_URL = "url"
         /** A quarter of what the system will carry for the whole app. */
         const val MAX_STATE_BYTES = 128 * 1024

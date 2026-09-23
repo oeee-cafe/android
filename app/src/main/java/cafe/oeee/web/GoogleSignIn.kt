@@ -54,7 +54,7 @@ class GoogleSignIn(
             Log.w(TAG, "The page that asked to sign in is gone; not answering")
             return
         }
-        webView.evaluateJavascript("window.oeeeApp && window.oeeeApp.signIn && window.oeeeApp.signIn.answer($told);", null)
+        webView.evaluateJavascript(PageScripts.signInAnswer(told), null)
     }
 
     /** What Credential Manager said, as the page is to be told it (GoogleSignInMessages). */
