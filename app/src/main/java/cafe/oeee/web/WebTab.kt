@@ -38,20 +38,6 @@ enum class WebTab(
         fun visible(isAuthenticated: Boolean): List<WebTab> =
             if (isAuthenticated) listOf(HOME, COMMUNITIES, NOTIFICATIONS, SEARCH)
             else listOf(HOME, COMMUNITIES, LOGIN, SEARCH)
-
-        /**
-         * The tab a page of the site belongs in: the sections with a tab of their own carry
-         * everything below them, and home is the site's own front page.
-         *
-         * Null for a page that is nobody's section -- a drawing, a profile, what somebody
-         * wrote, the pages the site's toolbar has and the tab bar does not. Those are read
-         * in whichever section they were opened from, and leave the bar where it is.
-         */
-        fun showing(path: String): WebTab? {
-            val here = path.ifEmpty { HOME.path }
-            if (here == HOME.path) return HOME
-            return entries.firstOrNull { it != HOME && here.startsWith(it.path) }
-        }
     }
 }
 

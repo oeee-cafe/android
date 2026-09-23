@@ -127,8 +127,8 @@ class MainActivity : ComponentActivity() {
                     val navigation = pending ?: return@LaunchedEffect
                     val shown = controller ?: return@LaunchedEffect
                     NavigationCoordinator.clearPendingNavigation()
-                    // The web view shows it, and the bar draws whichever section it turns
-                    // out to be in (WebTabController.section).
+                    // The web view shows it, under whichever tab was picked last
+                    // (WebTabController.section).
                     shown.load(ApiClient.BASE_URL + navigation.path)
                 }
 

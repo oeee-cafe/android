@@ -66,10 +66,9 @@ class WebTabController(
     val webView = WebView(activity)
 
     /**
-     * The section the page showing belongs to, which is the tab the bar draws as the one
-     * the reader is in (WebTabsScreen). The site says where every page is (SiteBridge), so
-     * the bar follows the page rather than the two being told separately -- the site's own
-     * toolbar has these sections in it as well, and the two ways in could disagree.
+     * The tab last picked in the bar, which it draws as the one the reader is in
+     * (WebTabsScreen). Only a tap moves it: a page reached some other way -- the site's own
+     * toolbar, a link, Back -- is read under whichever tab was picked last.
      */
     var section by mutableStateOf(WebTab.HOME)
         private set
@@ -251,8 +250,7 @@ class WebTabController(
      */
     fun show(section: WebTab) {
         if (hasLoaded && webView.url?.let { Uri.parse(it).path } == section.path) return
-        // The bar follows the tap at once rather than waiting out a fetch; where the page
-        // says it is, when it arrives, is what stands ([onMessage]).
+        // The bar follows the tap at once rather than waiting out a fetch.
         this.section = section
         load(section.rootUrl)
     }
@@ -286,10 +284,6 @@ class WebTabController(
             is BridgeMessage.Page -> {
                 refreshable = message.refreshable
                 message.signedIn?.let { lastSignedIn = it }
-                // Wherever the page came from -- a tab, the site's own toolbar, a link in
-                // what somebody wrote, Back -- the bar draws the section it is in, and a
-                // page that is nobody's section leaves the bar where it was.
-                message.path?.let { path -> WebTab.showing(path)?.let { section = it } }
                 onPage(message)
             }
             is BridgeMessage.Unread -> onUnread(message.count)

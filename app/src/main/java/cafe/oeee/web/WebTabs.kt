@@ -17,8 +17,8 @@ import cafe.oeee.BuildConfig
  * One web view rather than one per tab. A tab of its own for each kept a history and a
  * scroll position per section, and cost a navigation that could disagree with itself: the
  * site's toolbar has these same sections in it, so a section could arrive in the wrong tab
- * and had to be moved to its own. The bar picks what the one web view shows, and the web
- * view says which section it turned out to be in ([WebTabController.section]).
+ * and had to be moved to its own. The bar picks what the one web view shows
+ * ([WebTabController.section]), and nothing else moves it.
  */
 class WebTabs(
     private val activity: Activity,
