@@ -12,14 +12,13 @@ import com.squareup.moshi.Moshi
  * Nothing here touches Android, so the parsing is checked by the JVM's own tests.
  */
 sealed interface BridgeMessage {
-    /** The page shown, sent on every page and again whenever any of it changes. */
+    /**
+     * The page shown, sent on every page and again whenever any of it changes. Only what this
+     * app acts on is read; the site says more, for the other apps.
+     */
     data class Page(
-        val path: String?,
         /** Null on a page without the toolbar, which cannot tell. */
         val signedIn: Boolean?,
-        val presence: String?,
-        val community: String?,
-        val group: String?,
         /** Whether leaving would lose a drawing in progress. */
         val painting: Boolean,
         /** Whether pulling down may reload the page; neither a painter nor a replay may be. */
@@ -35,8 +34,6 @@ sealed interface BridgeMessage {
      * where the page does not reach.
      */
     data class Theme(
-        val choice: String?,
-        val dark: Boolean,
         val top: Color?,
         val bottom: Color?,
         val ground: Color? = null,
@@ -121,18 +118,12 @@ sealed interface BridgeMessage {
             if ((message["v"] as? Number)?.toInt() != VERSION) return null
             return when (message["type"]) {
                 "page" -> Page(
-                    path = message.string("path"),
                     signedIn = message["signedIn"] as? Boolean,
-                    presence = message.string("presence"),
-                    community = message.string("community"),
-                    group = message.string("group"),
                     painting = message["painting"] as? Boolean ?: false,
                     refreshable = message["refreshable"] as? Boolean ?: true
                 )
                 "unread" -> Unread(((message["count"] as? Number)?.toInt() ?: 0).coerceAtLeast(0))
                 "theme" -> Theme(
-                    choice = message.string("choice"),
-                    dark = message["dark"] as? Boolean ?: false,
                     top = parseCssColor(message.string("top")),
                     bottom = parseCssColor(message.string("bottom")),
                     ground = parseCssColor(message.string("ground")),

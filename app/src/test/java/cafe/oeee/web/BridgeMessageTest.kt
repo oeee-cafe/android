@@ -18,11 +18,7 @@ class BridgeMessageTest {
         )
         assertEquals(
             BridgeMessage.Page(
-                path = "/draw",
                 signedIn = true,
-                presence = "drawing",
-                community = "오이카페",
-                group = null,
                 painting = true,
                 refreshable = false
             ),
@@ -49,28 +45,26 @@ class BridgeMessageTest {
     fun theme() {
         assertEquals(
             BridgeMessage.Theme(
-                choice = "system",
-                dark = true,
                 top = Color(34, 34, 63),
                 bottom = Color(255, 255, 255)
             ),
             BridgeMessage.parse(
-                """{"v":1,"type":"theme","choice":"system","dark":true,""" +
+                """{"v":1,"type":"theme","choice":"system",""" +
                     """"top":"rgb(34, 34, 63)","bottom":"rgba(255, 255, 255, 0.9)"}"""
             )
         )
-        val unknown = BridgeMessage.parse("""{"v":1,"type":"theme","choice":"dark","dark":true,"top":null,"bottom":"red"}""")
-        assertEquals(BridgeMessage.Theme(choice = "dark", dark = true, top = null, bottom = null), unknown)
+        val unknown = BridgeMessage.parse("""{"v":1,"type":"theme","choice":"dark","top":null,"bottom":"red"}""")
+        assertEquals(BridgeMessage.Theme(top = null, bottom = null), unknown)
         // A page where nothing has a colour says so, rather than sending transparent black.
-        val bare = BridgeMessage.parse("""{"v":1,"type":"theme","choice":"system","dark":false,"top":null,"bottom":null}""")
-        assertEquals(BridgeMessage.Theme(choice = "system", dark = false, top = null, bottom = null), bare)
+        val bare = BridgeMessage.parse("""{"v":1,"type":"theme","choice":"system","top":null,"bottom":null}""")
+        assertEquals(BridgeMessage.Theme(top = null, bottom = null), bare)
     }
 
     @Test
     fun themeGroundAndGrid() {
         // The design system's tokens read back as they were written, which is hex.
         val message = BridgeMessage.parse(
-            """{"v":1,"type":"theme","choice":"light","dark":false,"top":"rgb(204, 204, 255)",""" +
+            """{"v":1,"type":"theme","choice":"light","top":"rgb(204, 204, 255)",""" +
                 """"bottom":"rgb(204, 204, 255)","ground":"#ccccff","grid":" #bbf "}"""
         ) as BridgeMessage.Theme
         assertEquals(Color(204, 204, 255), message.ground)
@@ -78,7 +72,7 @@ class BridgeMessageTest {
         // A page without the design system's stylesheet has neither, and a build of the site
         // from before them says nothing at all.
         val none = BridgeMessage.parse(
-            """{"v":1,"type":"theme","choice":"dark","dark":true,"top":null,"bottom":null,"ground":null,"grid":""}"""
+            """{"v":1,"type":"theme","choice":"dark","top":null,"bottom":null,"ground":null,"grid":""}"""
         ) as BridgeMessage.Theme
         assertNull(none.ground)
         assertNull(none.grid)
