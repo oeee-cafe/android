@@ -9,10 +9,10 @@ import androidx.annotation.StringRes
 import cafe.oeee.R
 
 /**
- * The page's `alert()`, `confirm()` and leaving a page with unsaved work, asked as the
- * system's own dialogs. Left to the web view they are titled "The page at https://oeee.cafe
- * says", which no app says. Their words are the site's, in the page's language
- * (BridgeMessage.Words), so every app words them alike.
+ * Leaving a page with unsaved work, asked as the system's own dialog. Left to the web view
+ * it is titled "The page at https://oeee.cafe says", which no app says. Its words are the
+ * site's, in the page's language (BridgeMessage.Words), so every app words it alike. The
+ * site asks everything else in its own dialog.
  */
 class SiteDialogs(private val activity: Activity, private val words: () -> BridgeMessage.Words?) {
     private fun builder(): AlertDialog.Builder {
@@ -28,33 +28,6 @@ class SiteDialogs(private val activity: Activity, private val words: () -> Bridg
 
     /** Whether there is a window to show a dialog in; the page's question is answered no otherwise. */
     private val canShow: Boolean get() = !activity.isFinishing && !activity.isDestroyed
-
-    fun alert(message: String?, result: JsResult): Boolean {
-        if (!canShow) {
-            result.cancel()
-            return true
-        }
-        builder()
-            .setMessage(message)
-            .setPositiveButton(word({ it.ok }, R.string.ok)) { _, _ -> result.confirm() }
-            .setOnCancelListener { result.confirm() }
-            .show()
-        return true
-    }
-
-    fun confirm(message: String?, result: JsResult): Boolean {
-        if (!canShow) {
-            result.cancel()
-            return true
-        }
-        builder()
-            .setMessage(message)
-            .setPositiveButton(word({ it.ok }, R.string.ok)) { _, _ -> result.confirm() }
-            .setNegativeButton(word({ it.cancel }, R.string.cancel)) { _, _ -> result.cancel() }
-            .setOnCancelListener { result.cancel() }
-            .show()
-        return true
-    }
 
     /** The page would lose something if left: Stay is the safe answer, so it is the one kept. */
     fun beforeUnload(result: JsResult): Boolean {

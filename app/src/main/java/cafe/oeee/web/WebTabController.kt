@@ -402,12 +402,9 @@ class WebTabController(
             fileChooserParams: FileChooserParams
         ): Boolean = fileChooser.show(filePathCallback, fileChooserParams)
 
-        override fun onJsAlert(view: WebView, url: String?, message: String?, result: JsResult): Boolean =
-            dialogs.alert(message, result)
-
-        override fun onJsConfirm(view: WebView, url: String?, message: String?, result: JsResult): Boolean =
-            dialogs.confirm(message, result)
-
+        // The site asks its questions in its own dialog (confirm_dialog.jinja in
+        // oeee-cafe/web) and calls neither alert() nor confirm(); only a page's asking
+        // before it is left, which no page can draw, is the app's.
         override fun onJsBeforeUnload(view: WebView, url: String?, message: String?, result: JsResult): Boolean =
             dialogs.beforeUnload(result)
     }

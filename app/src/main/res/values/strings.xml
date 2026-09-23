@@ -22,8 +22,6 @@
     <string name="leave_body" translatable="false">Anything you have not saved will be lost.</string>
     <string name="leave" translatable="false">Leave</string>
     <string name="stay" translatable="false">Stay</string>
-    <string name="ok" translatable="false">OK</string>
-    <string name="cancel" translatable="false">Cancel</string>
     <string name="drawing_save" translatable="false">Save image</string>
     <string name="drawing_copy" translatable="false">Copy image</string>
     <string name="drawing_share" translatable="false">Share…</string>

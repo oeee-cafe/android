@@ -88,8 +88,6 @@ class BridgeMessageTest {
                 leaveBody = "저장하지 않은 내용은 사라집니다.",
                 leave = "떠나기",
                 stay = "머무르기",
-                ok = "확인",
-                cancel = "취소",
                 saveImage = "이미지 저장",
                 copyImage = "이미지 복사",
                 share = "공유…",
@@ -104,10 +102,10 @@ class BridgeMessageTest {
 
     @Test
     fun wordsThePageLeftOutAreTheAppsOwn() {
-        val message = BridgeMessage.parse("""{"v":1,"type":"words","leave":"Leave","stay":"","ok":null}""") as BridgeMessage.Words
+        val message = BridgeMessage.parse("""{"v":1,"type":"words","leave":"Leave","stay":"","share":null}""") as BridgeMessage.Words
         assertEquals("Leave", message.leave)
         assertNull(message.stay)
-        assertNull(message.ok)
+        assertNull(message.share)
         assertNull(message.saveImage)
     }
 
