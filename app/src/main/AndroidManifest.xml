@@ -56,13 +56,18 @@
                 <data android:host="oeee.cafe" />
             </intent-filter>
 
-            <!-- Coming back from a sign-in done in a browser (SignInHandoff). The site
-                 sends the browser here once the provider has answered, and the only
-                 thing it is for is bringing this activity forward: singleTask hands it
-                 to onNewIntent, onResume follows, and the page asks the site at once
-                 (WebTabStore.resumed). Nothing is loaded from it, because
-                 NavigationCoordinator navigates for https links to the site and for
-                 nothing else. Only oeee-cafe://handoff/, not the whole scheme. -->
+            <!-- The app's own scheme, all of it. Coming back from a sign-in done in a
+                 browser is what uses it today (oeee-cafe://handoff/done, SignInHandoff):
+                 the site sends the browser there once the provider has answered, and the
+                 only thing it is for is bringing this activity forward. singleTask hands
+                 it to onNewIntent, onResume follows, and the page asks the site at once
+                 (WebTabStore.resumed).
+
+                 Nothing is loaded from any of it. NavigationCoordinator navigates for
+                 https links to the site and for nothing else, so a URL of this scheme
+                 opens the app and goes no further, whatever is in it. Anything this
+                 scheme is given to mean later is routed there, deliberately, rather than
+                 arriving here by having been claimed already. -->
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
 
@@ -70,7 +75,6 @@
                 <category android:name="android.intent.category.BROWSABLE" />
 
                 <data android:scheme="oeee-cafe" />
-                <data android:host="handoff" />
             </intent-filter>
         </activity>
 
