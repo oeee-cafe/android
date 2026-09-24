@@ -6,47 +6,11 @@ import org.junit.Assert.assertNull
 import org.junit.Test
 
 /**
- * The messages as app_bridge.jinja (oeee-cafe/web) writes them. What matters most is what
- * the app does with a message it does not expect: nothing, rather than something wrong.
+ * The messages as app_bridge.jinja (oeee-cafe/web) could write them, beyond the examples in
+ * its contract, which AppContractTest reads every one of. What matters most is what the app
+ * does with a message it does not expect: nothing, rather than something wrong.
  */
 class BridgeMessageTest {
-    @Test
-    fun page() {
-        val message = BridgeMessage.parse(
-            """{"v":1,"type":"page","path":"/draw","signedIn":true,"presence":"drawing",""" +
-                """"community":"오이카페","group":null,"painting":true,"refreshable":false}"""
-        )
-        assertEquals(
-            BridgeMessage.Page(
-                signedIn = true,
-                refreshable = false
-            ),
-            message
-        )
-    }
-
-    @Test
-    fun aPageWithoutTheToolbarCannotSayWhoIsSignedIn() {
-        val message = BridgeMessage.parse(
-            """{"v":1,"type":"page","path":"/","signedIn":null,"presence":null,"painting":false,"refreshable":true}"""
-        ) as BridgeMessage.Page
-        assertNull(message.signedIn)
-        assertEquals(true, message.refreshable)
-    }
-
-    @Test
-    fun theme() {
-        assertEquals(
-            BridgeMessage.Theme(ground = Color(23, 23, 43), grid = Color(34, 34, 63)),
-            BridgeMessage.parse("""{"v":1,"type":"theme","choice":"dark","ground":"#17172b","grid":"#22223f"}""")
-        )
-        // A colour this app cannot read is none, and the app's own is drawn.
-        assertEquals(
-            BridgeMessage.Theme(ground = null, grid = null),
-            BridgeMessage.parse("""{"v":1,"type":"theme","choice":"dark","ground":"red","grid":null}""")
-        )
-    }
-
     @Test
     fun themeGroundAndGrid() {
         // The design system's tokens read back as they were written, which is hex.
@@ -67,33 +31,6 @@ class BridgeMessageTest {
     }
 
     @Test
-    fun words() {
-        val message = BridgeMessage.parse(
-            """{"v":1,"type":"words","leaveTitle":"이 페이지를 떠날까요?","leaveBody":"저장하지 않은 내용은 사라집니다.",""" +
-                """"leave":"떠나기","stay":"머무르기","ok":"확인","cancel":"취소","saveImage":"이미지 저장",""" +
-                """"copyImage":"이미지 복사","share":"공유…","copyLink":"링크 복사","savedImage":"사진에 저장했습니다",""" +
-                """"savedFile":"다운로드에 저장했습니다","saveFailed":"저장하지 못했습니다",""" +
-                """"steamSignInFailed":"Steam으로 로그인하지 못했습니다."}"""
-        )
-        assertEquals(
-            BridgeMessage.Words(
-                leaveTitle = "이 페이지를 떠날까요?",
-                leaveBody = "저장하지 않은 내용은 사라집니다.",
-                leave = "떠나기",
-                stay = "머무르기",
-                saveImage = "이미지 저장",
-                copyImage = "이미지 복사",
-                share = "공유…",
-                copyLink = "링크 복사",
-                savedImage = "사진에 저장했습니다",
-                savedFile = "다운로드에 저장했습니다",
-                saveFailed = "저장하지 못했습니다"
-            ),
-            message
-        )
-    }
-
-    @Test
     fun wordsThePageLeftOutAreTheAppsOwn() {
         val message = BridgeMessage.parse("""{"v":1,"type":"words","leave":"Leave","stay":"","share":null}""") as BridgeMessage.Words
         assertEquals("Leave", message.leave)
@@ -103,40 +40,20 @@ class BridgeMessageTest {
     }
 
     @Test
-    fun signIn() {
-        assertEquals(
-            BridgeMessage.SignIn(nonce = "n0nc3"),
-            BridgeMessage.parse("""{"v":1,"type":"signIn","provider":"google","nonce":"n0nc3"}""")
-        )
-        // The page sends this app Google and nothing else, so which it names is not read.
-        assertEquals(
-            BridgeMessage.SignIn(nonce = "n0nc3"),
-            BridgeMessage.parse("""{"v":1,"type":"signIn","nonce":"n0nc3"}""")
-        )
-        // Nothing to make a token for: Steam's, which has no nonce, or one that is not a nonce.
-        assertNull(BridgeMessage.parse("""{"v":1,"type":"signIn","provider":"steam"}"""))
+    fun aSignInWithNoNonceIsNone() {
+        // Nothing to make a token for: a nonce that says nothing, or one that is not a string.
         assertNull(BridgeMessage.parse("""{"v":1,"type":"signIn","provider":"google","nonce":""}"""))
         assertNull(BridgeMessage.parse("""{"v":1,"type":"signIn","provider":"google","nonce":42}"""))
     }
 
     @Test
-    fun browse() {
-        assertEquals(
-            BridgeMessage.Browse("https://oeee.cafe/auth/handoff/abc"),
-            BridgeMessage.parse("""{"v":1,"type":"browse","url":"https://oeee.cafe/auth/handoff/abc"}""")
-        )
+    fun aBrowseWithNoUrlIsNone() {
         assertNull(BridgeMessage.parse("""{"v":1,"type":"browse","url":""}"""))
         assertNull(BridgeMessage.parse("""{"v":1,"type":"browse"}"""))
     }
 
     @Test
-    fun share() {
-        assertEquals(
-            BridgeMessage.Share(title = "A drawing", text = "Look\nhttps://oeee.cafe/@reader/9c881320"),
-            BridgeMessage.parse(
-                """{"v":1,"type":"share","title":"A drawing","text":"Look\nhttps://oeee.cafe/@reader/9c881320"}"""
-            )
-        )
+    fun aShareIsSomeText() {
         assertEquals(
             BridgeMessage.Share(title = "", text = "https://oeee.cafe/"),
             BridgeMessage.parse("""{"v":1,"type":"share","text":"https://oeee.cafe/"}""")
@@ -146,51 +63,18 @@ class BridgeMessageTest {
     }
 
     @Test
-    fun download() {
-        assertEquals(
-            BridgeMessage.Download(name = "drawing.png", data = "data:image/png;base64,iVBORw0KGgo="),
-            BridgeMessage.parse(
-                """{"v":1,"type":"download","name":"drawing.png","data":"data:image/png;base64,iVBORw0KGgo="}"""
-            )
-        )
+    fun aDownloadIsItsData() {
         // A file with no name still has its data URL to say what it is.
         assertEquals(
             BridgeMessage.Download(name = "", data = "data:text/plain,hi"),
             BridgeMessage.parse("""{"v":1,"type":"download","data":"data:text/plain,hi"}""")
         )
         assertNull(BridgeMessage.parse("""{"v":1,"type":"download","name":"drawing.png"}"""))
-        // As app_polyfills.jinja sends it: the file's own type as `mime`, which the app does
-        // not need, because the data URL says the same thing.
-        assertEquals(
-            BridgeMessage.Download(name = "drawing.png", data = "data:image/png;base64,iVBORw0KGgo="),
-            BridgeMessage.parse(
-                """{"name":"drawing.png","mime":"image/png","data":"data:image/png;base64,iVBORw0KGgo=","v":1,"type":"download"}"""
-            )
-        )
     }
 
     @Test
-    fun haptic() {
-        assertEquals(BridgeMessage.Haptic("success"), BridgeMessage.parse("""{"v":1,"type":"haptic","name":"success"}"""))
+    fun aHapticWithNoNameIsNone() {
         assertNull(BridgeMessage.parse("""{"v":1,"type":"haptic"}"""))
-    }
-
-    @Test
-    fun pressed() {
-        assertEquals(
-            BridgeMessage.Pressed(
-                BridgeMessage.PressedDrawing(
-                    src = "https://r2.oeee.cafe/image/a.png",
-                    link = "https://oeee.cafe/@reader/9c881320",
-                    width = 300,
-                    height = 300
-                )
-            ),
-            BridgeMessage.parse(
-                """{"v":1,"type":"pressed","drawing":{"src":"https://r2.oeee.cafe/image/a.png",""" +
-                    """"link":"https://oeee.cafe/@reader/9c881320","width":300,"height":300}}"""
-            )
-        )
     }
 
     @Test
@@ -208,14 +92,6 @@ class BridgeMessageTest {
             BridgeMessage.Pressed(null),
             BridgeMessage.parse("""{"v":1,"type":"pressed","drawing":{"src":"blob:https://oeee.cafe/1","width":1,"height":1}}""")
         )
-    }
-
-    @Test
-    fun whatTheSiteSaysForOtherAppsIsNothing() {
-        // The bell's number and the painter being ready are for apps that do something with
-        // them; this one has nowhere to show the one and nothing that drives the other.
-        assertNull(BridgeMessage.parse("""{"v":1,"type":"unread","count":12}"""))
-        assertNull(BridgeMessage.parse("""{"v":1,"type":"painter","state":"ready"}"""))
     }
 
     @Test
