@@ -18,8 +18,6 @@ android {
         versionCode = 15
         versionName = "1.3.0"
 
-        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-
         // The site's own Web application OAuth client id, which Credential Manager is
         // given as its server client id so the ID token it hands back is made for the
         // site (GoogleSignIn.kt). Set oeeeGoogleServerClientId in
@@ -72,6 +70,8 @@ kotlin {
 
 dependencies {
     implementation(libs.androidx.core.ktx)
+    // lifecycleScope, which Activity brings too, but only at 2.9: this holds all of
+    // Lifecycle (and SavedState with it) at the version the app is built on.
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
     // Firebase brings in Fragment 1.1, too old for the activity result APIs.
@@ -100,12 +100,6 @@ dependencies {
     implementation(libs.googleid)
 
     testImplementation(libs.junit)
-    androidTestImplementation(libs.androidx.junit)
-    androidTestImplementation(libs.androidx.espresso.core)
-    androidTestImplementation(platform(libs.androidx.compose.bom))
-    androidTestImplementation(libs.androidx.compose.ui.test.junit4)
-    debugImplementation(libs.androidx.compose.ui.tooling)
-    debugImplementation(libs.androidx.compose.ui.test.manifest)
 }
 
 sentry {
