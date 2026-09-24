@@ -1,15 +1,16 @@
 package cafe.oeee.web
 
 import androidx.compose.ui.graphics.Color
-import com.squareup.moshi.JsonAdapter
-import com.squareup.moshi.Moshi
+import org.json.JSONObject
 
 /**
  * What the site tells the app over `window.oeeeBridge`, as app_bridge.jinja in oeee-cafe/web
  * describes it: one JSON string per message, `{v: 1, type, ...}`. Types and fields this app
  * does not know are ignored, so the site can add either without a release of the app.
  *
- * Nothing here touches Android, so the parsing is checked by the JVM's own tests.
+ * Nothing here touches Android but org.json, which the JVM's own tests have from Maven, so
+ * the parsing is checked there. That org.json is not quite Android's -- it is stricter about
+ * what is not JSON -- but they read JSON the same, and that is all the page sends.
  */
 sealed interface BridgeMessage {
     /**
@@ -97,21 +98,19 @@ sealed interface BridgeMessage {
         /** The only version of the contract this app speaks; a later one may mean something else. */
         const val VERSION = 1
 
-        private val adapter: JsonAdapter<Any> = Moshi.Builder().build().adapter(Any::class.java)
-
         /** The message in [text]; null for one this app does not understand. */
         fun parse(text: String?): BridgeMessage? {
             if (text.isNullOrEmpty()) return null
             val message = try {
-                adapter.fromJson(text) as? Map<*, *>
+                JSONObject(text)
             } catch (e: Exception) {
-                null
-            } ?: return null
-            if ((message["v"] as? Number)?.toInt() != VERSION) return null
-            return when (message["type"]) {
+                return null
+            }
+            if (message.int("v") != VERSION) return null
+            return when (message.string("type")) {
                 "page" -> Page(
-                    signedIn = message["signedIn"] as? Boolean,
-                    refreshable = message["refreshable"] as? Boolean ?: true
+                    signedIn = message.opt("signedIn") as? Boolean,
+                    refreshable = message.opt("refreshable") as? Boolean ?: true
                 )
                 "theme" -> Theme(
                     ground = parseCssColor(message.string("ground")),
@@ -131,7 +130,7 @@ sealed interface BridgeMessage {
                     saveFailed = message.word("saveFailed")
                 )
                 "haptic" -> message.string("name")?.let { Haptic(it) }
-                "pressed" -> Pressed((message["drawing"] as? Map<*, *>)?.let(::pressedDrawing))
+                "pressed" -> Pressed((message.opt("drawing") as? JSONObject)?.let(::pressedDrawing))
                 "signIn" -> message.word("nonce")?.let { SignIn(it) }
                 "browse" -> message.word("url")?.let { Browse(it) }
                 // Something to share is some text; a title alone is the page's to fill in.
@@ -142,21 +141,28 @@ sealed interface BridgeMessage {
         }
 
         /** Only a drawing the app can fetch itself; the page's own `blob:` images are not. */
-        private fun pressedDrawing(drawing: Map<*, *>): PressedDrawing? {
+        private fun pressedDrawing(drawing: JSONObject): PressedDrawing? {
             val src = drawing.string("src")?.takeIf { it.startsWith("https://") || it.startsWith("http://") }
                 ?: return null
             return PressedDrawing(
                 src = src,
                 link = drawing.string("link")?.takeIf { it.isNotEmpty() },
-                width = (drawing["width"] as? Number)?.toInt() ?: 0,
-                height = (drawing["height"] as? Number)?.toInt() ?: 0
+                width = drawing.int("width") ?: 0,
+                height = drawing.int("height") ?: 0
             )
         }
 
-        private fun Map<*, *>.string(key: String): String? = this[key] as? String
+        // Each field is read as the type it is, never coerced: optString would make 42 a
+        // nonce of "42" and a missing field "", and optInt would read "1" as the version.
+        // JSON null is JSONObject.NULL, which is none of these types, so it reads as absent.
+
+        private fun JSONObject.string(key: String): String? = opt(key) as? String
+
+        /** A number, cut to a whole one; through a double, as JSON's numbers are. */
+        private fun JSONObject.int(key: String): Int? = (opt(key) as? Number)?.toDouble()?.toInt()
 
         /** A string with something in it; an empty one says nothing. */
-        private fun Map<*, *>.word(key: String): String? = string(key)?.takeIf { it.isNotEmpty() }
+        private fun JSONObject.word(key: String): String? = string(key)?.takeIf { it.isNotEmpty() }
     }
 }
 

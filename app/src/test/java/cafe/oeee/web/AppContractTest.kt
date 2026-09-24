@@ -1,6 +1,8 @@
 package cafe.oeee.web
 
-import com.squareup.moshi.Moshi
+import org.json.JSONArray
+import org.json.JSONObject
+import org.json.JSONTokener
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
@@ -15,21 +17,25 @@ import org.junit.Test
  * a change on the site that this app would mishear fails here rather than on someone's phone.
  */
 class AppContractTest {
-    private val json = Moshi.Builder().build().adapter(Any::class.java)
-
-    private val contract: Map<*, *> by lazy {
+    private val contract: JSONObject by lazy {
         val text = checkNotNull(javaClass.classLoader?.getResource("appContract.json")) {
             "No appContract.json in src/test/resources; run scripts/sync-app-contract.sh"
         }.readText()
-        json.fromJson(text) as Map<*, *>
+        JSONObject(text)
     }
 
-    private val messages: Map<*, *> get() = contract["messages"] as Map<*, *>
+    private val messages: JSONObject get() = contract.getJSONObject("messages")
 
-    private fun examples(type: String): List<Map<*, *>> =
-        (messages[type] as? List<*>).orEmpty().map { it as Map<*, *> }
+    /**
+     * The examples of [type], as the page wrote them: each goes to the app as it came, nulls
+     * and all, and is read here as a map to say what it should come to.
+     */
+    private fun examples(type: String): List<JSONObject> = messages.optJSONArray(type).objects()
 
-    private fun parse(example: Map<*, *>): BridgeMessage? = BridgeMessage.parse(json.toJson(example))
+    private fun JSONArray?.objects(): List<JSONObject> =
+        if (this == null) emptyList() else (0 until length()).map { getJSONObject(it) }
+
+    private fun parse(example: JSONObject): BridgeMessage? = BridgeMessage.parse(example.toString())
 
     private fun Map<*, *>.string(key: String): String? = this[key] as? String
 
@@ -102,7 +108,7 @@ class AppContractTest {
             val examples = examples(type)
             assertTrue("The contract has no example of $type, which this app acts on", examples.isNotEmpty())
             for (example in examples) {
-                assertEquals("$type: $example", expect(example), parse(example))
+                assertEquals("$type: $example", expect(example.fields()), parse(example))
             }
         }
     }
@@ -115,13 +121,13 @@ class AppContractTest {
         assertTrue(examples("download").all { parse(it) is BridgeMessage.Download })
         assertTrue(
             "Google's sign-in, with its nonce, is one",
-            examples("signIn").any { it["provider"] == "google" && parse(it) is BridgeMessage.SignIn }
+            examples("signIn").any { it.opt("provider") == "google" && parse(it) is BridgeMessage.SignIn }
         )
         // A press on a drawing is a drawing the app offers a menu for, with all the page said.
-        val onDrawing = examples("pressed").filter { it["drawing"] != null }
+        val onDrawing = examples("pressed").filter { !it.isNull("drawing") }
         assertTrue("The contract has no press on a drawing", onDrawing.isNotEmpty())
         for (example in onDrawing) {
-            val said = example["drawing"] as Map<*, *>
+            val said = example.getJSONObject("drawing").fields()
             assertEquals(
                 "$example",
                 BridgeMessage.PressedDrawing(
@@ -135,13 +141,13 @@ class AppContractTest {
         }
         assertTrue(
             "A press off a drawing is one, with no drawing",
-            examples("pressed").any { it["drawing"] == null && parse(it) == BridgeMessage.Pressed(null) }
+            examples("pressed").any { it.isNull("drawing") && parse(it) == BridgeMessage.Pressed(null) }
         )
     }
 
     @Test
     fun everyOtherMessageIsIgnored() {
-        val others = messages.keys.map { it as String }.filter { it !in expected }
+        val others = messages.keys().asSequence().toList().filter { it !in expected }
         // The ones this app is known to have no use for, so the test is seen to be testing.
         assertTrue(others.containsAll(listOf("unread", "painter", "prices", "purchase", "restore", "window", "caption")))
         for (type in others) {
@@ -155,7 +161,7 @@ class AppContractTest {
 
     @Test
     fun theUserAgentSaysAndroidAndNoStore() {
-        val agents = (contract["userAgents"] as List<*>).map { it as Map<*, *> }
+        val agents = contract.getJSONArray("userAgents").objects().map { it.fields() }
         val ours = " " + Site.USER_AGENT_SUFFIX
         assertTrue(
             "No user agent in the contract is Android's with no store, ending \"$ours\"",
@@ -174,8 +180,7 @@ class AppContractTest {
 
     @Test
     fun theAppLeavesAPageTheWayEveryAppDoes() {
-        val scripts = contract["scripts"] as Map<*, *>
-        assertEquals(scripts["leaving"], PageScripts.LEAVING)
+        assertEquals(contract.getJSONObject("scripts").getString("leaving"), PageScripts.LEAVING)
     }
 
     /** Every script the app evaluates in a page. */
@@ -191,7 +196,7 @@ class AppContractTest {
 
     @Test
     fun everythingTheAppCallsIsOnThePage() {
-        val members = (contract["members"] as List<*>).map { it as String }.toSet()
+        val members = contract.getJSONArray("members").let { a -> (0 until a.length()).map { a.getString(it) } }.toSet()
         // A member's parents are asked for before it, as `window.oeeeApp.signIn && ...`.
         val parents = members.flatMap { member ->
             val parts = member.split('.')
@@ -217,6 +222,20 @@ class AppContractTest {
     fun aPushTokenIsHandedOverAsAStringWhateverItHolds() {
         val script = PageScripts.pushToken("a\"b\\c d")
         val argument = script.substringAfter("pushToken(").substringBeforeLast(");")
-        assertEquals("a\"b\\c d", json.fromJson(argument))
+        assertEquals("a\"b\\c d", JSONTokener(argument).nextValue())
     }
+}
+
+/**
+ * The object as Kotlin's own values, nested ones and all, with JSON null as null. The tests
+ * are compiled against Android's org.json, which has no `toMap`, and run on Maven's.
+ */
+internal fun JSONObject.fields(): Map<String, Any?> =
+    keys().asSequence().associateWith { value(get(it)) }
+
+private fun value(json: Any?): Any? = when (json) {
+    JSONObject.NULL -> null
+    is JSONObject -> json.fields()
+    is JSONArray -> (0 until json.length()).map { value(json.get(it)) }
+    else -> json
 }

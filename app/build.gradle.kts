@@ -87,9 +87,6 @@ dependencies {
     // Other sites, over the app (Custom Tabs)
     implementation(libs.androidx.browser)
 
-    // The bridge's messages
-    implementation(libs.moshi)
-
     // Firebase
     implementation(platform(libs.firebase.bom))
     implementation(libs.firebase.messaging)
@@ -100,6 +97,7 @@ dependencies {
     implementation(libs.googleid)
 
     testImplementation(libs.junit)
+    testImplementation(libs.org.json)
 }
 
 sentry {

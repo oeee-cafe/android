@@ -1,6 +1,6 @@
 package cafe.oeee.web
 
-import com.squareup.moshi.Moshi
+import org.json.JSONObject
 import org.junit.Assert.assertEquals
 import org.junit.Test
 
@@ -11,9 +11,7 @@ import org.junit.Test
  * and base64url, but nothing here should depend on that.
  */
 class GoogleSignInMessagesTest {
-    private val adapter = Moshi.Builder().build().adapter(Any::class.java)
-
-    private fun read(json: String): Map<*, *>? = adapter.fromJson(json) as? Map<*, *>
+    private fun read(json: String): Map<*, *> = JSONObject(json).fields()
 
     @Test
     fun theTokenTheAppAnswersWith() {
