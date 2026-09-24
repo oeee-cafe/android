@@ -28,8 +28,8 @@ import cafe.oeee.web.Connectivity
 import cafe.oeee.web.FileChooser
 import cafe.oeee.web.Site
 import cafe.oeee.web.StoragePermission
-import cafe.oeee.web.WebTabController
-import cafe.oeee.web.WebTabsScreen
+import cafe.oeee.web.WebController
+import cafe.oeee.web.WebScreen
 import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
@@ -37,7 +37,7 @@ class MainActivity : ComponentActivity() {
      * The app's one web view, with the site's own toolbar the only way around it. A new one
      * when the renderer behind it dies, so the screen shows whichever is current.
      */
-    private lateinit var web: MutableState<WebTabController>
+    private lateinit var web: MutableState<WebController>
 
     /** A page that could not be reached is tried again when the network comes back. */
     private lateinit var connectivity: Connectivity
@@ -93,7 +93,7 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        // The navigation bar clear, with no scrim: WebTabsScreen paints the site's ground
+        // The navigation bar clear, with no scrim: WebScreen paints the site's ground
         // under it and picks icons that read on that. Left to decide, a three-button bar
         // is washed over with a translucent white or grey "for contrast", and never
         // matches the page.
@@ -121,12 +121,12 @@ class MainActivity : ComponentActivity() {
                     AuthService.isAuthenticated.collect { authenticationChanged(it) }
                 }
 
-                WebTabsScreen(web.value)
+                WebScreen(web.value)
             }
         }
     }
 
-    private fun makeWebView(savedState: Bundle?): WebTabController = WebTabController(
+    private fun makeWebView(savedState: Bundle?): WebController = WebController(
         activity = this,
         fileChooser = fileChooser,
         storagePermission = storagePermission,

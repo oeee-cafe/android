@@ -13,7 +13,7 @@ import androidx.webkit.WebViewFeature
 
 /**
  * The one way the site tells the app things (`oeeeBridge`, app_bridge.jinja in oeee-cafe/web),
- * on one tab's web view: what it shows, and what it asks of the app -- a sign-in, a share, a
+ * on the app's web view: what it shows, and what it asks of the app -- a sign-in, a share, a
  * download. Each message is heard only from the main frame of a page of the site: the
  * listener is only given to the site's origin, and a frame inside one of its pages is
  * someone else's embed.

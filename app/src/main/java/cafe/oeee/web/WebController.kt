@@ -35,7 +35,7 @@ import kotlinx.coroutines.launch
 
 /** The app's one web view: its settings, its life, and what its pages say to the app. */
 @SuppressLint("SetJavaScriptEnabled")
-class WebTabController(
+class WebController(
     private val activity: Activity,
     fileChooser: FileChooser,
     storagePermission: StoragePermission,
@@ -326,7 +326,7 @@ class WebTabController(
         }
 
         override fun onPageFinished(view: WebView, url: String?) {
-            this@WebTabController.view.isRefreshing = false
+            this@WebController.view.isRefreshing = false
             canGoBack = view.canGoBack()
         }
 
@@ -337,7 +337,7 @@ class WebTabController(
 
         override fun onReceivedError(view: WebView, request: WebResourceRequest, error: WebResourceError) {
             if (request.isForMainFrame) {
-                this@WebTabController.view.isRefreshing = false
+                this@WebController.view.isRefreshing = false
                 Log.w(TAG, "Failed to load ${request.url} - ${error.description}")
                 // No network, no answer: said in the app's words, over the web view's own page.
                 if (error.errorCode in UNREACHABLE_ERRORS) isUnreachable = true
@@ -375,7 +375,7 @@ class WebTabController(
     }
 
     private companion object {
-        const val TAG = "WebTab"
+        const val TAG = "WebController"
         const val STATE_URL = "url"
         /** A quarter of what the system will carry for the whole app. */
         const val MAX_STATE_BYTES = 128 * 1024

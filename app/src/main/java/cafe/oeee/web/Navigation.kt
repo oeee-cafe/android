@@ -12,13 +12,13 @@ import androidx.browser.customtabs.CustomTabsIntent
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 
-/** Where a link tapped in a tab goes: the site stays in the tab, and every other place leaves it. */
+/** Where a link tapped in the web view goes: the site stays in it, and every other place leaves it. */
 class Navigation(private val activity: Activity, private val siteHost: String?) {
     fun isSiteUrl(uri: Uri): Boolean =
         (uri.scheme == "http" || uri.scheme == "https") && uri.host == siteHost
 
     /**
-     * Whether [request] was sent outside the app instead of loading in the tab. Other sites
+     * Whether [request] was sent outside the app instead of loading in the web view. Other sites
      * (and mailto: etc.) open outside the app; embeds in frames load as usual.
      */
     fun openedOutside(request: WebResourceRequest, toolbarColor: Color?): Boolean {

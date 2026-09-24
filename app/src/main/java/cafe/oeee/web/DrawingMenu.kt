@@ -121,7 +121,7 @@ object DrawingMenu {
     }
 }
 
-/** What each of the menu's actions does, done by the tab (WebTabController). */
+/** What each of the menu's actions does, done by the web view (WebController). */
 interface DrawingActions {
     fun save(drawing: DrawingMenu.Drawing)
     fun copy(drawing: DrawingMenu.Drawing)

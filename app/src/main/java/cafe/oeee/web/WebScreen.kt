@@ -22,7 +22,7 @@ import androidx.core.view.WindowCompat
 
 /** The one web view, with the site's own toolbar the only way around it. */
 @Composable
-fun WebTabsScreen(controller: WebTabController) {
+fun WebScreen(controller: WebController) {
     // The screen is only ever shown by MainActivity.
     val activity = checkNotNull(LocalActivity.current)
 
@@ -69,7 +69,7 @@ fun WebTabsScreen(controller: WebTabController) {
                 .consumeWindowInsets(innerPadding)
                 .imePadding()
         ) {
-            WebTabView(controller)
+            WebViewHost(controller)
             if (controller.isUnreachable) {
                 UnreachableView(
                     ground = controller.ground,
@@ -86,7 +86,7 @@ fun WebTabsScreen(controller: WebTabController) {
  * from wherever it was last shown.
  */
 @Composable
-private fun WebTabView(controller: WebTabController) {
+private fun WebViewHost(controller: WebController) {
     key(controller) {
         AndroidView(
             factory = {

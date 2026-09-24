@@ -15,7 +15,7 @@ import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlin.coroutines.resume
 
 /**
- * Where a tab's files go: a file the site links to through the system's download manager,
+ * Where the web view's files go: a file the site links to through the system's download manager,
  * and one the page made or a drawing pressed into Pictures or Downloads ([MediaFiles]).
  */
 class Downloads(
@@ -71,7 +71,7 @@ class Downloads(
         Toast.makeText(activity, message, Toast.LENGTH_SHORT).show()
     }
 
-    /** Plays one of the site's haptic names on the tab. */
+    /** Plays one of the site's haptic names on the web view. */
     fun feel(name: String) {
         webView.performHapticFeedback(hapticFeedback(name) ?: HapticFeedbackConstants.CONTEXT_CLICK)
     }

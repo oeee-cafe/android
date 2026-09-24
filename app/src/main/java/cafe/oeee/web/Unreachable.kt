@@ -77,7 +77,7 @@ class Connectivity(context: Context, private val onRestored: () -> Unit) {
 }
 
 /**
- * A tab whose page could not be reached: said in words, with a way to try again, over the
+ * A page that could not be reached: said in words, with a way to try again, over the
  * web view's own error page. On the site's ground and its grid once a page has said what
  * they are (BridgeMessage.Theme), so it reads as the site's rather than as a different app.
  */
