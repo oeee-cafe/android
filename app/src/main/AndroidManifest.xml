@@ -12,6 +12,7 @@
         android:maxSdkVersion="28" />
 
     <application
+        android:name=".OeeeCafeApplication"
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
@@ -85,7 +86,12 @@
             </intent-filter>
         </service>
 
-        <!-- Notification icon metadata -->
+        <!-- What FCM shows by itself, for a push that arrives while the app is not in front:
+             the app's own channel (OeeeCafeMessagingService) rather than FCM's "Miscellaneous"
+             one, and its icon and colour. -->
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_channel_id"
+            android:value="oeee_cafe_notifications" />
         <meta-data
             android:name="com.google.firebase.messaging.default_notification_icon"
             android:resource="@mipmap/ic_launcher" />

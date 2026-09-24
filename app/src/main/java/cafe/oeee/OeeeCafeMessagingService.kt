@@ -3,6 +3,7 @@ package cafe.oeee
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
+import android.content.Context
 import android.content.Intent
 import android.util.Log
 import androidx.core.app.NotificationCompat
@@ -18,12 +19,37 @@ class OeeeCafeMessagingService : FirebaseMessagingService() {
 
     companion object {
         private const val TAG = "FCMService"
+
+        /**
+         * The one channel every notification is posted in: by the app, and by FCM itself for
+         * a push that arrives while the app is not in front, which the manifest's
+         * default_notification_channel_id sends here too.
+         */
         private const val CHANNEL_ID = "oeee_cafe_notifications"
+
+        /**
+         * Creates the channel, named in the reader's language, or renames it. Done as the
+         * app's process starts (OeeeCafeApplication), so it is there before FCM shows the
+         * first push in it, and again as this service starts, for a language changed since.
+         */
+        fun createNotificationChannel(context: Context) {
+            val channel = NotificationChannel(
+                CHANNEL_ID,
+                context.getString(R.string.notification_channel_name),
+                NotificationManager.IMPORTANCE_DEFAULT
+            ).apply {
+                description = context.getString(R.string.notification_channel_description)
+                enableLights(true)
+                enableVibration(true)
+                setShowBadge(true)
+            }
+            context.getSystemService(NotificationManager::class.java).createNotificationChannel(channel)
+        }
     }
 
     override fun onCreate() {
         super.onCreate()
-        createNotificationChannel()
+        createNotificationChannel(this)
     }
 
     /**
@@ -49,21 +75,6 @@ class OeeeCafeMessagingService : FirebaseMessagingService() {
             body = notification.body ?: "",
             data = remoteMessage.data
         )
-    }
-
-    /** The one channel every notification is posted in, named in the reader's language. */
-    private fun createNotificationChannel() {
-        val channel = NotificationChannel(
-            CHANNEL_ID,
-            getString(R.string.notification_channel_name),
-            NotificationManager.IMPORTANCE_DEFAULT
-        ).apply {
-            description = getString(R.string.notification_channel_description)
-            enableLights(true)
-            enableVibration(true)
-            setShowBadge(true)
-        }
-        getSystemService(NotificationManager::class.java).createNotificationChannel(channel)
     }
 
     private fun showNotification(title: String, body: String, data: Map<String, String>) {
