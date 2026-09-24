@@ -1,7 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- The accent of notifications the system shows by itself (AndroidManifest.xml). -->
-    <color name="purple_500">#FF6200EE</color>
+    <!-- The accent of every notification, which tints its small icon and the app's name: the
+         launcher icon's green, between its lime (#C4EE62) and its rim (#3C6712), which is the
+         site's own focus colour in its light theme (ds.css in oeee-cafe/web). The lime is too
+         pale to read on a light shade (1.2:1) and the rim too dark on a dark one (2.2 to
+         2.6:1); this reads at 3.4 to 4.2:1 on either. -->
+    <color name="notification_accent">#FF4F8A10</color>
     <!-- The window's ground before a page paints, on Android 8 to 11 (themes.xml); from 12 the
          system's own neutrals stand in (values-v31, values-night-v31). Material's neutral 95 and 10. -->
     <color name="window_ground_light">#FFF4EFF4</color>

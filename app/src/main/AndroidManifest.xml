@@ -97,7 +97,7 @@
             android:resource="@mipmap/ic_launcher" />
         <meta-data
             android:name="com.google.firebase.messaging.default_notification_color"
-            android:resource="@color/purple_500" />
+            android:resource="@color/notification_accent" />
     
     <!-- Required: set your sentry.io project identifier (DSN) -->
     <meta-data android:name="io.sentry.dsn" android:value="https://42e7d92292cd4b19516d940090eaa71d@o4504757655764992.ingest.us.sentry.io/4510413283917824" />
