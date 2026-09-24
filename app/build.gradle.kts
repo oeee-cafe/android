@@ -44,7 +44,10 @@ android {
     buildTypes {
         release {
             signingConfig = uploadSigning
-            isMinifyEnabled = false
+            // R8, and with it the resources nothing refers to; what it must leave alone is
+            // in proguard-rules.pro.
+            isMinifyEnabled = true
+            isShrinkResources = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"

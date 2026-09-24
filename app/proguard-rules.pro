@@ -1,21 +1,11 @@
-# Add project specific ProGuard rules here.
-# You can control the set of applied configuration files using the
-# proguardFiles setting in build.gradle.
+# R8 keeps what the app needs without any rule of the app's own, which is why there are none.
 #
-# For more details, see
-#   http://developer.android.com/guide/developing/tools/proguard.html
-
-# If your project uses WebView with JS, uncomment the following
-# and specify the fully qualified class name to the JavaScript interface
-# class:
-#-keepclassmembers class fqcn.of.javascript.interface.for.webview {
-#   public *;
-#}
-
-# Uncomment this to preserve the line number information for
-# debugging stack traces.
-#-keepattributes SourceFile,LineNumberTable
-
-# If you keep the line number information, uncomment this to
-# hide the original source file name.
-#-renamesourcefileattribute SourceFile
+# - What the manifest names -- the activity, the application, the messaging service, the file
+#   provider -- is kept by the rules AAPT writes from it.
+# - Nothing is found by name or by reflection: the bridge's messages are read with org.json
+#   (BridgeMessage), and the site is heard through a web message listener (SiteBridge), not
+#   addJavascriptInterface, so there is no @JavascriptInterface method for R8 to rename.
+# - Firebase Messaging, Sentry, Credential Manager (which finds its Play services provider by
+#   name) and Kotlin's coroutines each ship the rules they need in their own AARs.
+# - Sentry's keep the line numbers and source file names its stack traces need, and the
+#   Sentry Gradle plugin uploads the mapping that turns the rest back into names.
