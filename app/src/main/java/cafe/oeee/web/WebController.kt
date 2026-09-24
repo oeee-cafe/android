@@ -118,7 +118,6 @@ class WebController(
         webView.settings.apply {
             javaScriptEnabled = true
             domStorageEnabled = true
-            mediaPlaybackRequiresUserGesture = false
             userAgentString = "$userAgentString ${Site.USER_AGENT_SUFFIX}"
         }
         webView.webViewClient = Client()
