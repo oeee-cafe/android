@@ -69,7 +69,7 @@ kotlin {
 }
 
 dependencies {
-    implementation(libs.androidx.core.ktx)
+    implementation(libs.androidx.core)
     // lifecycleScope, which Activity brings too, but only at 2.9: this holds all of
     // Lifecycle (and SavedState with it) at the version the app is built on.
     implementation(libs.androidx.lifecycle.runtime.ktx)
@@ -78,7 +78,6 @@ dependencies {
     implementation(libs.androidx.fragment)
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.compose.ui)
-    implementation(libs.androidx.compose.ui.graphics)
     implementation(libs.androidx.compose.material3)
 
     // Web views

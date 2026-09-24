@@ -1,7 +1,7 @@
 [versions]
 agp = "9.4.1"
 kotlin = "2.4.20"
-coreKtx = "1.19.0"
+core = "1.19.0"
 junit = "4.13.2"
 orgJson = "20260814"
 lifecycle = "2.11.0"
@@ -18,7 +18,7 @@ credentials = "1.6.0"
 googleid = "1.2.1"
 
 [libraries]
-androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
+androidx-core = { group = "androidx.core", name = "core", version.ref = "core" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 # Android has org.json itself; the JVM that runs the unit tests does not.
 org-json = { group = "org.json", name = "json", version.ref = "orgJson" }
@@ -27,7 +27,6 @@ androidx-activity-compose = { group = "androidx.activity", name = "activity-comp
 androidx-fragment = { group = "androidx.fragment", name = "fragment", version.ref = "fragment" }
 androidx-compose-bom = { group = "androidx.compose", name = "compose-bom", version.ref = "composeBom" }
 androidx-compose-ui = { group = "androidx.compose.ui", name = "ui" }
-androidx-compose-ui-graphics = { group = "androidx.compose.ui", name = "ui-graphics" }
 androidx-compose-material3 = { group = "androidx.compose.material3", name = "material3" }
 
 # Web views
