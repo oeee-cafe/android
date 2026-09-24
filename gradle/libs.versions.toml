@@ -16,6 +16,7 @@ firebaseBom = "34.19.0"
 googleServices = "4.5.0"
 credentials = "1.6.0"
 googleid = "1.2.1"
+billing = "9.1.0"
 
 [libraries]
 androidx-core = { group = "androidx.core", name = "core", version.ref = "core" }
@@ -42,6 +43,10 @@ firebase-messaging = { group = "com.google.firebase", name = "firebase-messaging
 androidx-credentials = { group = "androidx.credentials", name = "credentials", version.ref = "credentials" }
 androidx-credentials-play-services-auth = { group = "androidx.credentials", name = "credentials-play-services-auth", version.ref = "credentials" }
 googleid = { group = "com.google.android.libraries.identity.googleid", name = "googleid", version.ref = "googleid" }
+
+# Selling the Supporter Pack (Play Billing). Its manifest brings the BILLING permission,
+# without which Play Console will not let a one-time product be created.
+billing-ktx = { group = "com.android.billingclient", name = "billing-ktx", version.ref = "billing" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

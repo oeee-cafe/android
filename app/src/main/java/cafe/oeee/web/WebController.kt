@@ -83,6 +83,9 @@ class WebController(
      */
     private val signInHandoff: SignInHandoff
 
+    /** Selling the Supporter Pack, which /supporter asks for over the bridge (PlayBilling). */
+    private val playBilling: PlayBilling
+
     /**
      * The site's ground and the grid ruled on it (--ds-ground and --ds-grid), for what the
      * app draws where the page does not reach; null until a page has said, and then the last
@@ -126,6 +129,7 @@ class WebController(
         bridge = SiteBridge(webView, siteOrigin, this)
         googleSignIn = GoogleSignIn(activity, webView, siteOrigin, scope)
         signInHandoff = SignInHandoff(webView) { url -> navigation.openInBrowser(url, ground) }
+        playBilling = PlayBilling(activity, webView, siteOrigin, scope)
         showTextScale()
         // A token that arrives while a signed-in page is showing goes to it at once.
         scope.launch { PushNotificationService.token.collect { handPushToken() } }
@@ -209,6 +213,7 @@ class WebController(
     }
 
     fun tearDown() {
+        playBilling.tearDown()
         scope.cancel()
         (view.parent as? ViewGroup)?.removeView(view)
         webView.stopLoading()
@@ -242,6 +247,9 @@ class WebController(
             is BridgeMessage.Browse -> signInHandoff.browse(message.url)
             is BridgeMessage.Share -> shareText(message)
             is BridgeMessage.Download -> scope.launch { downloads.save(Polyfills.file(message)) }
+            is BridgeMessage.Prices -> playBilling.prices(message.products)
+            is BridgeMessage.Purchase -> playBilling.purchase(message.product)
+            BridgeMessage.Restore -> playBilling.restore()
         }
     }
 

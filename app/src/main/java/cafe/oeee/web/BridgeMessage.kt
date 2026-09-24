@@ -1,6 +1,7 @@
 package cafe.oeee.web
 
 import androidx.compose.ui.graphics.Color
+import org.json.JSONArray
 import org.json.JSONObject
 
 /**
@@ -16,8 +17,8 @@ sealed interface BridgeMessage {
     /**
      * The page shown, sent on every page and again whenever any of it changes. Only what this
      * app acts on is read; the site says more, for the other apps. So does it send types this
-     * app has no use for -- the bell's number, the painter being ready, a store's -- which
-     * are left to the unknown ones.
+     * app has no use for -- the bell's number, the painter being ready -- which are left to
+     * the unknown ones.
      */
     data class Page(
         /** Null on a page without the toolbar, which cannot tell. */
@@ -91,6 +92,19 @@ sealed interface BridgeMessage {
         override fun toString(): String = "Download(name=$name, data=${data.length} chars)"
     }
 
+    /**
+     * /supporter's buttons (supporter.jinja in oeee-cafe/web): the price of each of [products]
+     * in the reader's currency, answered with `window.oeeeApp.store.prices`. Every product is
+     * Google Play's; the site draws no other store's in this app.
+     */
+    data class Prices(val products: List<String>) : BridgeMessage
+
+    /** A press of one of those buttons: sell [product], and hand over what Play gives back. */
+    data class Purchase(val product: String) : BridgeMessage
+
+    /** A press of Restore: hand over everything the device's Google account owns. */
+    data object Restore : BridgeMessage
+
     /** A drawing as the page describes it; [link] is null on the post's own page. */
     data class PressedDrawing(val src: String, val link: String?, val width: Int, val height: Int)
 
@@ -136,6 +150,13 @@ sealed interface BridgeMessage {
                 // Something to share is some text; a title alone is the page's to fill in.
                 "share" -> message.word("text")?.let { Share(message.string("title") ?: "", it) }
                 "download" -> message.word("data")?.let { Download(name = message.string("name") ?: "", data = it) }
+                // Only the products with a name; a list with none is nothing to price.
+                "prices" -> (message.opt("products") as? JSONArray)
+                    ?.let { products -> (0 until products.length()).mapNotNull { (products.opt(it) as? String)?.ifEmpty { null } } }
+                    ?.takeIf { it.isNotEmpty() }
+                    ?.let { Prices(it) }
+                "purchase" -> message.word("product")?.let { Purchase(it) }
+                "restore" -> Restore
                 else -> null
             }
         }

@@ -1,5 +1,6 @@
 package cafe.oeee.web
 
+import org.json.JSONArray
 import org.json.JSONObject
 
 /**
@@ -28,6 +29,22 @@ object PageScripts {
 
     /** Back in front, probably from the browser: the page asks the site again at once. */
     const val SIGN_IN_RESUME = "window.oeeeApp && window.oeeeApp.signIn && window.oeeeApp.signIn.resume();"
+
+    /** The price of each product /supporter asked about, as the store formats it. */
+    fun storePrices(prices: Map<String, String>): String =
+        "window.oeeeApp && window.oeeeApp.store && window.oeeeApp.store.prices && window.oeeeApp.store.prices(${JSONObject(prices)});"
+
+    /**
+     * Purchase tokens, for the page to post to the site (app_store.jinja). The promise it
+     * returns is not waited for: the site acknowledges what it takes, so the app has nothing
+     * to finish.
+     */
+    fun storePurchased(tokens: List<String>): String =
+        "window.oeeeApp && window.oeeeApp.store && window.oeeeApp.store.purchased && window.oeeeApp.store.purchased(${JSONArray(tokens)});"
+
+    /** A press that ended without anything to hand over: one of [PlayBilling.Outcome]. */
+    fun storeEnded(outcome: String): String =
+        "window.oeeeApp && window.oeeeApp.store && window.oeeeApp.store.ended && window.oeeeApp.store.ended(${JSONObject.quote(outcome)});"
 
     /** The browser the page asked for could not be opened. */
     const val SIGN_IN_UNOPENED = "window.oeeeApp && window.oeeeApp.signIn && window.oeeeApp.signIn.unopened();"

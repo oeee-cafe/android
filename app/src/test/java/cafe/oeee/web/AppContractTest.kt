@@ -99,7 +99,12 @@ class AppContractTest {
         "signIn" to { m -> m.string("nonce")?.ifEmpty { null }?.let { BridgeMessage.SignIn(it) } },
         "browse" to { m -> BridgeMessage.Browse(m.string("url")!!) },
         "share" to { m -> BridgeMessage.Share(title = m.string("title") ?: "", text = m.string("text")!!) },
-        "download" to { m -> BridgeMessage.Download(name = m.string("name") ?: "", data = m.string("data")!!) }
+        "download" to { m -> BridgeMessage.Download(name = m.string("name") ?: "", data = m.string("data")!!) },
+        "prices" to { m ->
+            BridgeMessage.Prices((m["products"] as List<*>).mapNotNull { (it as? String)?.ifEmpty { null } })
+        },
+        "purchase" to { m -> BridgeMessage.Purchase(m.string("product")!!) },
+        "restore" to { _ -> BridgeMessage.Restore }
     )
 
     @Test
@@ -119,6 +124,9 @@ class AppContractTest {
         assertTrue(examples("page").all { parse(it) is BridgeMessage.Page })
         assertTrue(examples("words").all { parse(it) is BridgeMessage.Words })
         assertTrue(examples("download").all { parse(it) is BridgeMessage.Download })
+        assertTrue(examples("prices").all { (parse(it) as BridgeMessage.Prices).products.isNotEmpty() })
+        assertTrue(examples("purchase").all { parse(it) is BridgeMessage.Purchase })
+        assertTrue(examples("restore").all { parse(it) == BridgeMessage.Restore })
         assertTrue(
             "Google's sign-in, with its nonce, is one",
             examples("signIn").any { it.opt("provider") == "google" && parse(it) is BridgeMessage.SignIn }
@@ -149,7 +157,7 @@ class AppContractTest {
     fun everyOtherMessageIsIgnored() {
         val others = messages.keys().asSequence().toList().filter { it !in expected }
         // The ones this app is known to have no use for, so the test is seen to be testing.
-        assertTrue(others.containsAll(listOf("unread", "painter", "prices", "purchase", "restore", "window", "caption")))
+        assertTrue(others.containsAll(listOf("unread", "painter", "window", "caption")))
         for (type in others) {
             for (example in examples(type)) {
                 assertNull("$type: $example", parse(example))
@@ -160,19 +168,19 @@ class AppContractTest {
     // -- What the app is ----------------------------------------------------------------------
 
     @Test
-    fun theUserAgentSaysAndroidAndNoStore() {
+    fun theUserAgentSaysAndroidAndGooglePlay() {
         val agents = contract.getJSONArray("userAgents").objects().map { it.fields() }
         val ours = " " + Site.USER_AGENT_SUFFIX
         assertTrue(
-            "No user agent in the contract is Android's with no store, ending \"$ours\"",
-            agents.any { it["app"] == "android" && it["store"] == null && it.string("agent")!!.endsWith(ours) }
+            "No user agent in the contract is Android's selling on Google Play, ending \"$ours\"",
+            agents.any { it["app"] == "android" && it["store"] == "google" && it.string("agent")!!.endsWith(ours) }
         )
         for (agent in agents.filter { it["app"] == null }) {
             assertFalse("${agent["agent"]} is no app's, and ends as ours", agent.string("agent")!!.endsWith(ours))
         }
         for (agent in agents.filter { it.string("agent")!!.endsWith(ours) }) {
             assertEquals(agent.string("agent"), "android", agent["app"])
-            assertNull(agent.string("agent"), agent["store"])
+            assertEquals(agent.string("agent"), "google", agent["store"])
         }
     }
 
@@ -191,7 +199,10 @@ class AppContractTest {
         PageScripts.signInAnswer(GoogleSignInMessages.CANCELLED),
         PageScripts.signInAnswer(GoogleSignInMessages.FAILED),
         PageScripts.SIGN_IN_RESUME,
-        PageScripts.SIGN_IN_UNOPENED
+        PageScripts.SIGN_IN_UNOPENED,
+        PageScripts.storePrices(mapOf("supporter_pack_2026" to "₩5,500")),
+        PageScripts.storePurchased(listOf("token")),
+        PageScripts.storeEnded(PlayBilling.Outcome.CANCELLED)
     )
 
     @Test

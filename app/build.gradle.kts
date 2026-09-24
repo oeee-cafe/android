@@ -15,7 +15,7 @@ android {
         applicationId = "cafe.oeee"
         minSdk = 26
         targetSdk = 36
-        versionCode = 15
+        versionCode = 16
         versionName = "1.3.0"
 
         // The site's own Web application OAuth client id, which Credential Manager is
@@ -97,6 +97,9 @@ dependencies {
     implementation(libs.androidx.credentials)
     implementation(libs.androidx.credentials.play.services.auth)
     implementation(libs.googleid)
+
+    // Selling the Supporter Pack
+    implementation(libs.billing.ktx)
 
     testImplementation(libs.junit)
     testImplementation(libs.org.json)
