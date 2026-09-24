@@ -38,18 +38,17 @@ class OeeeCafeMessagingService : FirebaseMessagingService() {
     override fun onMessageReceived(remoteMessage: RemoteMessage) {
         super.onMessageReceived(remoteMessage)
         // What a notification says is the reader's own business, so none of it is logged.
+        // The site sends every push with a notification (src/push/fcm.rs in oeee-cafe/web).
         val notification = remoteMessage.notification
-        val data = remoteMessage.data
-        when {
-            notification != null -> showNotification(
-                title = notification.title ?: "oeee.cafe",
-                body = notification.body ?: "",
-                data = data
-            )
-            // A data message only still shows as a notification.
-            data.isNotEmpty() -> showNotification(data["title"] ?: "oeee.cafe", data["body"] ?: "", data)
-            else -> Log.d(TAG, "Empty message")
+        if (notification == null) {
+            Log.d(TAG, "Not a notification")
+            return
         }
+        showNotification(
+            title = notification.title ?: "oeee.cafe",
+            body = notification.body ?: "",
+            data = remoteMessage.data
+        )
     }
 
     /** The one channel every notification is posted in, named in the reader's language. */
