@@ -8,9 +8,6 @@ object OpenedFrom {
     private const val TAG = "OpenedFrom"
     private const val LINK_HOST = "oeee.cafe"
 
-    /** What only a notification's intent carries: its page, and the ids every push has. */
-    private val NOTIFICATION_KEYS = listOf("url", "notification_id", "notification_type")
-
     /** The path on the site [intent] opens, or null when it opens none. */
     fun path(intent: Intent): String? {
         val path = link(intent) ?: notification(intent) ?: return null
@@ -20,16 +17,14 @@ object OpenedFrom {
 
     /**
      * The page of a push notification the app was opened from, if any: the page its `url`
-     * names, a path on the site the server chose for it; or, from a server that did not say,
-     * the notifications page, where every notification can be found anyway.
+     * names, a path on the site the server chose for it. Every push the site sends says one.
      */
     private fun notification(intent: Intent): String? {
-        val extras = intent.extras ?: return null
-        if (NOTIFICATION_KEYS.none { extras.containsKey(it) }) return null
         // Only a path on the site: a notification is no reason to leave it.
         val url = intent.getStringExtra("url")?.takeIf { it.startsWith("/") && !it.startsWith("//") }
+            ?: return null
         Log.i(TAG, "Handling notification tap")
-        return url ?: "/notifications"
+        return url
     }
 
     /** A link to the site the app was opened with, if any. */
