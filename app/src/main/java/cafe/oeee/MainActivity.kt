@@ -17,11 +17,9 @@ import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.lifecycleScope
-import cafe.oeee.data.service.AuthService
 import cafe.oeee.data.service.PushNotificationService
 import cafe.oeee.ui.theme.OeeeCafeTheme
 import cafe.oeee.web.Connectivity
@@ -44,11 +42,10 @@ class MainActivity : ComponentActivity() {
 
     private var pendingFileCallback: ValueCallback<Array<Uri>>? = null
 
+    /** Asks for notifications; the push token is fetched either way (someoneSignedIn). */
     private val notificationPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestPermission()
-    ) { granted ->
-        if (granted) registerForPush()
-    }
+    ) {}
 
     private val fileChooserLauncher = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult()
@@ -101,8 +98,6 @@ class MainActivity : ComponentActivity() {
             navigationBarStyle = SystemBarStyle.light(Color.TRANSPARENT, Color.TRANSPARENT)
         )
 
-        AuthService.start(this)
-        PushNotificationService.start(this)
         // It is a setting of the whole process, not of any one web view.
         if (BuildConfig.DEBUG) WebView.setWebContentsDebuggingEnabled(true)
         // Where the reader was when the system stopped the app, or else the site's first page.
@@ -117,10 +112,6 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             OeeeCafeTheme {
-                LaunchedEffect(Unit) {
-                    AuthService.isAuthenticated.collect { authenticationChanged(it) }
-                }
-
                 WebScreen(web.value)
             }
         }
@@ -131,7 +122,7 @@ class MainActivity : ComponentActivity() {
         fileChooser = fileChooser,
         storagePermission = storagePermission,
         savedState = savedState,
-        onPage = { page -> page.signedIn?.let(AuthService::pageSaid) },
+        onSignedIn = ::pageSaid,
         onRenderProcessGone = {
             // A web view whose renderer is gone can't be used again; starts the site over.
             web.value.tearDown()
@@ -193,22 +184,31 @@ class MainActivity : ComponentActivity() {
     }
 
     /**
-     * Gets this device's push token once someone has signed in (asking for permission the
-     * first time), for the pages to register (PushNotificationService). Signing out needs
+     * Whether the pages last said someone is signed in. The activity's, not the web view's,
+     * so that a new web view after its renderer died is not taken for a new sign-in.
+     */
+    private var signedIn = false
+
+    private fun pageSaid(signedIn: Boolean) {
+        if (signedIn == this.signedIn) return
+        this.signedIn = signedIn
+        if (signedIn) someoneSignedIn()
+    }
+
+    /**
+     * Someone has signed in: notifications are asked for the first time, and this device's
+     * push token is fetched for the pages to register (PushNotificationService). The token
+     * is fetched whether or not notifications are allowed: FCM hands it over on install
+     * either way, and the pages have always been given it, so a device is already
+     * registered when they are allowed later in the system's settings. Signing out needs
      * nothing of the app: the site's sign-out unregisters the device the page registered.
      */
-    private fun authenticationChanged(isAuthenticated: Boolean) {
-        if (!isAuthenticated) return
+    private fun someoneSignedIn() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
             checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED
         ) {
             notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
-        } else {
-            registerForPush()
         }
-    }
-
-    private fun registerForPush() {
         lifecycleScope.launch { PushNotificationService.fetchToken() }
     }
 

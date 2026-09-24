@@ -40,7 +40,8 @@ class WebController(
     fileChooser: FileChooser,
     storagePermission: StoragePermission,
     savedState: Bundle?,
-    private val onPage: (BridgeMessage.Page) -> Unit,
+    /** A page said whether someone is signed in (BridgeMessage.Page.signedIn). */
+    private val onSignedIn: (Boolean) -> Unit,
     private val onRenderProcessGone: () -> Unit
 ) : DrawingActions, SiteBridge.Listener {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
@@ -222,8 +223,10 @@ class WebController(
         when (message) {
             is BridgeMessage.Page -> {
                 refreshable = message.refreshable
-                message.signedIn?.let { lastSignedIn = it }
-                onPage(message)
+                message.signedIn?.let {
+                    lastSignedIn = it
+                    onSignedIn(it)
+                }
                 handPushToken()
             }
             is BridgeMessage.Theme -> {

@@ -23,8 +23,6 @@ class OeeeCafeMessagingService : FirebaseMessagingService() {
 
     override fun onCreate() {
         super.onCreate()
-        // A token can be refreshed with no activity started, and is kept for the next page.
-        PushNotificationService.start(this)
         createNotificationChannel()
     }
 
