@@ -37,7 +37,7 @@
             android:windowSoftInputMode="adjustResize"
             android:launchMode="singleTask">
             <!-- The web view lives as long as the activity, so it isn't recreated on rotation, resizing
-                 or a change of font size (the pages follow that themselves, WebTabs.textScaleChanged).
+                 or a change of font size (the pages follow that themselves, MainActivity.onConfigurationChanged).
                  Links opened from other apps come to the one activity instead of starting another in their task. -->
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -61,10 +61,10 @@
                  the site sends the browser there once the provider has answered, and the
                  only thing it is for is bringing this activity forward. singleTask hands
                  it to onNewIntent, onResume follows, and the page asks the site at once
-                 (WebTabs.resumed).
+                 (MainActivity.onResume).
 
-                 Nothing is loaded from any of it. NavigationCoordinator navigates for
-                 https links to the site and for nothing else, so a URL of this scheme
+                 Nothing is loaded from any of it. OpenedFrom opens a page for https
+                 links to the site and for nothing else, so a URL of this scheme
                  opens the app and goes no further, whatever is in it. Anything this
                  scheme is given to mean later is routed there, deliberately, rather than
                  arriving here by having been claimed already. -->

@@ -11,35 +11,37 @@ import android.os.Bundle
 import android.util.Log
 import android.webkit.CookieManager
 import android.webkit.ValueCallback
+import android.webkit.WebView
 import androidx.activity.ComponentActivity
 import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
 import androidx.lifecycle.lifecycleScope
 import cafe.oeee.data.service.AuthService
 import cafe.oeee.data.service.PushNotificationService
 import cafe.oeee.ui.theme.OeeeCafeTheme
+import cafe.oeee.web.Connectivity
 import cafe.oeee.web.FileChooser
 import cafe.oeee.web.Site
 import cafe.oeee.web.StoragePermission
-import cafe.oeee.web.WebTabs
+import cafe.oeee.web.WebTabController
 import cafe.oeee.web.WebTabsScreen
 import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
-    private lateinit var webTabs: WebTabs
+    /**
+     * The app's one web view, with the site's own toolbar the only way around it. A new one
+     * when the renderer behind it dies, so the screen shows whichever is current.
+     */
+    private lateinit var web: MutableState<WebTabController>
+
+    /** A page that could not be reached is tried again when the network comes back. */
+    private lateinit var connectivity: Connectivity
+
     private var pendingFileCallback: ValueCallback<Array<Uri>>? = null
 
     private val notificationPermissionLauncher = registerForActivityResult(
@@ -101,73 +103,78 @@ class MainActivity : ComponentActivity() {
 
         AuthService.start(this)
         PushNotificationService.start(this)
-        webTabs = WebTabs(this, fileChooser, storagePermission, savedInstanceState, AuthService::pageSaid)
+        // It is a setting of the whole process, not of any one web view.
+        if (BuildConfig.DEBUG) WebView.setWebContentsDebuggingEnabled(true)
+        // Where the reader was when the system stopped the app, or else the site's first page.
+        web = mutableStateOf(makeWebView(savedInstanceState?.getBundle(STATE_KEY)))
+        connectivity = Connectivity(this) {
+            if (!isDestroyed) web.value.retryIfUnreachable()
+        }.also { it.start() }
 
-        // Handle a notification or link the app was opened from (cold start). Not again when
+        // Open a notification or link the app was opened from (cold start). Not again when
         // restored, or when reopened from recents, which hands back the intent it was first started with.
-        if (savedInstanceState == null) intent?.let { handleNavigationIntent(it) }
+        if (savedInstanceState == null) intent?.let { openPageFrom(it) }
 
         setContent {
             OeeeCafeTheme {
-                // Read so that a recreated web view is picked up.
-                webTabs.generation
-                val controller = webTabs.controller
-
                 LaunchedEffect(Unit) {
-                    // The web views keep the site's session in their cookies, from the first fetch.
-                    CookieManager.getInstance().setAcceptCookie(true)
-                    webTabs.start()
-
                     AuthService.isAuthenticated.collect { authenticationChanged(it) }
                 }
 
-                val pending by NavigationCoordinator.pendingNavigation.collectAsState()
-                LaunchedEffect(controller, pending) {
-                    val navigation = pending ?: return@LaunchedEffect
-                    val shown = controller ?: return@LaunchedEffect
-                    NavigationCoordinator.clearPendingNavigation()
-                    shown.load(Site.BASE_URL + navigation.path)
-                }
-
-                if (controller != null) {
-                    WebTabsScreen(controller)
-                } else {
-                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                        CircularProgressIndicator()
-                    }
-                }
+                WebTabsScreen(web.value)
             }
         }
     }
+
+    private fun makeWebView(savedState: Bundle?): WebTabController = WebTabController(
+        activity = this,
+        fileChooser = fileChooser,
+        storagePermission = storagePermission,
+        savedState = savedState,
+        onPage = { page -> page.signedIn?.let(AuthService::pageSaid) },
+        onRenderProcessGone = {
+            // A web view whose renderer is gone can't be used again; starts the site over.
+            web.value.tearDown()
+            web.value = makeWebView(null)
+        }
+    )
 
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         // Handle a notification or link (warm/hot start)
         setIntent(intent)
-        handleNavigationIntent(intent)
+        openPageFrom(intent)
     }
 
-    private fun handleNavigationIntent(intent: Intent) {
+    private fun openPageFrom(intent: Intent) {
         if (intent.flags and Intent.FLAG_ACTIVITY_LAUNCHED_FROM_HISTORY != 0) return
-        NavigationCoordinator.handleNotificationIntent(intent)
-        NavigationCoordinator.handleLinkIntent(intent)
+        val path = OpenedFrom.path(intent) ?: return
+        web.value.load(Site.BASE_URL + path)
     }
 
+    /**
+     * Puts the history in [outState], so that when the system stops the app to free memory
+     * and the reader comes back, they are where they were.
+     */
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
-        webTabs.saveState(outState)
+        web.value.saveState()?.let { outState.putBundle(STATE_KEY, it) }
     }
 
+    /** The configuration changed, perhaps the system's font size: the pages follow it. */
     override fun onConfigurationChanged(newConfig: Configuration) {
         super.onConfigurationChanged(newConfig)
-        webTabs.textScaleChanged()
+        web.value.showTextScale()
     }
 
+    /**
+     * The app is in front again. A sign-in sent out to a browser (SignInHandoff) may have
+     * finished while it was away, so the page asks the site at once rather than waiting
+     * for the next turn of its own clock.
+     */
     override fun onResume() {
         super.onResume()
-        // Back from a browser, perhaps: the page asks the site whether a sign-in
-        // sent out there has finished (WebTabs.resumed).
-        webTabs.resumed()
+        web.value.resumed()
     }
 
     // The web views' cookie store writes itself out now and then; the session should not
@@ -180,7 +187,8 @@ class MainActivity : ComponentActivity() {
     override fun onDestroy() {
         pendingFileCallback?.onReceiveValue(null)
         pendingFileCallback = null
-        webTabs.tearDown()
+        connectivity.stop()
+        web.value.tearDown()
         super.onDestroy()
     }
 
@@ -206,5 +214,6 @@ class MainActivity : ComponentActivity() {
 
     companion object {
         private const val TAG = "MainActivity"
+        private const val STATE_KEY = "web_view"
     }
 }

@@ -12,7 +12,7 @@ import com.google.firebase.messaging.RemoteMessage
 
 /**
  * Shows the site's push notifications. Tapping one opens the page its `url` names
- * (NavigationCoordinator); the site decides where each kind of notification leads.
+ * (OpenedFrom); the site decides where each kind of notification leads.
  */
 class OeeeCafeMessagingService : FirebaseMessagingService() {
 
