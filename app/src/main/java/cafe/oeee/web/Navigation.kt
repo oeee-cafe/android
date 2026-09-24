@@ -14,7 +14,7 @@ import androidx.compose.ui.graphics.toArgb
 
 /** Where a link tapped in the web view goes: the site stays in it, and every other place leaves it. */
 class Navigation(private val activity: Activity, private val siteHost: String?) {
-    fun isSiteUrl(uri: Uri): Boolean =
+    private fun isSiteUrl(uri: Uri): Boolean =
         (uri.scheme == "http" || uri.scheme == "https") && uri.host == siteHost
 
     /**
@@ -37,14 +37,7 @@ class Navigation(private val activity: Activity, private val siteHost: String?) 
     fun openInBrowser(uri: Uri, toolbarColor: Color?): Boolean {
         if (uri.scheme != "https" && uri.scheme != "http") return false
         return try {
-            val colors = CustomTabColorSchemeParams.Builder()
-                .apply { toolbarColor?.let { setToolbarColor(it.toArgb()) } }
-                .build()
-            CustomTabsIntent.Builder()
-                .setShowTitle(true)
-                .setDefaultColorSchemeParams(colors)
-                .build()
-                .launchUrl(activity, uri)
+            openInCustomTab(uri, toolbarColor)
             true
         } catch (e: ActivityNotFoundException) {
             Log.w(TAG, "No browser to open $uri")
@@ -72,14 +65,7 @@ class Navigation(private val activity: Activity, private val siteHost: String?) 
                 }
             }
             try {
-                val colors = CustomTabColorSchemeParams.Builder()
-                    .apply { toolbarColor?.let { setToolbarColor(it.toArgb()) } }
-                    .build()
-                CustomTabsIntent.Builder()
-                    .setShowTitle(true)
-                    .setDefaultColorSchemeParams(colors)
-                    .build()
-                    .launchUrl(activity, uri)
+                openInCustomTab(uri, toolbarColor)
                 return
             } catch (e: ActivityNotFoundException) {
                 // No browser at all; the plain intent below says so the same way.
@@ -90,6 +76,18 @@ class Navigation(private val activity: Activity, private val siteHost: String?) 
         } catch (e: ActivityNotFoundException) {
             Log.w(TAG, "No app to open $uri")
         }
+    }
+
+    /** A Custom Tab over the app, its toolbar the site's ground; throws when there is no browser. */
+    private fun openInCustomTab(uri: Uri, toolbarColor: Color?) {
+        val colors = CustomTabColorSchemeParams.Builder()
+            .apply { toolbarColor?.let { setToolbarColor(it.toArgb()) } }
+            .build()
+        CustomTabsIntent.Builder()
+            .setShowTitle(true)
+            .setDefaultColorSchemeParams(colors)
+            .build()
+            .launchUrl(activity, uri)
     }
 
     private companion object {
