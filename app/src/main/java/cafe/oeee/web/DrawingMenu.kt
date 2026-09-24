@@ -46,12 +46,8 @@ import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.withContext
-import okhttp3.Cookie
-import okhttp3.CookieJar
-import okhttp3.HttpUrl
-import okhttp3.OkHttpClient
-import okhttp3.Request
-import java.util.concurrent.TimeUnit
+import java.net.HttpURLConnection
+import java.net.URL
 
 /**
  * What a long press on a drawing opens: the drawing itself, and what the gallery offers for
@@ -59,19 +55,11 @@ import java.util.concurrent.TimeUnit
  * app's DrawingMenu does; the site lets the press through only on drawings.
  */
 object DrawingMenu {
-    private val client by lazy {
-        OkHttpClient.Builder()
-            .connectTimeout(10, TimeUnit.SECONDS)
-            .readTimeout(20, TimeUnit.SECONDS)
-            // Signed in as the page is, as the web view's own request for the drawing was: an
-            // image the site serves only to someone signed in would otherwise not come.
-            .cookieJar(WebViewCookieJar())
-            .build()
-    }
-
     /**
      * A pressed drawing: what the page said at once, and the file, which follows -- fetched
-     * as the web view would fetch it, with its user agent and from the page it is on.
+     * as the web view would fetch it, with its user agent and from the page it is on. No
+     * cookies go with it: a drawing is on the public image store (r2_public_endpoint_url in
+     * oeee-cafe/web), and only a drawing that is not sensitive can be pressed at all.
      */
     class Drawing(
         val src: String,
@@ -94,15 +82,20 @@ object DrawingMenu {
         suspend fun file(scope: CoroutineScope): SiteFile? = load(scope).await()
 
         private fun fetch(): SiteFile? = try {
-            val request = Request.Builder().url(src)
-                .header("User-Agent", userAgent)
-                .apply { if (referrer != null) header("Referer", referrer) }
-                .build()
-            client.newCall(request).execute().use { response ->
-                if (!response.isSuccessful) return null
-                val body = response.body
-                val type = imageType(body.contentType()?.let { "${it.type}/${it.subtype}" })
-                SiteFile(body.bytes(), type, MediaFiles.nameFor(src, type))
+            val connection = URL(src).openConnection() as HttpURLConnection
+            try {
+                connection.connectTimeout = 10_000
+                connection.readTimeout = 20_000
+                connection.setRequestProperty("User-Agent", userAgent)
+                if (referrer != null) connection.setRequestProperty("Referer", referrer)
+                if (connection.responseCode !in 200..299) return null
+                // The media type alone, as `type/subtype`, without its parameters.
+                val served = connection.contentType?.substringBefore(';')?.trim()?.lowercase()
+                val type = imageType(served)
+                val bytes = connection.inputStream.use { it.readBytes() }
+                SiteFile(bytes, type, MediaFiles.nameFor(src, type))
+            } finally {
+                connection.disconnect()
             }
         } catch (e: Exception) {
             null
@@ -205,23 +198,4 @@ private fun SheetAction(icon: ImageVector, label: String, onClick: () -> Unit) {
         colors = ListItemDefaults.colors(containerColor = Color.Transparent),
         modifier = Modifier.clickable(onClick = onClick)
     )
-}
-
-/**
- * Sends the web view's cookies with a request the app makes itself, so it is signed in as
- * whoever is signed in on the site: a drawing fetched for its menu.
- */
-private class WebViewCookieJar : CookieJar {
-    private val cookieManager get() = android.webkit.CookieManager.getInstance()
-
-    override fun saveFromResponse(url: HttpUrl, cookies: List<Cookie>) {
-        for (cookie in cookies) {
-            cookieManager.setCookie(url.toString(), cookie.toString())
-        }
-    }
-
-    override fun loadForRequest(url: HttpUrl): List<Cookie> {
-        val header = cookieManager.getCookie(url.toString()) ?: return emptyList()
-        return header.split(";").mapNotNull { Cookie.parse(url, it.trim()) }
-    }
 }

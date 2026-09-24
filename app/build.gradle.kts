@@ -90,8 +90,6 @@ dependencies {
 
     // The bridge's messages
     implementation(libs.moshi)
-    // A drawing fetched for its menu
-    implementation(libs.okhttp)
 
     // Firebase
     implementation(platform(libs.firebase.bom))
