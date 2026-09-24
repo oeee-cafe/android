@@ -103,7 +103,6 @@ class OeeeCafeMessagingService : FirebaseMessagingService() {
             .setContentText(body)
             .setAutoCancel(true)
             .setContentIntent(pendingIntent)
-            .setPriority(NotificationCompat.PRIORITY_DEFAULT)
             .setNumber(data["badge"]?.toIntOrNull() ?: 0)
 
         getSystemService(NotificationManager::class.java).notify(notificationId, notificationBuilder.build())
