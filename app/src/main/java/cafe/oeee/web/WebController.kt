@@ -44,7 +44,8 @@ class WebController(
     private val onSignedIn: (Boolean) -> Unit,
     private val onRenderProcessGone: () -> Unit
 ) : DrawingActions, SiteBridge.Listener {
-    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
+    /** For work that outlives a composable, such as fetching the drawing its menu shows. */
+    val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
     private val siteOrigin: String = SiteBridge.origin(Uri.parse(Site.BASE_URL))
     private val navigation = Navigation(activity, Uri.parse(Site.BASE_URL).host)
     private val dialogs = SiteDialogs(activity) { words }
@@ -57,6 +58,9 @@ class WebController(
 
     /** Who the page shown last said is signed in, or null until one could tell. */
     private var lastSignedIn: Boolean? = null
+
+    /** Whether the web view has loaded anything yet, and so has any history to save. */
+    private var hasLoaded = false
 
     val webView = WebView(activity)
 
@@ -96,10 +100,6 @@ class WebController(
     var words by mutableStateOf<BridgeMessage.Words?>(null)
         private set
 
-    /** Whether the web view has loaded anything yet. */
-    var hasLoaded by mutableStateOf(false)
-        private set
-
     /** Whether the page asked for could not be reached (Unreachable.kt shows so over it). */
     var isUnreachable by mutableStateOf(false)
         private set
@@ -110,9 +110,6 @@ class WebController(
 
     /** The drawing whose menu is open (DrawingSheet); null when none is. */
     var drawingMenu by mutableStateOf<DrawingMenu.Drawing?>(null)
-
-    /** For work that outlives a composable, such as fetching the drawing its menu shows. */
-    val coroutineScope: CoroutineScope get() = scope
 
     init {
         webView.settings.apply {

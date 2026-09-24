@@ -42,7 +42,7 @@ fun WebScreen(controller: WebController) {
     controller.drawingMenu?.let { drawing ->
         DrawingSheet(
             drawing = drawing,
-            scope = controller.coroutineScope,
+            scope = controller.scope,
             actions = controller,
             words = controller.words,
             onDismiss = { controller.drawingMenu = null }
