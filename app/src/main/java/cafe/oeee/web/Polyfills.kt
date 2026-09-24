@@ -13,11 +13,9 @@ object Polyfills {
         val data = download.data
         val comma = data.indexOf(',')
         val header = data.substring(0, comma)
-        val bytes = if (header.endsWith(";base64")) {
-            Base64.decode(data.substring(comma + 1), Base64.DEFAULT)
-        } else {
-            java.net.URLDecoder.decode(data.substring(comma + 1), "UTF-8").toByteArray()
-        }
+        // The page reads every file with readAsDataURL, which always writes base64.
+        require(header.endsWith(";base64")) { "Not base64: $header" }
+        val bytes = Base64.decode(data.substring(comma + 1), Base64.DEFAULT)
         val type = header.removePrefix("data:").substringBefore(';').ifEmpty { "application/octet-stream" }
         val name = download.name.takeIf { it.isNotBlank() && it.contains('.') }
             ?: MediaFiles.nameFor(download.name.ifBlank { "oeee-cafe" }, type)
