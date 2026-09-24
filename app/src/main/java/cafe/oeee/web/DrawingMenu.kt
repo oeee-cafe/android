@@ -12,11 +12,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ContentCopy
-import androidx.compose.material.icons.filled.Download
-import androidx.compose.material.icons.filled.Link
-import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ListItem
@@ -41,6 +36,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import cafe.oeee.R
+import cafe.oeee.ui.AppIcons
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Dispatchers
@@ -179,12 +175,12 @@ fun DrawingSheet(
             val save = words?.saveImage ?: stringResource(R.string.drawing_save)
             val copy = words?.copyImage ?: stringResource(R.string.drawing_copy)
             val share = words?.share ?: stringResource(R.string.drawing_share)
-            SheetAction(Icons.Filled.Download, save, then(actions::save))
-            SheetAction(Icons.Filled.ContentCopy, copy, then(actions::copy))
-            SheetAction(Icons.Filled.Share, share, then(actions::share))
+            SheetAction(AppIcons.Download, save, then(actions::save))
+            SheetAction(AppIcons.ContentCopy, copy, then(actions::copy))
+            SheetAction(AppIcons.Share, share, then(actions::share))
             if (drawing.link != null) {
                 val copyLink = words?.copyLink ?: stringResource(R.string.drawing_copy_link)
-                SheetAction(Icons.Filled.Link, copyLink, then(actions::copyLink))
+                SheetAction(AppIcons.Link, copyLink, then(actions::copyLink))
             }
         }
     }
