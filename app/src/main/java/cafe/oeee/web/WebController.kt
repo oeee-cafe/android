@@ -48,7 +48,9 @@ class WebController(
     val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
     private val siteOrigin: String = SiteBridge.origin(Uri.parse(Site.BASE_URL))
     private val navigation = Navigation(activity, Uri.parse(Site.BASE_URL).host)
-    private val dialogs = SiteDialogs(activity) { words }
+    private val dialogs = SiteDialogs(activity, words = { words }, dark = { isDark })
+    private val look = SiteLook(activity)
+    private val opensDark = look.opensDark(activity.resources.configuration)
 
     /** The drawing a finger last landed on, if it landed on one (BridgeMessage.Pressed). */
     private var pressedDrawing: DrawingMenu.Drawing? = null
@@ -88,13 +90,21 @@ class WebController(
 
     /**
      * The site's ground and the grid ruled on it (--ds-ground and --ds-grid), for what the
-     * app draws where the page does not reach; null until a page has said, and then the last
-     * that said, since a page without the design system says nothing about it.
+     * app draws where the page does not reach: the last a page said, since a page without the
+     * design system says nothing about it, and before any has, what the last one said when
+     * the app was last open (SiteLook).
      */
-    var ground by mutableStateOf<Color?>(null)
+    var ground by mutableStateOf(look.ground(opensDark))
         private set
-    var grid by mutableStateOf<Color?>(null)
+    var grid by mutableStateOf(look.grid(opensDark))
         private set
+
+    /**
+     * Whether the site is in its dark look, as the reader chose it in the toolbar or as the
+     * system has it: what the app's own sheets and dialogs over it follow, rather than the
+     * system's setting, which is not what the page shows when the reader picked the other.
+     */
+    val isDark: Boolean get() = SiteLook.isDark(ground)
 
     /**
      * What the app says over the page, in the page's language (BridgeMessage.Words); null
@@ -120,6 +130,9 @@ class WebController(
             domStorageEnabled = true
             userAgentString = "$userAgentString ${Site.USER_AGENT_SUFFIX}"
         }
+        // What shows before a page paints, in place of the web view's white: on a cold start
+        // and after the renderer died, which is a new web view with nothing painted yet.
+        webView.setBackgroundColor(ground.toArgb())
         webView.webViewClient = Client()
         webView.webChromeClient = ChromeClient(fileChooser)
         webView.setDownloadListener { url, userAgent, contentDisposition, mimeType, _ ->
@@ -231,9 +244,9 @@ class WebController(
                 handPushToken()
             }
             is BridgeMessage.Theme -> {
+                look.remember(message)
                 message.ground?.let {
                     ground = it
-                    // What shows before a page paints, in place of the web view's white.
                     webView.setBackgroundColor(it.toArgb())
                 }
                 message.grid?.let { grid = it }

@@ -9,7 +9,6 @@ import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -51,7 +50,7 @@ fun WebScreen(controller: WebController) {
 
     // The status bar and the system's navigation bar take the site's ground, which is what
     // the page has at both its edges, with icons that read on it.
-    val barColor = controller.ground ?: MaterialTheme.colorScheme.background
+    val barColor = controller.ground
     val barIsLight = barColor.luminance() > 0.5f
     val view = LocalView.current
     LaunchedEffect(barIsLight) {

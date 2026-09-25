@@ -111,7 +111,8 @@ class MainActivity : ComponentActivity() {
         if (savedInstanceState == null) intent?.let { openPageFrom(it) }
 
         setContent {
-            OeeeCafeTheme {
+            // The app's own sheets and dialogs in the site's look, not the system's.
+            OeeeCafeTheme(darkTheme = web.value.isDark) {
                 WebScreen(web.value)
             }
         }

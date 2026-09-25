@@ -30,11 +30,14 @@ sealed interface BridgeMessage {
     /**
      * The design system's ground -- what the page has at both its edges, so the bars are drawn
      * in it -- and the grid ruled on it every 14px, for what the app draws where the page does
-     * not reach.
+     * not reach. And the look the reader picked in the site's toolbar, which the app opens in
+     * before a page has said anything (SiteLook).
      */
     data class Theme(
         val ground: Color?,
-        val grid: Color?
+        val grid: Color?,
+        /** "light" or "dark"; null for the system's, which is what "system" says. */
+        val choice: String? = null
     ) : BridgeMessage
 
     /**
@@ -128,7 +131,8 @@ sealed interface BridgeMessage {
                 )
                 "theme" -> Theme(
                     ground = parseCssColor(message.string("ground")),
-                    grid = parseCssColor(message.string("grid"))
+                    grid = parseCssColor(message.string("grid")),
+                    choice = message.string("choice")?.takeIf { it == "light" || it == "dark" }
                 )
                 "words" -> Words(
                     leaveTitle = message.word("leaveTitle"),

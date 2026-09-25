@@ -3,7 +3,6 @@ package cafe.oeee.web
 import android.app.Activity
 import android.app.AlertDialog
 import android.content.Context
-import android.content.res.Configuration
 import android.webkit.JsResult
 import androidx.annotation.StringRes
 import cafe.oeee.R
@@ -14,11 +13,14 @@ import cafe.oeee.R
  * site's, in the page's language (BridgeMessage.Words), so every app words it alike. The
  * site asks everything else in its own dialog.
  */
-class SiteDialogs(private val activity: Activity, private val words: () -> BridgeMessage.Words?) {
+class SiteDialogs(
+    private val activity: Activity,
+    private val words: () -> BridgeMessage.Words?,
+    /** Whether the site is in its dark look, which the dialog wears over it (WebController.isDark). */
+    private val dark: () -> Boolean
+) {
     private fun builder(): AlertDialog.Builder {
-        val night = activity.resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK ==
-            Configuration.UI_MODE_NIGHT_YES
-        val theme = if (night) android.R.style.Theme_DeviceDefault_Dialog_Alert
+        val theme = if (dark()) android.R.style.Theme_DeviceDefault_Dialog_Alert
         else android.R.style.Theme_DeviceDefault_Light_Dialog_Alert
         return AlertDialog.Builder(activity, theme)
     }

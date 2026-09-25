@@ -60,7 +60,8 @@ class AppContractTest {
             // A colour the page says is one the app can read.
             if (m.string("ground") != null) assertNotNull("ground ${m["ground"]}", ground)
             if (m.string("grid") != null) assertNotNull("grid ${m["grid"]}", grid)
-            BridgeMessage.Theme(ground = ground, grid = grid)
+            val choice = m.string("choice")?.takeIf { it == "light" || it == "dark" }
+            BridgeMessage.Theme(ground = ground, grid = grid, choice = choice)
         },
         "words" to { m ->
             BridgeMessage.Words(

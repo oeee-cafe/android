@@ -6,8 +6,9 @@
          pale to read on a light shade (1.2:1) and the rim too dark on a dark one (2.2 to
          2.6:1); this reads at 3.4 to 4.2:1 on either. -->
     <color name="notification_accent">#FF4F8A10</color>
-    <!-- The window's ground before a page paints, on Android 8 to 11 (themes.xml); from 12 the
-         system's own neutrals stand in (values-v31, values-night-v31). Material's neutral 95 and 10. -->
-    <color name="window_ground_light">#FFF4EFF4</color>
-    <color name="window_ground_dark">#FF1C1B1F</color>
+    <!-- The window's ground before the app draws, and behind the launch icon from Android 12
+         (themes.xml): the site's own ground, from ds.css (oeee-cafe/web), light and dark.
+         Once running, the app paints the ground the pages last said (SiteLook). -->
+    <color name="window_ground_light">#FFCCCCFF</color>
+    <color name="window_ground_dark">#FF17172B</color>
 </resources>

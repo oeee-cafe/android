@@ -19,6 +19,7 @@ class BridgeMessageTest {
         ) as BridgeMessage.Theme
         assertEquals(Color(204, 204, 255), message.ground)
         assertEquals(Color(187, 187, 255), message.grid)
+        assertEquals("light", message.choice)
         // A page without the design system's stylesheet has neither, and a build of the site
         // from before them says nothing at all.
         val none = BridgeMessage.parse(
@@ -28,6 +29,19 @@ class BridgeMessageTest {
         assertNull(none.grid)
         val older = BridgeMessage.parse("""{"v":1,"type":"theme","choice":"dark","dark":true}""") as BridgeMessage.Theme
         assertNull(older.ground)
+    }
+
+    @Test
+    fun theSystemsLookIsNoChoice() {
+        // "system" leaves it to the device, and so does anything the app does not know.
+        for (choice in listOf("\"system\"", "\"sepia\"", "null", "1")) {
+            val message = BridgeMessage.parse(
+                """{"v":1,"type":"theme","choice":$choice,"ground":"#17172b"}"""
+            ) as BridgeMessage.Theme
+            assertNull(choice, message.choice)
+        }
+        val dark = BridgeMessage.parse("""{"v":1,"type":"theme","choice":"dark"}""") as BridgeMessage.Theme
+        assertEquals("dark", dark.choice)
     }
 
     @Test
