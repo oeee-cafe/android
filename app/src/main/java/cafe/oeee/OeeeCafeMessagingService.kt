@@ -64,10 +64,12 @@ class OeeeCafeMessagingService : FirebaseMessagingService() {
     override fun onMessageReceived(remoteMessage: RemoteMessage) {
         super.onMessageReceived(remoteMessage)
         // What a notification says is the reader's own business, so none of it is logged.
-        // The site sends every push with a notification (src/push/fcm.rs in oeee-cafe/web).
+        // The site sends every push with a notification but one: the number on the bell alone,
+        // when it falls (src/push/fcm.rs in oeee-cafe/web).
         val notification = remoteMessage.notification
         if (notification == null) {
-            Log.d(TAG, "Not a notification")
+            val badge = remoteMessage.data["badge"]?.toIntOrNull()
+            if (badge != null) badgeFell(badge) else Log.d(TAG, "Not a notification")
             return
         }
         showNotification(
@@ -75,6 +77,17 @@ class OeeeCafeMessagingService : FirebaseMessagingService() {
             body = notification.body ?: "",
             data = remoteMessage.data
         )
+    }
+
+    /**
+     * The launcher's badge is the app's notifications on show, so with nothing left unread --
+     * everything read on the site, here or anywhere else -- they come down, and the badge with
+     * them. A number above nothing leaves them: which of them were read, the site does not say.
+     */
+    private fun badgeFell(count: Int) {
+        if (count == 0) {
+            getSystemService(NotificationManager::class.java).cancelAll()
+        }
     }
 
     private fun showNotification(title: String, body: String, data: Map<String, String>) {
