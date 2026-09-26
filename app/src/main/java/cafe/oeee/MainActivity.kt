@@ -98,8 +98,10 @@ class MainActivity : ComponentActivity() {
             navigationBarStyle = SystemBarStyle.light(Color.TRANSPARENT, Color.TRANSPARENT)
         )
 
-        // It is a setting of the whole process, not of any one web view.
-        if (BuildConfig.DEBUG) WebView.setWebContentsDebuggingEnabled(true)
+        // It is a setting of the whole process, not of any one web view. On in release
+        // builds too: a bug in the painter shows on the installed app, in whatever state
+        // the reader got it into, and chrome://inspect is how that state is read.
+        WebView.setWebContentsDebuggingEnabled(true)
         // Where the reader was when the system stopped the app, or else the site's first page.
         web = mutableStateOf(makeWebView(savedInstanceState?.getBundle(STATE_KEY)))
         connectivity = Connectivity(this) {
