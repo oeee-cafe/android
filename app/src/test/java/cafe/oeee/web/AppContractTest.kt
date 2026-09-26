@@ -158,7 +158,7 @@ class AppContractTest {
     fun everyOtherMessageIsIgnored() {
         val others = messages.keys().asSequence().toList().filter { it !in expected }
         // The ones this app is known to have no use for, so the test is seen to be testing.
-        assertTrue(others.containsAll(listOf("unread", "painter", "window", "caption")))
+        assertTrue(others.containsAll(listOf("unread", "painter", "window", "caption", "password")))
         for (type in others) {
             for (example in examples(type)) {
                 assertNull("$type: $example", parse(example))
