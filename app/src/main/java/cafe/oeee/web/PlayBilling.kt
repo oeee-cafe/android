@@ -34,7 +34,10 @@ import kotlinx.coroutines.launch
  *
  * Until then Play still lists it unacknowledged, so whenever /supporter asks for prices,
  * those are handed over again, unasked -- a sale whose page went away before the site heard
- * of it, or one the site could not reach Google about. Each token only once a run of the
+ * of it, or one the site could not reach Google about -- and so they are as a page first says
+ * someone is signed in, and as the app comes back to the front ([handUnfinished]): a sale
+ * paid for later, in cash or by a parent, while the app was closed, would otherwise wait for
+ * the reader to open /supporter, and be refunded if they did not within the three days. Each token only once a run of the
  * app: Play's own list can lag behind an acknowledgement, and the page reloads after every
  * token the site takes, so handing the same one over on every load would never stop.
  */
@@ -102,10 +105,24 @@ class PlayBilling(
                 product.oneTimePurchaseOfferDetails?.formattedPrice?.let { product.productId to it }
             }.toMap()
             evaluate(PageScripts.storePrices(prices))
-
-            val unfinished = owned().filter { !it.isAcknowledged && it.purchaseToken !in handedOver }
-            if (unfinished.isNotEmpty()) handOver(unfinished)
+            handOverUnfinished()
         }
+    }
+
+    /**
+     * Any sale the site has not yet taken, unasked, to whatever page of the site is showing:
+     * only /supporter reloads once the site has taken it (app_store.jinja), so this may come
+     * mid-drawing.
+     */
+    fun handUnfinished() {
+        scope.launch {
+            if (ready()) handOverUnfinished()
+        }
+    }
+
+    private suspend fun handOverUnfinished() {
+        val unfinished = owned().filter { !it.isAcknowledged && it.purchaseToken !in handedOver }
+        if (unfinished.isNotEmpty()) handOver(unfinished)
     }
 
     /** The page's `purchase`: Play's own sheet, for [product]. */

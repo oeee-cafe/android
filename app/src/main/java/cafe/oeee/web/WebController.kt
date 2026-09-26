@@ -220,6 +220,8 @@ class WebController(
      */
     fun resumed() {
         signInHandoff.resume()
+        // A sale paid for later, while the app was away, is Play's to tell of here.
+        if (lastSignedIn == true) handUnfinished()
     }
 
     fun load(url: String) {
@@ -245,6 +247,7 @@ class WebController(
             is BridgeMessage.Page -> {
                 refreshable = message.refreshable
                 message.signedIn?.let {
+                    if (it && lastSignedIn != true) handUnfinished()
                     lastSignedIn = it
                     onSignedIn(it)
                 }
@@ -272,6 +275,17 @@ class WebController(
             is BridgeMessage.Purchase -> playBilling.purchase(message.product)
             BridgeMessage.Restore -> playBilling.restore()
         }
+    }
+
+    /**
+     * Hands the site any sale it has not taken (PlayBilling.handUnfinished) -- as a page first
+     * says someone is signed in, who is who the site records it for, and as the app comes back
+     * to the front. Not on /supporter, which hands them over itself as it asks for prices, so
+     * that they are not handed twice.
+     */
+    private fun handUnfinished() {
+        if (webView.url?.let { Uri.parse(it).path } == "/supporter") return
+        playBilling.handUnfinished()
     }
 
     /**
