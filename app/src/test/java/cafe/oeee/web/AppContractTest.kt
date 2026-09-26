@@ -61,7 +61,9 @@ class AppContractTest {
             if (m.string("ground") != null) assertNotNull("ground ${m["ground"]}", ground)
             if (m.string("grid") != null) assertNotNull("grid ${m["grid"]}", grid)
             val choice = m.string("choice")?.takeIf { it == "light" || it == "dark" }
-            BridgeMessage.Theme(ground = ground, grid = grid, choice = choice)
+            val toolbar = parseCssColor(m.string("toolbar"))
+            if (m.string("toolbar") != null) assertNotNull("toolbar ${m["toolbar"]}", toolbar)
+            BridgeMessage.Theme(ground = ground, grid = grid, choice = choice, toolbar = toolbar)
         },
         "words" to { m ->
             BridgeMessage.Words(

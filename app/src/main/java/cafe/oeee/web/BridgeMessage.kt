@@ -37,7 +37,12 @@ sealed interface BridgeMessage {
         val ground: Color?,
         val grid: Color?,
         /** "light" or "dark"; null for the system's, which is what "system" says. */
-        val choice: String? = null
+        val choice: String? = null,
+        /**
+         * The toolbar's own ground (--ds-toolbar), which the status bar is drawn in so the two
+         * read as one bar; null where the page does not say.
+         */
+        val toolbar: Color? = null
     ) : BridgeMessage
 
     /**
@@ -132,7 +137,8 @@ sealed interface BridgeMessage {
                 "theme" -> Theme(
                     ground = parseCssColor(message.string("ground")),
                     grid = parseCssColor(message.string("grid")),
-                    choice = message.string("choice")?.takeIf { it == "light" || it == "dark" }
+                    choice = message.string("choice")?.takeIf { it == "light" || it == "dark" },
+                    toolbar = parseCssColor(message.string("toolbar"))
                 )
                 "words" -> Words(
                     leaveTitle = message.word("leaveTitle"),

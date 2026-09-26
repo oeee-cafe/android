@@ -4,7 +4,12 @@ import android.os.Build
 import android.view.ViewGroup
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.LocalActivity
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.statusBars
+import androidx.compose.foundation.layout.windowInsetsTopHeight
 import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.imePadding
@@ -48,18 +53,23 @@ fun WebScreen(controller: WebController) {
         )
     }
 
-    // The status bar and the system's navigation bar take the site's ground, which is what
-    // the page has at both its edges, with icons that read on it.
+    // The status bar takes the toolbar's ground, which is what the page has at its top, and
+    // the system's navigation bar the site's ground, which is what it has at its bottom --
+    // each with icons that read on it. The two are one colour today; a toolbar of its own
+    // colour under a status bar of the page's would show a seam across the screen.
     val barColor = controller.ground
+    val topColor = controller.toolbar ?: barColor
     val barIsLight = barColor.luminance() > 0.5f
+    val topIsLight = topColor.luminance() > 0.5f
     val view = LocalView.current
-    LaunchedEffect(barIsLight) {
+    LaunchedEffect(topIsLight, barIsLight) {
         WindowCompat.getInsetsController(activity.window, view).apply {
-            isAppearanceLightStatusBars = barIsLight
+            isAppearanceLightStatusBars = topIsLight
             isAppearanceLightNavigationBars = barIsLight
         }
     }
 
+    Box(modifier = Modifier.fillMaxSize()) {
     Scaffold(containerColor = barColor) { innerPadding ->
         Box(
             modifier = Modifier
@@ -77,6 +87,13 @@ fun WebScreen(controller: WebController) {
                 )
             }
         }
+    }
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .windowInsetsTopHeight(WindowInsets.statusBars)
+            .background(topColor)
+    )
     }
 }
 

@@ -100,6 +100,13 @@ class WebController(
         private set
 
     /**
+     * The toolbar's ground (--ds-toolbar), which the status bar is drawn in: the last a page
+     * said, or null before one has, and the ground stands in.
+     */
+    var toolbar by mutableStateOf<Color?>(null)
+        private set
+
+    /**
      * Whether the site is in its dark look, as the reader chose it in the toolbar or as the
      * system has it: what the app's own sheets and dialogs over it follow, rather than the
      * system's setting, which is not what the page shows when the reader picked the other.
@@ -250,6 +257,7 @@ class WebController(
                     webView.setBackgroundColor(it.toArgb())
                 }
                 message.grid?.let { grid = it }
+                message.toolbar?.let { toolbar = it }
             }
             is BridgeMessage.Words -> words = message
             is BridgeMessage.Haptic -> hapticFeedback(message.name)?.let { webView.performHapticFeedback(it) }
