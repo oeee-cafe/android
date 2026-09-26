@@ -15,7 +15,7 @@ android {
         applicationId = "cafe.oeee"
         minSdk = 26
         targetSdk = 36
-        versionCode = 17
+        versionCode = 18
         versionName = "1.3.1"
 
         // The site's own Web application OAuth client id, which Credential Manager is
