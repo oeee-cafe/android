@@ -55,10 +55,12 @@
 
             <!-- The app's own scheme, all of it. Coming back from a sign-in done in a
                  browser is what uses it today (oeee-cafe://handoff/done, SignInHandoff):
-                 the site sends the browser there once the provider has answered, and the
-                 only thing it is for is bringing this activity forward. singleTask hands
-                 it to onNewIntent, onResume follows, and the page asks the site at once
-                 (MainActivity.onResume).
+                 the site sends the browser there once the provider has answered, with the
+                 handoff's code (?code=, 64 lowercase hex digits), to bring this activity
+                 forward. singleTask hands it to onNewIntent, onResume follows, and the
+                 page finishes the sign-in with the code at once (MainActivity.onResume).
+                 The code is the one thing taken from it, and only in that shape
+                 (PageScripts.signInResume); otherwise the page just asks the site again.
 
                  Nothing is loaded from any of it. OpenedFrom opens a page for https
                  links to the site and for nothing else, so a URL of this scheme

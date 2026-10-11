@@ -1,5 +1,6 @@
 package cafe.oeee.web
 
+import android.content.Intent
 import android.net.Uri
 import android.util.Log
 import android.webkit.WebView
@@ -14,9 +15,11 @@ import android.webkit.WebView
  * has finished (app_sign_in.jinja and src/handoff.rs in oeee-cafe/web). The page starts it
  * itself, on the press of the site's button; the app never sees the link.
  *
- * The app's whole part is opening a browser. It never holds the session and never sees the
- * secret that claims the handoff; the page does every request, so each carries the page's
- * cookie and origin.
+ * The app's part is opening a browser and, when the site sends the browser back to
+ * oeee-cafe://handoff/done?code=..., passing that code to the page as it stands, if it is
+ * the 64 lowercase hex digits the site makes (PageScripts.signInResume). It never holds the
+ * session and never sends anything to the site itself; the page does every request, so each
+ * carries the page's cookie and origin.
  *
  * The browser has to be a Custom Tab. `assetlinks.json` asks for `handle_all_urls` and the
  * manifest claims every oeee.cafe URL with no path filter, so a plain ACTION_VIEW for the
@@ -27,9 +30,26 @@ class SignInHandoff(
     private val webView: WebView,
     private val openInBrowser: (Uri) -> Boolean
 ) {
-    /** Back in front, probably from the browser: the page asks the site again at once. */
+    /** The code the site's way back said ([returned]), until the app is in front to hand it over. */
+    private var returnedCode: String? = null
+
+    /**
+     * The browser came back by oeee-cafe://handoff/done, saying [code] or nothing. The
+     * activity is resumed right after, and [resume] hands it over then, once.
+     */
+    fun returned(code: String?) {
+        returnedCode = code
+    }
+
+    /**
+     * Back in front, probably from the browser: the page asks the site again at once, with
+     * the code the site's way back said if it said one ([PageScripts.signInResume]). Back
+     * any other way, the Custom Tab closed by hand, say, the page is asked with nothing.
+     */
     fun resume() {
-        webView.evaluateJavascript(PageScripts.SIGN_IN_RESUME, null)
+        val code = returnedCode
+        returnedCode = null
+        webView.evaluateJavascript(PageScripts.signInResume(code), null)
     }
 
     /** The page's `browse`: the site's own URL, opened in a browser, or the page told it was not. */
@@ -45,7 +65,22 @@ class SignInHandoff(
     private fun siteUrl(url: String): Uri? =
         Uri.parse(url).takeIf { it.scheme == "https" && it.host == Uri.parse(webView.url ?: "").host }
 
-    private companion object {
-        const val TAG = "SignInHandoff"
+    companion object {
+        private const val TAG = "SignInHandoff"
+
+        /**
+         * Whether [intent] is the browser coming back by the site's way back,
+         * oeee-cafe://handoff/done; if it is, the `code` it says, as said (null for none),
+         * for [PageScripts.signInResume] to take or leave.
+         */
+        fun returnedFrom(intent: Intent): Returned? {
+            if (intent.action != Intent.ACTION_VIEW) return null
+            val uri = intent.data ?: return null
+            if (uri.scheme != "oeee-cafe" || uri.host != "handoff" || uri.path != "/done") return null
+            return Returned(uri.getQueryParameter("code"))
+        }
     }
+
+    /** The browser came back by oeee-cafe://handoff/done, saying [code] or not. */
+    class Returned(val code: String?)
 }

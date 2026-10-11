@@ -24,6 +24,7 @@ import cafe.oeee.data.service.PushNotificationService
 import cafe.oeee.ui.theme.OeeeCafeTheme
 import cafe.oeee.web.Connectivity
 import cafe.oeee.web.FileChooser
+import cafe.oeee.web.SignInHandoff
 import cafe.oeee.web.Site
 import cafe.oeee.web.StoragePermission
 import cafe.oeee.web.WebController
@@ -142,6 +143,12 @@ class MainActivity : ComponentActivity() {
 
     private fun openPageFrom(intent: Intent) {
         if (intent.flags and Intent.FLAG_ACTIVITY_LAUNCHED_FROM_HISTORY != 0) return
+        // Back from a sign-in in a browser: no page to open, but the code it says is for
+        // the page, which onResume, coming next, hands it to.
+        SignInHandoff.returnedFrom(intent)?.let {
+            web.value.signInReturned(it.code)
+            return
+        }
         val path = OpenedFrom.path(intent) ?: return
         web.value.load(Site.BASE_URL + path)
     }

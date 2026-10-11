@@ -224,6 +224,14 @@ class WebController(
         if (lastSignedIn == true) handUnfinished()
     }
 
+    /**
+     * The browser came back by the site's way back, saying [code] or not: handed to the page
+     * when the app is resumed, which follows at once (SignInHandoff.returned).
+     */
+    fun signInReturned(code: String?) {
+        signInHandoff.returned(code)
+    }
+
     fun load(url: String) {
         hasLoaded = true
         webView.loadUrl(url)

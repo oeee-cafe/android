@@ -202,6 +202,7 @@ class AppContractTest {
         PageScripts.signInAnswer(GoogleSignInMessages.CANCELLED),
         PageScripts.signInAnswer(GoogleSignInMessages.FAILED),
         PageScripts.SIGN_IN_RESUME,
+        PageScripts.signInResume("0123456789abcdef".repeat(4)),
         PageScripts.SIGN_IN_UNOPENED,
         PageScripts.storePrices(mapOf("supporter_pack_2026" to "₩5,500")),
         PageScripts.storePurchased(listOf("token")),

@@ -30,6 +30,22 @@ object PageScripts {
     /** Back in front, probably from the browser: the page asks the site again at once. */
     const val SIGN_IN_RESUME = "window.oeeeApp && window.oeeeApp.signIn && window.oeeeApp.signIn.resume();"
 
+    /**
+     * Back from the browser by the site's own way back, oeee-cafe://handoff/done, which says
+     * the handoff's code: the page finishes the sign-in with it. Only a code the site could
+     * have made, exactly 64 lowercase hex digits, is handed over. The scheme is anyone's to
+     * open, so anything else a link of it says is kept out of the page, which is only asked
+     * again, as when the reader comes back any other way or from a site that says no code.
+     */
+    fun signInResume(code: String?): String =
+        if (code != null && HANDOFF_CODE.matches(code)) {
+            "window.oeeeApp && window.oeeeApp.signIn && window.oeeeApp.signIn.resume(${JSONObject.quote(code)});"
+        } else {
+            SIGN_IN_RESUME
+        }
+
+    private val HANDOFF_CODE = Regex("^[0-9a-f]{64}$")
+
     /** The price of each product /supporter asked about, as the store formats it. */
     fun storePrices(prices: Map<String, String>): String =
         "window.oeeeApp && window.oeeeApp.store && window.oeeeApp.store.prices && window.oeeeApp.store.prices(${JSONObject(prices)});"
