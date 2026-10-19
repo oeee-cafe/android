@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The launcher icon's ground: the site's own, lavender with its grid by day and night blue
+     by night (ds.css in oeee-cafe/web), ten cells across the 72dp a launcher shows, each line
+     7% of a cell as the site's 1px is of its 14. The night grid is two steps brighter than the
+     site's so it holds at icon size. The slice is ic_launcher_foreground. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <path
+        android:fillColor="@color/launcher_ground"
+        android:pathData="M0,0H108V108H0Z" />
+    <path
+        android:fillColor="@color/launcher_grid"
+        android:pathData="M3.348,0H3.852V108H3.348Z M0,3.348H108V3.852H0Z M10.548,0H11.052V108H10.548Z M0,10.548H108V11.052H0Z M17.748,0H18.252V108H17.748Z M0,17.748H108V18.252H0Z M24.948,0H25.452V108H24.948Z M0,24.948H108V25.452H0Z M32.148,0H32.652V108H32.148Z M0,32.148H108V32.652H0Z M39.348,0H39.852V108H39.348Z M0,39.348H108V39.852H0Z M46.548,0H47.052V108H46.548Z M0,46.548H108V47.052H0Z M53.748,0H54.252V108H53.748Z M0,53.748H108V54.252H0Z M60.948,0H61.452V108H60.948Z M0,60.948H108V61.452H0Z M68.148,0H68.652V108H68.148Z M0,68.148H108V68.652H0Z M75.348,0H75.852V108H75.348Z M0,75.348H108V75.852H0Z M82.548,0H83.052V108H82.548Z M0,82.548H108V83.052H0Z M89.748,0H90.252V108H89.748Z M0,89.748H108V90.252H0Z M96.948,0H97.452V108H96.948Z M0,96.948H108V97.452H0Z M104.148,0H104.652V108H104.148Z M0,104.148H108V104.652H0Z" />
+</vector>

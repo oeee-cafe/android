@@ -110,7 +110,7 @@ class OeeeCafeMessagingService : FirebaseMessagingService() {
         )
 
         val notificationBuilder = NotificationCompat.Builder(this, CHANNEL_ID)
-            .setSmallIcon(R.mipmap.ic_launcher)
+            .setSmallIcon(R.drawable.ic_notification)
             .setColor(getColor(R.color.notification_accent))
             .setContentTitle(title)
             .setContentText(body)

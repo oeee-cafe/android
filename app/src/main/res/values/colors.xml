@@ -11,4 +11,8 @@
          Once running, the app paints the ground the pages last said (SiteLook). -->
     <color name="window_ground_light">#FFCCCCFF</color>
     <color name="window_ground_dark">#FF17172B</color>
+    <!-- The launcher icon's ground and grid (ic_launcher_background.xml), the site's own by day;
+         values-night has the night pair. -->
+    <color name="launcher_ground">#FFCCCCFF</color>
+    <color name="launcher_grid">#FFBBBBFF</color>
 </resources>

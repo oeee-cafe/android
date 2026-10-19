@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- The launcher icon by night: the site's night blue, with its grid two steps brighter than
+         the site's #22223F so it holds at icon size. -->
+    <color name="launcher_ground">#FF17172B</color>
+    <color name="launcher_grid">#FF36366A</color>
+</resources>
