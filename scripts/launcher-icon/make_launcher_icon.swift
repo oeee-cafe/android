@@ -5,12 +5,13 @@
 //
 //   swift scripts/launcher-icon/make_launcher_icon.swift   # needs macOS
 //
-// Writes drawable-nodpi/ic_launcher_foreground.png and its night twin, whose
-// shadow is darker for the night ground. The layer is 108dp, 432px here, of
-// which a launcher shows the middle 72dp; the slice is drawn 61.2dp across
-// (85% of what shows), and its own padding leaves it about 60% across, inside
-// the 66dp circle every mask keeps. Smaller than on iOS: Android's masks
-// crop harder.
+// Writes drawable-nodpi/ic_launcher_foreground.png, by day and by night
+// alike: Android draws no ground of its own behind an adaptive icon, as iOS
+// does for a dark one, and the site's night grid looked heavy. The layer is
+// 108dp, 432px here, of which a launcher shows the middle 72dp; the slice is
+// drawn 61.2dp across (85% of what shows), and its own padding leaves it
+// about 60% across, inside the 66dp circle every mask keeps. Smaller than on
+// iOS: Android's masks crop harder.
 //
 // slice.png beside this script is the 1024px slice on transparency, padding
 // and all, as in oeee-cafe-apple's scripts/app-icon/slice.png.
@@ -32,17 +33,16 @@ let sliceSource = CGImageSourceCreateWithURL(here.appendingPathComponent("slice.
 let slice = CGImageSourceCreateImageAtIndex(sliceSource, 0, nil)!
 let space = CGColorSpace(name: CGColorSpace.sRGB)!
 
-for (folder, shadow, opacity) in [("drawable-nodpi", UInt32(0x1c2811), 0.34),
-                                  ("drawable-night-nodpi", UInt32(0x000000), 0.6)] {
+do {
     let ctx = CGContext(data: nil, width: Int(size), height: Int(size), bitsPerComponent: 8,
                         bytesPerRow: 0, space: space,
                         bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue)!
     ctx.setShadow(offset: CGSize(width: 0, height: -markSize * 0.024),
-                  blur: markSize * 0.048, color: color(shadow, opacity))
+                  blur: markSize * 0.048, color: color(0x1c2811, 0.34))
     ctx.interpolationQuality = .high
     ctx.draw(slice, in: CGRect(x: (size - markSize) / 2, y: (size - markSize) / 2,
                                width: markSize, height: markSize))
-    let dir = res.appendingPathComponent(folder)
+    let dir = res.appendingPathComponent("drawable-nodpi")
     try FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
     let url = dir.appendingPathComponent("ic_launcher_foreground.png")
     let dest = CGImageDestinationCreateWithURL(url as CFURL, "public.png" as CFString, 1, nil)!

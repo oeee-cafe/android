@@ -1,8 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- The launcher icon's ground: the site's own, lavender with its grid by day and night blue
-     by night (ds.css in oeee-cafe/web), ten cells across the 72dp a launcher shows, each line
-     7% of a cell as the site's 1px is of its 14. The night grid is two steps brighter than the
-     site's so it holds at icon size. The slice is ic_launcher_foreground. -->
+<!-- The launcher icon's ground: the site's own lavender and grid (ds.css in oeee-cafe/web), by
+     day and by night alike, ten cells across the 72dp a launcher shows, each line 7% of a
+     cell as the site's 1px is of its 14. The slice is ic_launcher_foreground. -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="108dp"
     android:height="108dp"
